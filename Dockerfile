@@ -44,9 +44,9 @@ RUN git clone -b v1.6.1 https://github.com/google/benchmark.git \
  && rm -rf /tmp/*
 
 WORKDIR /tmp/
-COPY CMakeLists.txt /tmp/
-COPY include /tmp/include
+COPY . /tmp/
 RUN cmake . \
- && make install \
- && rm -rf /tmp/*
+ && make -j$(nproc)
+# && make install \
+# && rm -rf /tmp/*
 

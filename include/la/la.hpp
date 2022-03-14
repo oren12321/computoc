@@ -39,7 +39,6 @@ namespace la
 
         matrix<T, N, M, Allocator>& operator=(const matrix<T, N, M, Allocator>& other)
         {
-            std::cout << "copy assignment\n";
             if (this == &other)
             {
                 return *this;
