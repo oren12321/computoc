@@ -129,7 +129,8 @@ namespace la
             return _data[r * M + c];
         }
 
-        friend std::ostream& operator<<(std::ostream& os, const la::matrix<T, N, M, Allocator>& m);
+        template <typename T_, std::size_t N_, std::size_t M_, class Allocator_>
+        friend std::ostream& operator<<(std::ostream& os, const la::matrix<T_, N_, M_, Allocator_>& m);
     private:
         T* _data;
         Allocator _allocator;

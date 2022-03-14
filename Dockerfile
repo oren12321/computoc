@@ -46,7 +46,9 @@ RUN git clone -b v1.6.1 https://github.com/google/benchmark.git \
 WORKDIR /tmp/
 COPY . /tmp/
 RUN cmake . \
- && make -j$(nproc)
-# && make install \
-# && rm -rf /tmp/*
+ && make -j$(nproc) \
+ && ./test/la_test \
+ && ./benchmark/la_benchmark \
+ && make install \
+ && rm -rf /tmp/*
 
