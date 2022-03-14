@@ -43,3 +43,10 @@ RUN git clone -b v1.6.1 https://github.com/google/benchmark.git \
  && cmake --build "build" --config Release --target install \
  && rm -rf /tmp/*
 
+WORKDIR /tmp/
+COPY CMakeLists.txt /tmp/
+COPY include /tmp/include
+RUN cmake . \
+ && make install \
+ && rm -rf /tmp/*
+
