@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <la/la.hpp>
+#include <math/core/matrix.hpp>
 
 TEST(Matrix, DefaultCtor)
 {
-    la::matrix<int, 1, 1> m;
+    math::core::matrix m(1, 1, 0);
     EXPECT_EQ(0, m(0, 0));
 }
 

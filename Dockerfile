@@ -47,8 +47,8 @@ WORKDIR /tmp/
 COPY . /tmp/
 RUN cmake . \
  && make -j$(nproc) \
- && ./test/la_test \
- && ./benchmark/la_benchmark \
+ && ./test/math_test \
+ && ./benchmark/math_benchmark \
  && make install \
  && rm -rf /tmp/*
 

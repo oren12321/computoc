@@ -1,12 +1,12 @@
 #include <benchmark/benchmark.h>
 
-#include <la/la.hpp>
+#include <math/core/matrix.hpp>
 
 static void BM_Matrix_DefaultCtor(benchmark::State& state)
 {
     for (auto _ : state)
     {
-        la::matrix<int, 1, 1> m{};
+        math::core::matrix m(1, 1, 0);
     }
 }
 
