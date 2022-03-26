@@ -41,7 +41,7 @@ namespace math::core::allocators {
 
         void deallocate(Block* b) noexcept
         {
-            if (Primary::owns(b)) {
+            if (Primary::owns(*b)) {
                 return Primary::deallocate(b);
             }
             Fallback::deallocate(b);
@@ -121,9 +121,10 @@ namespace math::core::allocators {
     public:
         [[nodiscard]] Block allocate(Block::Size_type s) noexcept
         {
-            if (s > MinSize && s <= MaxSize && list_size_ > 0) {
+            if (s >= MinSize && s <= MaxSize && list_size_ > 0) {
                 Block b = { root_, s };
                 root_ = root_->next;
+                --list_size_;
                 return b;
             }
             Block b = Allocator::allocate(MaxSize);
