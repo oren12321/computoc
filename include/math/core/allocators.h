@@ -192,26 +192,28 @@ namespace math::core::allocators {
         : private Allocator {
     public:
         struct Record {
-            void* address{nullptr};
-            std::int64_t amount{0};
-            std::chrono::time_point<std::chrono::system_clock> time = std::chrono::system_clock::now();
+            void* record_address{ nullptr };
+            void* request_address{ nullptr };
+            std::int64_t amount{ 0 };
+            std::chrono::time_point<std::chrono::system_clock> time;
+            Record* next{ nullptr };
         };
 
         [[nodiscard]] Block allocate(Block::Size_type s) noexcept
         {
             Block b = Allocator::allocate(s);
             if (!b.empty()) {
-                add_record({b.p, static_cast<std::int64_t>(b.s)});
+                add_record(b.p, static_cast<std::int64_t>(b.s));
             }
             return b;
         }
 
         void deallocate(Block* b) noexcept
         {
-            Record r{b->p, -static_cast<std::int64_t>(b->s)};
+            Block bc{ *b };
             Allocator::deallocate(b);
             if (b->empty()) {
-                add_record(r);
+                add_record(bc.p, -static_cast<std::int64_t>(bc.s));
             }
         }
 
@@ -220,8 +222,12 @@ namespace math::core::allocators {
             return Allocator::owns(b);
         }
 
-        const Record* stats() const noexcept {
-            return stats_;
+        const Record* stats_list() const noexcept {
+            return root_;
+        }
+
+        std::size_t stats_list_size() const noexcept {
+            return number_of_records_;
         }
 
         std::int64_t total_allocated() const noexcept {
@@ -229,15 +235,41 @@ namespace math::core::allocators {
         }
 
     private:
-        void add_record(Record r) {
-            stats_[stats_index_] = r;
-            stats_index_ = (stats_index_ < Number_of_records - 1) ? stats_index_ + 1 : 0;
-            total_allocated_ += r.amount;
+        void add_record(void* p, std::int64_t a) {
+            Block b1 = Allocator::allocate(sizeof(Record));
+            if (b1.empty()) {
+                return;
+            }
+
+            if (!root_) {
+                root_ = reinterpret_cast<Record*>(b1.p);
+                tail_ = root_;
+            }
+            else {
+                tail_->next = reinterpret_cast<Record*>(b1.p);
+                tail_ = tail_->next;
+            }
+            tail_->record_address = b1.p;
+            tail_->request_address = p;
+            tail_->amount = static_cast<std::int64_t>(b1.s) + a;
+            tail_->time = std::chrono::system_clock::now();
+            tail_->next = nullptr;
+
+            total_allocated_ += tail_->amount;
+
+            ++number_of_records_;
+            if (number_of_records_ > Number_of_records) {
+                Block b2{ root_->record_address, sizeof(Record) };
+                root_ = root_->next;
+                Allocator::deallocate(&b2);
+                number_of_records_ = Number_of_records;
+            }
         }
 
-        Record stats_[Number_of_records];
-        std::size_t stats_index_{0};
-        std::int64_t total_allocated_{0};
+        Record* root_{ nullptr };
+        Record* tail_{ nullptr };
+        std::size_t number_of_records_{ 0 };
+        std::int64_t total_allocated_{ 0 };
     };
 }
 
