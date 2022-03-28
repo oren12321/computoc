@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstdint>
+#include <new>
 
 namespace math::core::allocators {
     struct Block {
@@ -127,7 +128,7 @@ namespace math::core::allocators {
                 --list_size_;
                 return b;
             }
-            Block b = Allocator::allocate(MaxSize);
+            Block b = Allocator::allocate((s < MinSize || s > MaxSize) ? s : MaxSize);
             b.s = s;
             return b;
         }
@@ -155,6 +156,34 @@ namespace math::core::allocators {
 
         Node* root_{ nullptr };
         std::size_t list_size_{ 0 };
+    };
+
+    template <typename T, class Allocator>
+    class Stl_adapter_allocator {
+    public:
+        using value_type = T;
+
+        Stl_adapter_allocator() = default;
+        template <typename U>
+        constexpr Stl_adapter_allocator(const Stl_adapter_allocator<U, Allocator>&) noexcept {}
+
+        [[nodiscard]] T* allocate(std::size_t n)
+        {
+            Block b = allocator_.allocate(n * sizeof(T));
+            if (b.empty()) {
+                throw std::bad_alloc{};
+            }
+            return reinterpret_cast<T*>(b.p);
+        }
+
+        void deallocate(T* p, std::size_t n) noexcept
+        {
+            Block b = {reinterpret_cast<void*>(p), n * sizeof(T)};
+            allocator_.deallocate(&b);
+        }
+
+    private:
+        Allocator allocator_{};
     };
 }
 
