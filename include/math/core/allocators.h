@@ -113,29 +113,29 @@ namespace math::core::allocators {
 
     template <
         class Allocator,
-        std::size_t MinSize, std::size_t MaxSize, std::size_t MaxListSize>
+        std::size_t Min_size, std::size_t Max_size, std::size_t Max_list_size>
     class Free_list_allocator
         : private Allocator {
-        static_assert(MinSize > 1 && MinSize % 2 == 0);
-        static_assert(MaxSize > 1 && MaxSize % 2 == 0);
-        static_assert(MaxListSize > 0);
+        static_assert(Min_size > 1 && Min_size % 2 == 0);
+        static_assert(Max_size > 1 && Max_size % 2 == 0);
+        static_assert(Max_list_size > 0);
     public:
         [[nodiscard]] Block allocate(Block::Size_type s) noexcept
         {
-            if (s >= MinSize && s <= MaxSize && list_size_ > 0) {
+            if (s >= Min_size && s <= Max_size && list_size_ > 0) {
                 Block b = { root_, s };
                 root_ = root_->next;
                 --list_size_;
                 return b;
             }
-            Block b = Allocator::allocate((s < MinSize || s > MaxSize) ? s : MaxSize);
+            Block b = Allocator::allocate((s < Min_size || s > Max_size) ? s : Max_size);
             b.s = s;
             return b;
         }
 
         void deallocate(Block* b) noexcept
         {
-            if (b->s < MinSize || b->s > MaxSize || list_size_ > MaxListSize) {
+            if (b->s < Min_size || b->s > Max_size || list_size_ > Max_list_size) {
                 return Allocator::deallocate(b);
             }
             auto node = reinterpret_cast<Node*>(b->p);
@@ -147,7 +147,7 @@ namespace math::core::allocators {
 
         [[nodiscard]] bool owns(Block b) const noexcept
         {
-            return (b.s >= MinSize && b.s <= MaxSize) || Allocator::owns(b);
+            return (b.s >= Min_size && b.s <= Max_size) || Allocator::owns(b);
         }
     private:
         struct Node {
