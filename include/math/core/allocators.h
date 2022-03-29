@@ -185,6 +185,51 @@ namespace math::core::allocators {
     private:
         Allocator allocator_{};
     };
+
+    template <class Allocator, std::size_t Number_of_records>
+    class Stats_allocator
+        : private Allocator {
+    public:
+        struct Record {
+            void* address{nullptr};
+            std::int64_t amount{0};
+            std::chrono::time_point<std::chrono::system_clock> time = std::chrono::system_clock::now();
+        };
+
+        [[nodiscard]] Block allocate(Block::Size_type s) noexcept
+        {
+            Block b = Allocator::allocate(s);
+            if (!b.empty()) {
+                add_record({b.p, b.s});
+            }
+            return b;
+        }
+
+        void deallocate(Block* b) noexcept
+        {
+            Record r{b.p, -b.s};
+            Allocator::deallocate(b);
+            if (b.empty()) {
+                add_record(r);
+            }
+        }
+
+        [[nodiscard]] bool owns(Block b) const noexcept
+        {
+            return Allocator::owns(b);
+        }
+
+    private:
+        void add_record(Record r) {
+            stats_[stats_index_] = r;
+            stats_index_ = (stats_index_ < Number_of_records) ? stats_index_ : 0;
+            total_allocated_ += r.amount;
+        }
+
+        Record stats_[Number_of_records];
+        std::size_t stats_index_{0};
+        std::int64_t total_allocated_{0};
+    };
 }
 
 #endif // MATH_CORE_ALLOCATORS_H
