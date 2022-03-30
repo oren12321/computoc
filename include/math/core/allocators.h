@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <new>
+#include <chrono>
 
 namespace math::core::allocators {
     struct Block {
@@ -200,16 +201,16 @@ namespace math::core::allocators {
         {
             Block b = Allocator::allocate(s);
             if (!b.empty()) {
-                add_record({b.p, b.s});
+                add_record({b.p, static_cast<std::int64_t>(b.s)});
             }
             return b;
         }
 
         void deallocate(Block* b) noexcept
         {
-            Record r{b.p, -b.s};
+            Record r{b->p, -static_cast<std::int64_t>(b->s)};
             Allocator::deallocate(b);
-            if (b.empty()) {
+            if (b->empty()) {
                 add_record(r);
             }
         }
@@ -219,10 +220,18 @@ namespace math::core::allocators {
             return Allocator::owns(b);
         }
 
+        const Record* stats() const noexcept {
+            return stats_;
+        }
+
+        std::int64_t total_allocated() const noexcept {
+            return total_allocated_;
+        }
+
     private:
         void add_record(Record r) {
             stats_[stats_index_] = r;
-            stats_index_ = (stats_index_ < Number_of_records) ? stats_index_ : 0;
+            stats_index_ = (stats_index_ < Number_of_records - 1) ? stats_index_ + 1 : 0;
             total_allocated_ += r.amount;
         }
 
