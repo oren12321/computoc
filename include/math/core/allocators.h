@@ -283,6 +283,28 @@ namespace math::core::allocators {
         std::size_t number_of_records_{ 0 };
         std::int64_t total_allocated_{ 0 };
     };
+
+    template <class InternalAllocator>
+    class Shared_allocator
+        : public Allocator {
+    public:
+        [[nodiscard]] Block allocate(Block::Size_type s) noexcept override
+        {
+            return allocator_.allocate(s);
+        }
+
+        void deallocate(Block* b) noexcept override
+        {
+            allocator_.deallocate(b);
+        }
+
+        [[nodiscard]] bool owns(Block b) const noexcept override
+        {
+            return allocator_.owns(b);
+        }
+    private:
+        inline static InternalAllocator allocator_{};
+    };
 }
 
 #endif // MATH_CORE_ALLOCATORS_H
