@@ -11,13 +11,13 @@ namespace math::core::memory {
         Pointer p{ nullptr };
         Size_type s{ 0 };
 
-        void clear()
+        void clear() noexcept
         {
             p = nullptr;
             s = 0;
         }
 
-        bool empty()
+        bool empty() const noexcept
         {
             return p == nullptr && s == 0;
         }
