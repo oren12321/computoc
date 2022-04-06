@@ -8,21 +8,22 @@
 #include <math/core/allocators.h>
 
 namespace math::core::buffers {
-    
+
     struct Buffer {
         [[nodiscard]] virtual math::core::memory::Block data() const noexcept = 0;
         [[nodiscard]] virtual bool usable() const noexcept = 0;
+        virtual void init() noexcept = 0;
     };
 
-    template <std::size_t Stack_size = 2>
+    template <std::size_t Stack_size = 2, bool Lazy_init = false>
     class Stack_buffer : public Buffer {
         static_assert(Stack_size > 0);
     public:
-        Stack_buffer() = default;
         Stack_buffer(std::size_t size) noexcept
+            : size_(size)
         {
-            if (size <= Stack_size) {
-                data_ = { memory_, size };
+            if (!Lazy_init) {
+                init();
             }
         }
 
@@ -36,18 +37,28 @@ namespace math::core::buffers {
             return !data_.empty();
         }
 
+        void init() noexcept override
+        {
+            if (size_ <= Stack_size) {
+                data_ = { memory_, size_ };
+            }
+        }
+
     private:
+        std::size_t size_{ 0 };
         std::uint8_t memory_[Stack_size] = { 0 };
         math::core::memory::Block data_{};
     };
 
-    template <class Allocator>
+    template <class Allocator, bool Lazy_init = false>
     class Allocated_buffer : public Buffer {
     public:
-        Allocated_buffer() = default;
         Allocated_buffer(std::size_t size) noexcept
+            : size_(size)
         {
-            data_ = allocator_.allocate(size);
+            if (!Lazy_init) {
+                init();
+            }
         }
 
         virtual ~Allocated_buffer() noexcept
@@ -67,24 +78,29 @@ namespace math::core::buffers {
             return !data_.empty();
         }
 
+        void init() noexcept override
+        {
+            data_ = allocator_.allocate(size_);
+        }
+
     private:
-        Allocator allocator_;
+        std::size_t size_{ 0 };
+        Allocator allocator_{};
         math::core::memory::Block data_{};
     };
 
     template <class Primary, class Fallback>
-    class Fallback_buffer : public Buffer {
+    class Fallback_buffer
+        : public Buffer
+        , private Primary
+        // For efficiency should be buffer with lazy initialization
+        , private Fallback {
     public:
         Fallback_buffer() = default;
         Fallback_buffer(std::size_t size) noexcept
-            : p_(size)
+            : Primary(size), Fallback(size)
         {
-            if (p_.usable()) {
-                data_ = p_.data();
-                return;
-            }
-            f_ = Fallback{ size };
-            data_ = f_.data();
+            init();
         }
 
         [[nodiscard]] math::core::memory::Block data() const noexcept override
@@ -97,9 +113,17 @@ namespace math::core::buffers {
             return !data_.empty();
         }
 
+        void init() noexcept override
+        {
+            if (Primary::usable()) {
+                data_ = Primary::data();
+                return;
+            }
+            Fallback::init();
+            data_ = Fallback::data();
+        }
+
     private:
-        Primary p_;
-        Fallback f_;
         math::core::memory::Block data_{};
     };
 }
