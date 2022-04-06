@@ -18,6 +18,7 @@ namespace math::core::buffers {
     class Stack_buffer : public Buffer {
         static_assert(Stack_size > 0);
     public:
+        Stack_buffer() = default;
         Stack_buffer(std::size_t size) noexcept
         {
             if (size <= Stack_size) {
@@ -43,6 +44,7 @@ namespace math::core::buffers {
     template <class Allocator>
     class Allocated_buffer : public Buffer {
     public:
+        Allocated_buffer() = default;
         Allocated_buffer(std::size_t size) noexcept
         {
             data_ = allocator_.allocate(size);
@@ -73,6 +75,7 @@ namespace math::core::buffers {
     template <class Primary, class Fallback>
     class Fallback_buffer : public Buffer {
     public:
+        Fallback_buffer() = default;
         Fallback_buffer(std::size_t size) noexcept
             : p_(size)
         {
