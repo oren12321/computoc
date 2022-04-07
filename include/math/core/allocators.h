@@ -193,6 +193,14 @@ namespace math::core::allocators {
             Record* next{ nullptr };
         };
 
+        virtual ~Stats_allocator()
+        {
+            for (Record* r = root_; r != tail_; r = r->next) {
+                math::core::memory::Block b{r->record_address, sizeof(Record)};
+                InternalAllocator::deallocate(&b);
+            }
+        }
+
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept override
         {
             math::core::memory::Block b = InternalAllocator::allocate(s);
@@ -230,12 +238,26 @@ namespace math::core::allocators {
 
     private:
         void add_record(void* p, std::int64_t a) {
+            if (number_of_records_ >= Number_of_records) {
+                tail_->next = root_;
+                root_ = root_->next;
+                tail_ = tail_->next;
+                tail_->next = nullptr;
+                tail_->request_address = p;
+                tail_->amount = static_cast<std::int64_t>(sizeof(Record)) + a;
+                tail_->time = std::chrono::system_clock::now();
+
+                total_allocated_ += tail_->amount;
+
+                return;
+            }
+
             math::core::memory::Block b1 = InternalAllocator::allocate(sizeof(Record));
             if (b1.empty()) {
                 return;
             }
 
-            if (!root_) {   
+            if (!root_) {
                 root_ = reinterpret_cast<Record*>(b1.p);
                 tail_ = root_;
             }
@@ -252,12 +274,6 @@ namespace math::core::allocators {
             total_allocated_ += tail_->amount;
 
             ++number_of_records_;
-            if (number_of_records_ > Number_of_records) {
-                math::core::memory::Block b2{ root_->record_address, sizeof(Record) };
-                root_ = root_->next;
-                InternalAllocator::deallocate(&b2);
-                number_of_records_ = Number_of_records;
-            }
         }
 
         Record* root_{ nullptr };
