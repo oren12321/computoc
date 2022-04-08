@@ -10,19 +10,12 @@
 #include <math/core/memory.h>
 
 namespace math::core::allocators {
-    struct Allocator {
-        [[nodiscard]] virtual math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept = 0;
-        virtual void deallocate(math::core::memory::Block* b) noexcept = 0;
-        [[nodiscard]] virtual bool owns(math::core::memory::Block b) const noexcept = 0;
-    };
-
     template <class Primary, class Fallback>
     class Fallback_allocator
-        : public Allocator
-        , private Primary
+        : private Primary
         , private Fallback {
     public:
-        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept override
+        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             math::core::memory::Block b = Primary::allocate(s);
             if (b.empty()) {
@@ -31,7 +24,7 @@ namespace math::core::allocators {
             return b;
         }
 
-        void deallocate(math::core::memory::Block* b) noexcept override
+        void deallocate(math::core::memory::Block* b) noexcept
         {
             if (Primary::owns(*b)) {
                 return Primary::deallocate(b);
@@ -39,38 +32,36 @@ namespace math::core::allocators {
             Fallback::deallocate(b);
         }
 
-        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept override
+        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
             return Primary::owns(b) || Fallback::owns(b);
         }
     };
 
-    class Malloc_allocator
-        : public Allocator {
+    class Malloc_allocator {
     public:
-        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept override
+        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             return { std::malloc(s), s };
         }
 
-        void deallocate(math::core::memory::Block* b) noexcept override
+        void deallocate(math::core::memory::Block* b) noexcept
         {
             std::free(b->p);
             b->clear();
         }
 
-        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept override
+        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
             return b.p;
         }
     };
 
     template <std::size_t Size>
-    class Stack_allocator
-        : public Allocator {
+    class Stack_allocator {
         static_assert(Size > 1 && Size % 2 == 0);
     public:
-        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept override
+        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             auto s1 = align(s);
             if (p_ + s1 > d_ + Size) {
@@ -81,7 +72,7 @@ namespace math::core::allocators {
             return b;
         }
 
-        void deallocate(math::core::memory::Block* b) noexcept override
+        void deallocate(math::core::memory::Block* b) noexcept
         {
             if (b->p == p_ - align(b->s)) {
                 p_ = reinterpret_cast<std::uint8_t*>(b->p);
@@ -89,7 +80,7 @@ namespace math::core::allocators {
             b->clear();
         }
 
-        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept override
+        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
             return b.p >= d_ && b.p < d_ + Size;
         }
@@ -108,13 +99,12 @@ namespace math::core::allocators {
         class InternalAllocator,
         std::size_t Min_size, std::size_t Max_size, std::size_t Max_list_size>
     class Free_list_allocator
-    : public Allocator
-    , private InternalAllocator {
+    : private InternalAllocator {
         static_assert(Min_size > 1 && Min_size % 2 == 0);
         static_assert(Max_size > 1 && Max_size % 2 == 0);
         static_assert(Max_list_size > 0);
     public:
-        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept override
+        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             if (s >= Min_size && s <= Max_size && list_size_ > 0) {
                 math::core::memory::Block b = { root_, s };
@@ -127,7 +117,7 @@ namespace math::core::allocators {
             return b;
         }
 
-        void deallocate(math::core::memory::Block* b) noexcept override
+        void deallocate(math::core::memory::Block* b) noexcept
         {
             if (b->s < Min_size || b->s > Max_size || list_size_ > Max_list_size) {
                 return InternalAllocator::deallocate(b);
@@ -139,7 +129,7 @@ namespace math::core::allocators {
             b->clear();
         }
 
-        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept override
+        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
             return (b.s >= Min_size && b.s <= Max_size) || InternalAllocator::owns(b);
         }
@@ -153,7 +143,8 @@ namespace math::core::allocators {
     };
 
     template <typename T, class InternalAllocator>
-    class Stl_adapter_allocator {
+    class Stl_adapter_allocator
+        : private InternalAllocator {
     public:
         using value_type = T;
 
@@ -163,7 +154,7 @@ namespace math::core::allocators {
 
         [[nodiscard]] T* allocate(std::size_t n)
         {
-            math::core::memory::Block b = allocator_.allocate(n * sizeof(T));
+            math::core::memory::Block b = InternalAllocator::allocate(n * sizeof(T));
             if (b.empty()) {
                 throw std::bad_alloc{};
             }
@@ -173,17 +164,13 @@ namespace math::core::allocators {
         void deallocate(T* p, std::size_t n) noexcept
         {
             math::core::memory::Block b = { reinterpret_cast<void*>(p), n * sizeof(T) };
-            allocator_.deallocate(&b);
+            InternalAllocator::deallocate(&b);
         }
-
-    private:
-        InternalAllocator allocator_{};
     };
 
     template <class InternalAllocator, std::size_t Number_of_records>
     class Stats_allocator
-        : public Allocator
-        , private InternalAllocator {
+        : private InternalAllocator {
     public:
         struct Record {
             void* record_address{ nullptr };
@@ -201,7 +188,7 @@ namespace math::core::allocators {
             }
         }
 
-        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept override
+        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             math::core::memory::Block b = InternalAllocator::allocate(s);
             if (!b.empty()) {
@@ -210,7 +197,7 @@ namespace math::core::allocators {
             return b;
         }
 
-        void deallocate(math::core::memory::Block* b) noexcept override
+        void deallocate(math::core::memory::Block* b) noexcept
         {
             math::core::memory::Block bc{ *b };
             InternalAllocator::deallocate(b);
@@ -219,7 +206,7 @@ namespace math::core::allocators {
             }
         }
 
-        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept override
+        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
             return InternalAllocator::owns(b);
         }
@@ -283,20 +270,19 @@ namespace math::core::allocators {
     };
 
     template <class InternalAllocator>
-    class Shared_allocator
-        : public Allocator {
+    class Shared_allocator {
     public:
-        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept override
+        [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             return allocator_.allocate(s);
         }
 
-        void deallocate(math::core::memory::Block* b) noexcept override
+        void deallocate(math::core::memory::Block* b) noexcept
         {
             allocator_.deallocate(b);
         }
 
-        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept override
+        [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
             return allocator_.owns(b);
         }
