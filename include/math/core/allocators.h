@@ -182,9 +182,12 @@ namespace math::core::allocators {
 
         virtual ~Stats_allocator()
         {
-            for (Record* r = root_; r != tail_; r = r->next) {
-                math::core::memory::Block b{r->record_address, sizeof(Record)};
+            Record* c = root_;
+            while (c) {
+                Record* n = c->next;
+                math::core::memory::Block b{ c->record_address, sizeof(Record) };
                 InternalAllocator::deallocate(&b);
+                c = n;
             }
         }
 
