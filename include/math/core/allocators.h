@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <new>
 #include <chrono>
+#include <utility>
 
 #include <math/core/memory.h>
 
@@ -15,6 +16,32 @@ namespace math::core::allocators {
         : private Primary
         , private Fallback {
     public:
+
+        Fallback_allocator() = default;
+        Fallback_allocator(const Fallback_allocator& other) noexcept
+            : Primary(other), Fallback(other) {}
+        Fallback_allocator operator=(const Fallback_allocator& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            Primary::operator=(other);
+            Fallback::operator=(other);
+            return *this;
+        }
+        Fallback_allocator(Fallback_allocator&& other) noexcept
+            : Primary(std::move(other)), Fallback(std::move(other)) {}
+        Fallback_allocator& operator=(Fallback_allocator&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            Primary::operator=(std::move(other));
+            Fallback::operator=(std::move(other));
+            return *this;
+        }
+        virtual ~Fallback_allocator() = default;
+
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             math::core::memory::Block b = Primary::allocate(s);
@@ -61,10 +88,39 @@ namespace math::core::allocators {
     class Stack_allocator {
         static_assert(Size > 1 && Size % 2 == 0);
     public:
+        Stack_allocator() = default;
+        Stack_allocator(const Stack_allocator& other) noexcept
+            : p_(d_) {}
+        Stack_allocator operator=(const Stack_allocator& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            p_ = d_;
+            return *this;
+        }
+        Stack_allocator(Stack_allocator&& other) noexcept
+            : p_(d_)
+        {
+            other.p_ = nullptr;
+        }
+        Stack_allocator& operator=(Stack_allocator&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            p_ = d_;
+            other.p_ = nullptr;
+            return *this;
+        }
+        virtual ~Stack_allocator() = default;
+
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             auto s1 = align(s);
-            if (p_ + s1 > d_ + Size) {
+            if (p_ + s1 > d_ + Size || !p_) {
                 return { nullptr, 0 };
             }
             math::core::memory::Block b = { p_, s };
@@ -104,6 +160,41 @@ namespace math::core::allocators {
         static_assert(Max_size > 1 && Max_size % 2 == 0);
         static_assert(Max_list_size > 0);
     public:
+        Free_list_allocator() = default;
+        Free_list_allocator(const Free_list_allocator& other) noexcept
+            : InternalAllocator(other), root_(other.root_), list_size_(other.list_size_) {}
+        Free_list_allocator operator=(const Free_list_allocator& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            InternalAllocator::operator=(other);
+            root_ = other.root_;
+            list_size_ = other.list_size_;
+            return *this;
+        }
+        Free_list_allocator(Free_list_allocator&& other) noexcept
+            : InternalAllocator(std::move(other)), root_(other.root_), list_size_(other.list_size_)
+        {
+            other.root_ = nullptr;
+            other.list_size_ = 0;
+        }
+        Free_list_allocator& operator=(Free_list_allocator&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            InternalAllocator::operator=(std::move(other));
+            root_ = other.root_;
+            list_size_ = other.list_size_;
+            other.root_ = nullptr;
+            other.list_size_ = 0;
+            return *this;
+        }
+        virtual ~Free_list_allocator() = default;
+
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             if (s >= Min_size && s <= Max_size && list_size_ > 0) {
@@ -149,6 +240,28 @@ namespace math::core::allocators {
         using value_type = T;
 
         Stl_adapter_allocator() = default;
+        Stl_adapter_allocator(const Stl_adapter_allocator& other) noexcept
+            : InternalAllocator(other) {}
+        Stl_adapter_allocator operator=(const Stl_adapter_allocator& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            InternalAllocator::operator=(other);
+            return *this;
+        }
+        Stl_adapter_allocator(Stl_adapter_allocator&& other) noexcept
+            : InternalAllocator(std::move(other)) {}
+        Stl_adapter_allocator& operator=(Stl_adapter_allocator&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            InternalAllocator::operator=(std::move(other));
+            return *this;
+        }
+        virtual ~Stl_adapter_allocator() = default;
+
         template <typename U>
         constexpr Stl_adapter_allocator(const Stl_adapter_allocator<U, InternalAllocator>&) noexcept {}
 
@@ -180,7 +293,46 @@ namespace math::core::allocators {
             Record* next{ nullptr };
         };
 
-        virtual ~Stats_allocator()
+        Stats_allocator() = default;
+        Stats_allocator(const Stats_allocator& other) noexcept
+            : InternalAllocator(other)
+        {
+            for (Record* r = other.root_; r != nullptr; r = r->next) {
+                add_record(r->request_address, r->amount - sizeof(Record), r->time);
+            }
+        }
+        Stats_allocator operator=(const Stats_allocator& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            InternalAllocator::operator=(other);
+            for (Record* r = other.root_; r != nullptr; r = r->next) {
+                add_record(r->request_address, r->amount - sizeof(Record), r->time);
+            }
+            return *this;
+        }
+        Stats_allocator(Stats_allocator&& other) noexcept
+            : InternalAllocator(std::move(other)), number_of_records_(other.number_of_records_), total_allocated_(other.total_allocated_), root_(other.root_), tail_(other.tail_)
+        {
+            other.number_of_records_ = other.total_allocated_ = 0;
+            other.root_ = other.tail_ = nullptr;
+        }
+        Stats_allocator& operator=(Stats_allocator&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            InternalAllocator::operator=(std::move(other));
+            number_of_records_ = other.number_of_records_;
+            total_allocated_ = other.total_allocated_;
+            root_ = other.root_;
+            tail_ = other.tail_;
+            other.number_of_records_ = other.total_allocated_ = 0;
+            other.root_ = other.tail_ = nullptr;
+            return *this;
+        }
+        virtual ~Stats_allocator() noexcept
         {
             Record* c = root_;
             while (c) {
@@ -227,7 +379,7 @@ namespace math::core::allocators {
         }
 
     private:
-        void add_record(void* p, std::int64_t a) {
+        void add_record(void* p, std::int64_t a, std::chrono::time_point<std::chrono::system_clock> time = std::chrono::system_clock::now()) {
             if (number_of_records_ >= Number_of_records) {
                 tail_->next = root_;
                 root_ = root_->next;
@@ -235,7 +387,7 @@ namespace math::core::allocators {
                 tail_->next = nullptr;
                 tail_->request_address = p;
                 tail_->amount = static_cast<std::int64_t>(sizeof(Record)) + a;
-                tail_->time = std::chrono::system_clock::now();
+                tail_->time = time;
 
                 total_allocated_ += tail_->amount;
 
@@ -258,7 +410,7 @@ namespace math::core::allocators {
             tail_->record_address = b1.p;
             tail_->request_address = p;
             tail_->amount = static_cast<std::int64_t>(b1.s) + a;
-            tail_->time = std::chrono::system_clock::now();
+            tail_->time = time;
             tail_->next = nullptr;
 
             total_allocated_ += tail_->amount;
