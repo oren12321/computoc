@@ -285,10 +285,16 @@ namespace math::core::buffers {
 
     template <typename T, class Buffer>
     class Typed_buffer : private Buffer{
+        // If required or internal type is void then sizeof is invalid - replace it with byte size
+        template <typename U_src, typename U_dst>
+        using Replace_void = std::conditional_t<std::is_same<U_src, void>::value, U_dst, U_src>;
+
+        template <typename U>
+        using Remove_internal_pointer = typename std::remove_pointer_t<U>;
     public:
         Typed_buffer() = default;
         Typed_buffer(std::size_t size, const T* data = nullptr) noexcept
-            : Buffer((size * sizeof(T)) / sizeof(typename std::remove_pointer<decltype(Buffer::data().p)>::type), data)
+            : Buffer((size * sizeof(Replace_void<T, std::uint8_t>)) / sizeof(Replace_void<Remove_internal_pointer<decltype(Buffer::data().p)>, std::uint8_t>), data)
         {
             init(data);
         }
@@ -319,7 +325,7 @@ namespace math::core::buffers {
         {
             return math::core::memory::Typed_block<T>{
                 reinterpret_cast<T*>(Buffer::data().p),
-                (Buffer::data().s * sizeof(typename std::remove_pointer<decltype(Buffer::data().p)>::type)) / sizeof(T)
+                (Buffer::data().s * sizeof(Replace_void<Remove_internal_pointer<decltype(Buffer::data().p)>, std::uint8_t>)) / sizeof(Replace_void<T, std::uint8_t>)
             };
         }
 
