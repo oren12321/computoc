@@ -111,8 +111,15 @@ namespace math::core::buffers {
 
             size_ = other.size_;
             allocator_ = other.allocator_;
-            if (!Lazy_init) {
+            if (!Lazy_init || !other.data_.empty()) {
                 init();
+            }
+            if (!other.data_.empty()) {
+                std::uint8_t* src_memory = reinterpret_cast<std::uint8_t*>(other.data_.p);
+                std::uint8_t* dst_memory = reinterpret_cast<std::uint8_t*>(data_.p);
+                for (std::size_t i = 0; i < size_; ++i) {
+                    dst_memory[i] = src_memory[i];
+                }
             }
         }
         Allocated_buffer operator=(const Allocated_buffer& other) noexcept
@@ -127,8 +134,15 @@ namespace math::core::buffers {
 
             size_ = other.size_;
             allocator_ = other.allocator_;
-            if (!Lazy_init) {
+            if (!Lazy_init || !other.data_.empty()) {
                 init();
+            }
+            if (!other.data_.empty()) {
+                std::uint8_t* src_memory = reinterpret_cast<std::uint8_t*>(other.data_.p);
+                std::uint8_t* dst_memory = reinterpret_cast<std::uint8_t*>(data_.p);
+                for (std::size_t i = 0; i < size_; ++i) {
+                    dst_memory[i] = src_memory[i];
+                }
             }
             return *this;
         }
