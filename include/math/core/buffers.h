@@ -3,6 +3,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <utility>
 
 #include <math/core/memory.h>
 #include <math/core/allocators.h>
@@ -19,6 +21,53 @@ namespace math::core::buffers {
                 init();
             }
         }
+
+        Stack_buffer(const Stack_buffer& other) noexcept
+        {
+            if (!other.usable()) {
+                return;
+            }
+
+            size_ = other.size_;
+            data_.p = memory_;
+            data_.s = other.data_.s;
+            for (std::size_t i = 0; i < size_; ++i) {
+                memory_[i] = other.memory_[i];
+            }
+        }
+        Stack_buffer operator=(const Stack_buffer& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            if (!other.usable()) {
+                return *this;
+            }
+
+            size_ = other.size_;
+            data_.p = memory_;
+            data_.s = other.data_.s;
+            for (std::size_t i = 0; i < size_; ++i) {
+                memory_[i] = other.memory_[i];
+            }
+            return *this;
+        }
+        Stack_buffer(Stack_buffer&& other) noexcept
+            : Stack_buffer(std::cref(other))
+        {
+            other.data_.clear();
+        }
+        Stack_buffer& operator=(Stack_buffer&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            operator=(std::cref(other));
+            other.data_.clear();
+            return *this;
+        }
+        virtual ~Stack_buffer() = default;
 
         [[nodiscard]] math::core::memory::Block data() const noexcept
         {
@@ -54,6 +103,67 @@ namespace math::core::buffers {
             }
         }
 
+        Allocated_buffer(const Allocated_buffer& other) noexcept
+        {
+            if (!other.usable()) {
+                return;
+            }
+
+            size_ = other.size_;
+            allocator_ = other.allocator_;
+            if (!Lazy_init) {
+                init();
+            }
+        }
+        Allocated_buffer operator=(const Allocated_buffer& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            if (!other.usable()) {
+                return *this;
+            }
+
+            size_ = other.size_;
+            allocator_ = other.allocator_;
+            if (!Lazy_init) {
+                init();
+            }
+            return *this;
+        }
+        Allocated_buffer(Allocated_buffer&& other) noexcept
+        {
+            if (!other.usable()) {
+                return;
+            }
+
+            size_ = other.size_;
+            allocator_ = std::move(other.allocator_);
+            data_ = other.data_;
+
+            other.size_ = 0;
+            other.data_.clear();
+        }
+        Allocated_buffer& operator=(Allocated_buffer&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+
+            if (!other.usable()) {
+                return *this;
+            }
+
+            size_ = other.size_;
+            allocator_ = std::move(other.allocator_);
+            data_ = other.data_;
+
+            other.size_ = 0;
+            other.data_.clear();
+
+            return *this;
+        }
         virtual ~Allocated_buffer() noexcept
         {
             if (!data_.empty()) {
@@ -94,6 +204,30 @@ namespace math::core::buffers {
         {
             init();
         }
+
+        Fallback_buffer(const Fallback_buffer& other) noexcept
+            : Primary(other), Fallback(other) {}
+        Fallback_buffer operator=(const Fallback_buffer& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            Primary::operator=(other);
+            Fallback::operator=(other);
+            return *this;
+        }
+        Fallback_buffer(Fallback_buffer&& other) noexcept
+            : Primary(std::move(other)), Fallback(std::move(other)) {}
+        Fallback_buffer& operator=(Fallback_buffer&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            Primary::operator=(std::move(other));
+            Fallback::operator=(std::move(other));
+            return *this;
+        }
+        virtual ~Fallback_buffer() = default;
 
         [[nodiscard]] math::core::memory::Block data() const noexcept
         {
