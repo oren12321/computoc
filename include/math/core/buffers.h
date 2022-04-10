@@ -14,11 +14,11 @@ namespace math::core::buffers {
     class Stack_buffer {
         static_assert(Stack_size > 0);
     public:
-        Stack_buffer(std::size_t size) noexcept
+        Stack_buffer(std::size_t size, const void* data = nullptr) noexcept
             : size_(size)
         {
             if (!Lazy_init) {
-                init();
+                init(data);
             }
         }
 
@@ -79,10 +79,17 @@ namespace math::core::buffers {
             return !data_.empty();
         }
 
-        void init() noexcept
+        void init(const void* data = nullptr) noexcept
         {
             if (size_ <= Stack_size) {
                 data_ = { memory_, size_ };
+            }
+
+            if (data && !data_.empty()) {
+                const std::uint8_t* bytes = reinterpret_cast<const std::uint8_t*>(data);
+                for (std::size_t i = 0; i < size_; ++i) {
+                    memory_[i] = bytes[i];
+                }
             }
         }
 
@@ -95,11 +102,11 @@ namespace math::core::buffers {
     template <class Allocator, bool Lazy_init = false>
     class Allocated_buffer {
     public:
-        Allocated_buffer(std::size_t size) noexcept
+        Allocated_buffer(std::size_t size, const void* data = nullptr) noexcept
             : size_(size)
         {
             if (!Lazy_init) {
-                init();
+                init(data);
             }
         }
 
@@ -195,9 +202,17 @@ namespace math::core::buffers {
             return !data_.empty();
         }
 
-        void init() noexcept
+        void init(const void* data = nullptr) noexcept
         {
             data_ = allocator_.allocate(size_);
+
+            if (data && !data_.empty()) {
+                const std::uint8_t* src_bytes = reinterpret_cast<const std::uint8_t*>(data);
+                std::uint8_t* dst_bytes = reinterpret_cast<std::uint8_t*>(data_.p);
+                for (std::size_t i = 0; i < size_; ++i) {
+                    dst_bytes[i] = src_bytes[i];
+                }
+            }
         }
 
     private:
@@ -213,10 +228,10 @@ namespace math::core::buffers {
         , private Fallback {
     public:
         Fallback_buffer() = default;
-        Fallback_buffer(std::size_t size) noexcept
-            : Primary(size), Fallback(size)
+        Fallback_buffer(std::size_t size, const void* data = nullptr) noexcept
+            : Primary(size, data), Fallback(size, data)
         {
-            init();
+            init(data);
         }
 
         Fallback_buffer(const Fallback_buffer& other) noexcept
@@ -253,13 +268,13 @@ namespace math::core::buffers {
             return !data_.empty();
         }
 
-        void init() noexcept
+        void init(const void* data = nullptr) noexcept
         {
             if (Primary::usable()) {
                 data_ = Primary::data();
                 return;
             }
-            Fallback::init();
+            Fallback::init(data);
             data_ = Fallback::data();
         }
 
