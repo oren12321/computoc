@@ -4,8 +4,9 @@
 #include <cstddef>
 
 namespace math::core::memory {
-    struct Block {
-        using Pointer = void*;
+    template <typename T>
+    struct Typed_block {
+        using Pointer = T*;
         using Size_type = std::size_t;
 
         Pointer p{ nullptr };
@@ -22,6 +23,8 @@ namespace math::core::memory {
             return p == nullptr && s == 0;
         }
     };
+
+    using Block = Typed_block<void>;
 }
 
 #endif // MATH_CORE_MEMORY_H

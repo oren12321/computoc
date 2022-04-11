@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <utility>
+#include <type_traits>
 
 #include <math/core/memory.h>
 #include <math/core/allocators.h>
@@ -280,6 +281,57 @@ namespace math::core::buffers {
 
     private:
         math::core::memory::Block data_{};
+    };
+
+    template <typename T, class Buffer>
+    class Typed_buffer : private Buffer{
+    public:
+        Typed_buffer() = default;
+        Typed_buffer(std::size_t size, const T* data = nullptr) noexcept
+            : Buffer((size * sizeof(T)) / sizeof(typename std::remove_pointer<decltype(Buffer::data().p)>::type), data)
+        {
+            init(data);
+        }
+
+        Typed_buffer(const Typed_buffer& other) noexcept
+            : Buffer(other) {}
+        Typed_buffer operator=(const Typed_buffer& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            Buffer::operator=(other);
+            return *this;
+        }
+        Typed_buffer(Typed_buffer&& other) noexcept
+            : Buffer(std::move(other)) {}
+        Typed_buffer& operator=(Typed_buffer&& other) noexcept
+        {
+            if (this == &other) {
+                return *this;
+            }
+            Buffer::operator=(std::move(other));
+            return *this;
+        }
+        virtual ~Typed_buffer() = default;
+
+        [[nodiscard]] math::core::memory::Typed_block<T> data() const noexcept
+        {
+            return math::core::memory::Typed_block<T>{
+                reinterpret_cast<T*>(Buffer::data().p),
+                (Buffer::data().s * sizeof(typename std::remove_pointer<decltype(Buffer::data().p)>::type)) / sizeof(T)
+            };
+        }
+
+        [[nodiscard]] bool usable() const noexcept
+        {
+            return Buffer::usable();
+        }
+
+        void init(const void* data = nullptr) noexcept
+        {
+            Buffer::init(data);
+        }
     };
 }
 
