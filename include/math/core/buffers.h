@@ -261,30 +261,27 @@ namespace math::core::buffers {
 
         [[nodiscard]] math::core::memory::Block data() const noexcept
         {
-            return data_;
+            if (Primary::usable()) {
+                return Primary::data();
+            }
+            return Fallback::data();
         }
 
         [[nodiscard]] bool usable() const noexcept
         {
-            return !data_.empty();
+            return Primary::usable() || Fallback::usable();
         }
 
         void init(const void* data = nullptr) noexcept
         {
-            if (Primary::usable()) {
-                data_ = Primary::data();
-                return;
+            if (!Primary::usable()) {
+                Fallback::init(data);
             }
-            Fallback::init(data);
-            data_ = Fallback::data();
         }
-
-    private:
-        math::core::memory::Block data_{};
     };
 
     template <typename T, class Buffer>
-    class Typed_buffer : private Buffer{
+    class Typed_buffer : private Buffer {
         // If required or internal type is void then sizeof is invalid - replace it with byte size
         template <typename U_src, typename U_dst>
         using Replace_void = std::conditional_t<std::is_same<U_src, void>::value, U_dst, U_src>;
@@ -294,10 +291,7 @@ namespace math::core::buffers {
     public:
         Typed_buffer() = default;
         Typed_buffer(std::size_t size, const T* data = nullptr) noexcept
-            : Buffer((size * sizeof(Replace_void<T, std::uint8_t>)) / sizeof(Replace_void<Remove_internal_pointer<decltype(Buffer::data().p)>, std::uint8_t>), data)
-        {
-            init(data);
-        }
+            : Buffer((size * sizeof(Replace_void<T, std::uint8_t>)) / sizeof(Replace_void<Remove_internal_pointer<decltype(Buffer::data().p)>, std::uint8_t>), data) {}
 
         Typed_buffer(const Typed_buffer& other) noexcept
             : Buffer(other) {}
@@ -332,11 +326,6 @@ namespace math::core::buffers {
         [[nodiscard]] bool usable() const noexcept
         {
             return Buffer::usable();
-        }
-
-        void init(const void* data = nullptr) noexcept
-        {
-            Buffer::init(data);
         }
     };
 }
