@@ -2,9 +2,11 @@
 #define MATH_CORE_MEMORY_H
 
 #include <cstddef>
+#include <type_traits>
 
 namespace math::core::memory {
     template <typename T>
+        requires (!std::is_pointer_v<T> && !std::is_reference_v<T>)
     struct Typed_block {
         using Pointer = T*;
         using Size_type = std::size_t;

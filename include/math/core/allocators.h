@@ -7,11 +7,33 @@
 #include <new>
 #include <chrono>
 #include <utility>
+#include <type_traits>
+#include <concepts>
 
 #include <math/core/memory.h>
 
 namespace math::core::allocators {
+    template <class T>
+    concept Rule_of_five = requires
+    {
+        std::is_default_constructible_v<T>;
+        std::is_copy_constructible_v<T>;
+        std::is_copy_assignable_v<T>;
+        std::is_move_constructible_v<T>;
+        std::is_move_assignable_v<T>;
+        std::is_destructible_v<T>;
+    };
+    template <class T>
+    concept Allocator = Rule_of_five<T> &&
+    requires (T t, std::size_t s, math::core::memory::Block b)
+    {
+        {t.allocate(s)} -> std::same_as<decltype(b)>;
+        {t.deallocate(&b)} -> std::same_as<void>;
+        {t.owns(b)} -> std::same_as<bool>;
+    };
+
     template <class Primary, class Fallback>
+        requires (Allocator<Primary> && Allocator<Fallback>)
     class Fallback_allocator
         : private Primary
         , private Fallback {
@@ -154,6 +176,7 @@ namespace math::core::allocators {
     template <
         class InternalAllocator,
         std::size_t Min_size, std::size_t Max_size, std::size_t Max_list_size>
+        requires Allocator<InternalAllocator>
     class Free_list_allocator
     : private InternalAllocator {
         static_assert(Min_size > 1 && Min_size % 2 == 0);
@@ -234,6 +257,7 @@ namespace math::core::allocators {
     };
 
     template <typename T, class InternalAllocator>
+        requires (Allocator<InternalAllocator> && !std::is_pointer_v<T> && !std::is_reference_v<T>)
     class Stl_adapter_allocator
         : private InternalAllocator {
     public:
@@ -262,7 +286,7 @@ namespace math::core::allocators {
         }
         virtual ~Stl_adapter_allocator() = default;
 
-        template <typename U>
+        template <typename U> requires (!std::is_pointer_v<U> && !std::is_reference_v<U>)
         constexpr Stl_adapter_allocator(const Stl_adapter_allocator<U, InternalAllocator>&) noexcept {}
 
         [[nodiscard]] T* allocate(std::size_t n)
@@ -282,6 +306,7 @@ namespace math::core::allocators {
     };
 
     template <class InternalAllocator, std::size_t Number_of_records>
+        requires Allocator<InternalAllocator>
     class Stats_allocator
         : private InternalAllocator {
     public:
@@ -425,6 +450,7 @@ namespace math::core::allocators {
     };
 
     template <class InternalAllocator>
+        requires Allocator<InternalAllocator>
     class Shared_allocator {
     public:
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept

@@ -6,11 +6,31 @@
 #include <functional>
 #include <utility>
 #include <type_traits>
+#include <concepts>
 
 #include <math/core/memory.h>
 #include <math/core/allocators.h>
 
 namespace math::core::buffers {
+    template <class T>
+    concept Rule_of_five = requires
+    {
+        std::is_copy_constructible_v<T>;
+        std::is_copy_assignable_v<T>;
+        std::is_move_constructible_v<T>;
+        std::is_move_assignable_v<T>;
+        std::is_destructible_v<T>;
+    };
+    template <class T>
+    concept Buffer = Rule_of_five<T> &&
+    requires (T t, std::size_t size, const void* data = nullptr)
+    {
+        {T(size, data)};
+        {t.usable()} -> std::same_as<bool>;
+        {t.data()} -> std::same_as<math::core::memory::Block>;
+        {t.init(data)} -> std::same_as<void>;
+    };
+
     template <std::size_t Stack_size = 2, bool Lazy_init = false>
     class Stack_buffer {
         static_assert(Stack_size > 0);
@@ -101,6 +121,7 @@ namespace math::core::buffers {
     };
 
     template <class Allocator, bool Lazy_init = false>
+        requires math::core::allocators::Allocator<Allocator> 
     class Allocated_buffer {
     public:
         Allocated_buffer(std::size_t size, const void* data = nullptr) noexcept
@@ -223,6 +244,7 @@ namespace math::core::buffers {
     };
 
     template <class Primary, class Fallback>
+        requires (Buffer<Primary> && Buffer<Fallback>)
     class Fallback_buffer
         : private Primary
         // For efficiency should be buffer with lazy initialization
@@ -280,8 +302,9 @@ namespace math::core::buffers {
         }
     };
 
-    template <typename T, class Buffer>
-    class Typed_buffer : private Buffer {
+    template <typename T, class InternalBuffer>
+        requires (Buffer<InternalBuffer> && !std::is_pointer_v<T> && !std::is_reference_v<T>)
+    class Typed_buffer : private InternalBuffer {
         // If required or internal type is void then sizeof is invalid - replace it with byte size
         template <typename U_src, typename U_dst>
         using Replace_void = std::conditional_t<std::is_same<U_src, void>::value, U_dst, U_src>;
@@ -291,26 +314,26 @@ namespace math::core::buffers {
     public:
         Typed_buffer() = default;
         Typed_buffer(std::size_t size, const T* data = nullptr) noexcept
-            : Buffer((size * sizeof(Replace_void<T, std::uint8_t>)) / sizeof(Replace_void<Remove_internal_pointer<decltype(Buffer::data().p)>, std::uint8_t>), data) {}
+            : InternalBuffer((size * sizeof(Replace_void<T, std::uint8_t>)) / sizeof(Replace_void<Remove_internal_pointer<decltype(InternalBuffer::data().p)>, std::uint8_t>), data) {}
 
         Typed_buffer(const Typed_buffer& other) noexcept
-            : Buffer(other) {}
+            : InternalBuffer(other) {}
         Typed_buffer operator=(const Typed_buffer& other) noexcept
         {
             if (this == &other) {
                 return *this;
             }
-            Buffer::operator=(other);
+            InternalBuffer::operator=(other);
             return *this;
         }
         Typed_buffer(Typed_buffer&& other) noexcept
-            : Buffer(std::move(other)) {}
+            : InternalBuffer(std::move(other)) {}
         Typed_buffer& operator=(Typed_buffer&& other) noexcept
         {
             if (this == &other) {
                 return *this;
             }
-            Buffer::operator=(std::move(other));
+            InternalBuffer::operator=(std::move(other));
             return *this;
         }
         virtual ~Typed_buffer() = default;
@@ -318,14 +341,14 @@ namespace math::core::buffers {
         [[nodiscard]] math::core::memory::Typed_block<T> data() const noexcept
         {
             return math::core::memory::Typed_block<T>{
-                reinterpret_cast<T*>(Buffer::data().p),
-                (Buffer::data().s * sizeof(Replace_void<Remove_internal_pointer<decltype(Buffer::data().p)>, std::uint8_t>)) / sizeof(Replace_void<T, std::uint8_t>)
+                reinterpret_cast<T*>(InternalBuffer::data().p),
+                (InternalBuffer::data().s * sizeof(Replace_void<Remove_internal_pointer<decltype(InternalBuffer::data().p)>, std::uint8_t>)) / sizeof(Replace_void<T, std::uint8_t>)
             };
         }
 
         [[nodiscard]] bool usable() const noexcept
         {
-            return Buffer::usable();
+            return InternalBuffer::usable();
         }
     };
 }
