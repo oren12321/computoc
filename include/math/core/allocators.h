@@ -174,31 +174,31 @@ namespace math::core::allocators {
     };
 
     template <
-        class InternalAllocator,
+        class Internal_allocator,
         std::size_t Min_size, std::size_t Max_size, std::size_t Max_list_size>
-        requires Allocator<InternalAllocator>
+        requires Allocator<Internal_allocator>
     class Free_list_allocator
-    : private InternalAllocator {
+    : private Internal_allocator {
         static_assert(Min_size > 1 && Min_size % 2 == 0);
         static_assert(Max_size > 1 && Max_size % 2 == 0);
         static_assert(Max_list_size > 0);
     public:
         Free_list_allocator() = default;
         Free_list_allocator(const Free_list_allocator& other) noexcept
-            : InternalAllocator(other), root_(other.root_), list_size_(other.list_size_) {}
+            : Internal_allocator(other), root_(other.root_), list_size_(other.list_size_) {}
         Free_list_allocator operator=(const Free_list_allocator& other) noexcept
         {
             if (this == &other) {
                 return *this;
             }
 
-            InternalAllocator::operator=(other);
+            Internal_allocator::operator=(other);
             root_ = other.root_;
             list_size_ = other.list_size_;
             return *this;
         }
         Free_list_allocator(Free_list_allocator&& other) noexcept
-            : InternalAllocator(std::move(other)), root_(other.root_), list_size_(other.list_size_)
+            : Internal_allocator(std::move(other)), root_(other.root_), list_size_(other.list_size_)
         {
             other.root_ = nullptr;
             other.list_size_ = 0;
@@ -209,7 +209,7 @@ namespace math::core::allocators {
                 return *this;
             }
 
-            InternalAllocator::operator=(std::move(other));
+            Internal_allocator::operator=(std::move(other));
             root_ = other.root_;
             list_size_ = other.list_size_;
             other.root_ = nullptr;
@@ -226,7 +226,7 @@ namespace math::core::allocators {
                 --list_size_;
                 return b;
             }
-            math::core::memory::Block b = InternalAllocator::allocate((s < Min_size || s > Max_size) ? s : Max_size);
+            math::core::memory::Block b = Internal_allocator::allocate((s < Min_size || s > Max_size) ? s : Max_size);
             b.s = s;
             return b;
         }
@@ -234,7 +234,7 @@ namespace math::core::allocators {
         void deallocate(math::core::memory::Block* b) noexcept
         {
             if (b->s < Min_size || b->s > Max_size || list_size_ > Max_list_size) {
-                return InternalAllocator::deallocate(b);
+                return Internal_allocator::deallocate(b);
             }
             auto node = reinterpret_cast<Node*>(b->p);
             node->next = root_;
@@ -245,7 +245,7 @@ namespace math::core::allocators {
 
         [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
-            return (b.s >= Min_size && b.s <= Max_size) || InternalAllocator::owns(b);
+            return (b.s >= Min_size && b.s <= Max_size) || Internal_allocator::owns(b);
         }
     private:
         struct Node {
@@ -256,42 +256,42 @@ namespace math::core::allocators {
         std::size_t list_size_{ 0 };
     };
 
-    template <typename T, class InternalAllocator>
-        requires (Allocator<InternalAllocator> && !std::is_pointer_v<T> && !std::is_reference_v<T>)
+    template <typename T, class Internal_allocator>
+        requires (Allocator<Internal_allocator> && !std::is_pointer_v<T> && !std::is_reference_v<T>)
     class Stl_adapter_allocator
-        : private InternalAllocator {
+        : private Internal_allocator {
     public:
         using value_type = T;
 
         Stl_adapter_allocator() = default;
         Stl_adapter_allocator(const Stl_adapter_allocator& other) noexcept
-            : InternalAllocator(other) {}
+            : Internal_allocator(other) {}
         Stl_adapter_allocator operator=(const Stl_adapter_allocator& other) noexcept
         {
             if (this == &other) {
                 return *this;
             }
-            InternalAllocator::operator=(other);
+            Internal_allocator::operator=(other);
             return *this;
         }
         Stl_adapter_allocator(Stl_adapter_allocator&& other) noexcept
-            : InternalAllocator(std::move(other)) {}
+            : Internal_allocator(std::move(other)) {}
         Stl_adapter_allocator& operator=(Stl_adapter_allocator&& other) noexcept
         {
             if (this == &other) {
                 return *this;
             }
-            InternalAllocator::operator=(std::move(other));
+            Internal_allocator::operator=(std::move(other));
             return *this;
         }
         virtual ~Stl_adapter_allocator() = default;
 
         template <typename U> requires (!std::is_pointer_v<U> && !std::is_reference_v<U>)
-        constexpr Stl_adapter_allocator(const Stl_adapter_allocator<U, InternalAllocator>&) noexcept {}
+        constexpr Stl_adapter_allocator(const Stl_adapter_allocator<U, Internal_allocator>&) noexcept {}
 
         [[nodiscard]] T* allocate(std::size_t n)
         {
-            math::core::memory::Block b = InternalAllocator::allocate(n * sizeof(T));
+            math::core::memory::Block b = Internal_allocator::allocate(n * sizeof(T));
             if (b.empty()) {
                 throw std::bad_alloc{};
             }
@@ -301,14 +301,14 @@ namespace math::core::allocators {
         void deallocate(T* p, std::size_t n) noexcept
         {
             math::core::memory::Block b = { reinterpret_cast<void*>(p), n * sizeof(T) };
-            InternalAllocator::deallocate(&b);
+            Internal_allocator::deallocate(&b);
         }
     };
 
-    template <class InternalAllocator, std::size_t Number_of_records>
-        requires Allocator<InternalAllocator>
+    template <class Internal_allocator, std::size_t Number_of_records>
+        requires Allocator<Internal_allocator>
     class Stats_allocator
-        : private InternalAllocator {
+        : private Internal_allocator {
     public:
         struct Record {
             void* record_address{ nullptr };
@@ -320,7 +320,7 @@ namespace math::core::allocators {
 
         Stats_allocator() = default;
         Stats_allocator(const Stats_allocator& other) noexcept
-            : InternalAllocator(other)
+            : Internal_allocator(other)
         {
             for (Record* r = other.root_; r != nullptr; r = r->next) {
                 add_record(r->request_address, r->amount - sizeof(Record), r->time);
@@ -331,14 +331,14 @@ namespace math::core::allocators {
             if (this == &other) {
                 return *this;
             }
-            InternalAllocator::operator=(other);
+            Internal_allocator::operator=(other);
             for (Record* r = other.root_; r != nullptr; r = r->next) {
                 add_record(r->request_address, r->amount - sizeof(Record), r->time);
             }
             return *this;
         }
         Stats_allocator(Stats_allocator&& other) noexcept
-            : InternalAllocator(std::move(other)), number_of_records_(other.number_of_records_), total_allocated_(other.total_allocated_), root_(other.root_), tail_(other.tail_)
+            : Internal_allocator(std::move(other)), number_of_records_(other.number_of_records_), total_allocated_(other.total_allocated_), root_(other.root_), tail_(other.tail_)
         {
             other.number_of_records_ = other.total_allocated_ = 0;
             other.root_ = other.tail_ = nullptr;
@@ -348,7 +348,7 @@ namespace math::core::allocators {
             if (this == &other) {
                 return *this;
             }
-            InternalAllocator::operator=(std::move(other));
+            Internal_allocator::operator=(std::move(other));
             number_of_records_ = other.number_of_records_;
             total_allocated_ = other.total_allocated_;
             root_ = other.root_;
@@ -363,14 +363,14 @@ namespace math::core::allocators {
             while (c) {
                 Record* n = c->next;
                 math::core::memory::Block b{ c->record_address, sizeof(Record) };
-                InternalAllocator::deallocate(&b);
+                Internal_allocator::deallocate(&b);
                 c = n;
             }
         }
 
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
-            math::core::memory::Block b = InternalAllocator::allocate(s);
+            math::core::memory::Block b = Internal_allocator::allocate(s);
             if (!b.empty()) {
                 add_record(b.p, static_cast<std::int64_t>(b.s));
             }
@@ -380,7 +380,7 @@ namespace math::core::allocators {
         void deallocate(math::core::memory::Block* b) noexcept
         {
             math::core::memory::Block bc{ *b };
-            InternalAllocator::deallocate(b);
+            Internal_allocator::deallocate(b);
             if (b->empty()) {
                 add_record(bc.p, -static_cast<std::int64_t>(bc.s));
             }
@@ -388,7 +388,7 @@ namespace math::core::allocators {
 
         [[nodiscard]] bool owns(math::core::memory::Block b) const noexcept
         {
-            return InternalAllocator::owns(b);
+            return Internal_allocator::owns(b);
         }
 
         const Record* stats_list() const noexcept {
@@ -419,7 +419,7 @@ namespace math::core::allocators {
                 return;
             }
 
-            math::core::memory::Block b1 = InternalAllocator::allocate(sizeof(Record));
+            math::core::memory::Block b1 = Internal_allocator::allocate(sizeof(Record));
             if (b1.empty()) {
                 return;
             }
@@ -449,8 +449,8 @@ namespace math::core::allocators {
         std::int64_t total_allocated_{ 0 };
     };
 
-    template <class InternalAllocator>
-        requires Allocator<InternalAllocator>
+    template <class Internal_allocator>
+        requires Allocator<Internal_allocator>
     class Shared_allocator {
     public:
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
@@ -468,7 +468,7 @@ namespace math::core::allocators {
             return allocator_.owns(b);
         }
     private:
-        inline static InternalAllocator allocator_{};
+        inline static Internal_allocator allocator_{};
     };
 }
 

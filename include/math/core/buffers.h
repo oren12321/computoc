@@ -302,9 +302,9 @@ namespace math::core::buffers {
         }
     };
 
-    template <typename T, class InternalBuffer>
-        requires (Buffer<InternalBuffer> && !std::is_pointer_v<T> && !std::is_reference_v<T>)
-    class Typed_buffer : private InternalBuffer {
+    template <typename T, class Internal_buffer>
+        requires (Buffer<Internal_buffer> && !std::is_pointer_v<T> && !std::is_reference_v<T>)
+    class Typed_buffer : private Internal_buffer {
         // If required or internal type is void then sizeof is invalid - replace it with byte size
         template <typename U_src, typename U_dst>
         using Replace_void = std::conditional_t<std::is_same<U_src, void>::value, U_dst, U_src>;
@@ -314,26 +314,26 @@ namespace math::core::buffers {
     public:
         Typed_buffer() = default;
         Typed_buffer(std::size_t size, const T* data = nullptr) noexcept
-            : InternalBuffer((size * sizeof(Replace_void<T, std::uint8_t>)) / sizeof(Replace_void<Remove_internal_pointer<decltype(InternalBuffer::data().p)>, std::uint8_t>), data) {}
+            : Internal_buffer((size * sizeof(Replace_void<T, std::uint8_t>)) / sizeof(Replace_void<Remove_internal_pointer<decltype(Internal_buffer::data().p)>, std::uint8_t>), data) {}
 
         Typed_buffer(const Typed_buffer& other) noexcept
-            : InternalBuffer(other) {}
+            : Internal_buffer(other) {}
         Typed_buffer operator=(const Typed_buffer& other) noexcept
         {
             if (this == &other) {
                 return *this;
             }
-            InternalBuffer::operator=(other);
+            Internal_buffer::operator=(other);
             return *this;
         }
         Typed_buffer(Typed_buffer&& other) noexcept
-            : InternalBuffer(std::move(other)) {}
+            : Internal_buffer(std::move(other)) {}
         Typed_buffer& operator=(Typed_buffer&& other) noexcept
         {
             if (this == &other) {
                 return *this;
             }
-            InternalBuffer::operator=(std::move(other));
+            Internal_buffer::operator=(std::move(other));
             return *this;
         }
         virtual ~Typed_buffer() = default;
@@ -341,14 +341,14 @@ namespace math::core::buffers {
         [[nodiscard]] math::core::memory::Typed_block<T> data() const noexcept
         {
             return math::core::memory::Typed_block<T>{
-                reinterpret_cast<T*>(InternalBuffer::data().p),
-                (InternalBuffer::data().s * sizeof(Replace_void<Remove_internal_pointer<decltype(InternalBuffer::data().p)>, std::uint8_t>)) / sizeof(Replace_void<T, std::uint8_t>)
+                reinterpret_cast<T*>(Internal_buffer::data().p),
+                (Internal_buffer::data().s * sizeof(Replace_void<Remove_internal_pointer<decltype(Internal_buffer::data().p)>, std::uint8_t>)) / sizeof(Replace_void<T, std::uint8_t>)
             };
         }
 
         [[nodiscard]] bool usable() const noexcept
         {
-            return InternalBuffer::usable();
+            return Internal_buffer::usable();
         }
     };
 }
