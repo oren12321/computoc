@@ -23,7 +23,7 @@ namespace math::core::buffers {
     };
     template <class T>
     concept Buffer = Rule_of_five<T> &&
-    requires (T t, std::size_t size, const void* data = nullptr)
+    requires (T t, std::size_t size, const void* data)
     {
         {T(size, data)};
         {t.usable()} -> std::same_as<bool>;
