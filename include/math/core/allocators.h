@@ -185,7 +185,7 @@ namespace math::core::allocators {
     public:
         Free_list_allocator() = default;
         Free_list_allocator(const Free_list_allocator& other) noexcept
-            : Internal_allocator(other), root_(other.root_), list_size_(other.list_size_) {}
+            : Internal_allocator(other), root_(nullptr), list_size_(0) {}
         Free_list_allocator operator=(const Free_list_allocator& other) noexcept
         {
             if (this == &other) {
@@ -193,8 +193,8 @@ namespace math::core::allocators {
             }
 
             Internal_allocator::operator=(other);
-            root_ = other.root_;
-            list_size_ = other.list_size_;
+            root_ = nullptr;
+            list_size_ = 0;
             return *this;
         }
         Free_list_allocator(Free_list_allocator&& other) noexcept
@@ -216,7 +216,16 @@ namespace math::core::allocators {
             other.list_size_ = 0;
             return *this;
         }
-        virtual ~Free_list_allocator() = default;
+        // Responsible to release the saved memory blocks
+        virtual ~Free_list_allocator() noexcept
+        {
+            for (std::size_t i = 0; i < list_size_; ++i) {
+                Node* n = root_;
+                root_ = root_->next;
+                math::core::memory::Block b{n, Max_size};
+                Internal_allocator::deallocate(&b);
+            }
+        }
 
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
@@ -234,7 +243,9 @@ namespace math::core::allocators {
         void deallocate(math::core::memory::Block* b) noexcept
         {
             if (b->s < Min_size || b->s > Max_size || list_size_ > Max_list_size) {
-                return Internal_allocator::deallocate(b);
+                math::core::memory::Block nb {b->p, Max_size};
+                b->clear();
+                return Internal_allocator::deallocate(&nb);
             }
             auto node = reinterpret_cast<Node*>(b->p);
             node->next = root_;

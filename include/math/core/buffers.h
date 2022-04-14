@@ -164,6 +164,7 @@ namespace math::core::buffers {
             size_ = other.size_;
             allocator_ = other.allocator_;
             if (!Lazy_init || !other.data_.empty()) {
+                allocator_.deallocate(&data_);
                 init();
             }
             if (!other.data_.empty()) {
@@ -200,6 +201,7 @@ namespace math::core::buffers {
 
             size_ = other.size_;
             allocator_ = std::move(other.allocator_);
+            allocator_.deallocate(&data_);
             data_ = other.data_;
 
             other.size_ = 0;
