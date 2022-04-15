@@ -12,6 +12,9 @@
 #include <math/core/allocators.h>
 
 namespace math::core::buffers {
+    template <typename T>
+    concept Not_pointer_or_reference = (!std::is_pointer_v<T> && !std::is_reference_v<T>);
+
     template <class T>
     concept Rule_of_five = requires
     {
@@ -120,8 +123,7 @@ namespace math::core::buffers {
         math::core::memory::Block data_{};
     };
 
-    template <class Allocator, bool Lazy_init = false>
-        requires math::core::allocators::Allocator<Allocator> 
+    template <math::core::allocators::Allocator Allocator, bool Lazy_init = false>
     class Allocated_buffer {
     public:
         Allocated_buffer(std::size_t size, const void* data = nullptr) noexcept
@@ -245,8 +247,7 @@ namespace math::core::buffers {
         math::core::memory::Block data_{};
     };
 
-    template <class Primary, class Fallback>
-        requires (Buffer<Primary> && Buffer<Fallback>)
+    template <Buffer Primary, Buffer Fallback>
     class Fallback_buffer
         : private Primary
         // For efficiency should be buffer with lazy initialization
@@ -304,8 +305,7 @@ namespace math::core::buffers {
         }
     };
 
-    template <typename T, class Internal_buffer>
-        requires (Buffer<Internal_buffer> && !std::is_pointer_v<T> && !std::is_reference_v<T>)
+    template <Not_pointer_or_reference T, Buffer Internal_buffer>
     class Typed_buffer : private Internal_buffer {
         // If required or internal type is void then sizeof is invalid - replace it with byte size
         template <typename U_src, typename U_dst>
