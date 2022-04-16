@@ -93,6 +93,9 @@ namespace math::core::allocators {
     public:
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
+            if (s == 0) {
+                return { nullptr, s };
+            }
             return { std::malloc(s), s };
         }
 
@@ -144,7 +147,7 @@ namespace math::core::allocators {
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
         {
             auto s1 = align(s);
-            if (p_ + s1 > d_ + Size || !p_) {
+            if (p_ + s1 > d_ + Size || !p_ || s == 0) {
                 return { nullptr, 0 };
             }
             math::core::memory::Block b = { p_, s };
