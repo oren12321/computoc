@@ -50,7 +50,7 @@ namespace math::core::buffers {
         Stack_buffer(std::size_t size, const void* data = nullptr) noexcept
             : size_(size)
         {
-            if (!Lazy_init) {
+            if (!Lazy_init && size_ > 0) {
                 init(data);
             }
         }
@@ -138,7 +138,7 @@ namespace math::core::buffers {
         Allocated_buffer(std::size_t size, const void* data = nullptr) noexcept
             : size_(size)
         {
-            if (!Lazy_init) {
+            if (!Lazy_init && size_ > 0) {
                 init(data);
             }
         }
