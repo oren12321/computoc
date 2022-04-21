@@ -361,6 +361,8 @@ namespace math::core::buffers {
         {
             return Internal_buffer::usable();
         }
+
+        void init(const void* data = nullptr) noexcept {}
     };
 }
 
