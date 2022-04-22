@@ -4,6 +4,10 @@
 #include <cstddef>
 #include <type_traits>
 #include <stdexcept>
+#include <utility>
+
+//#include <iostream>
+//#include <ostream>
 
 #include <math/core/allocators.h>
 #include <math/core/buffers.h>
@@ -46,7 +50,7 @@ namespace math::core::types {
             }
         }
 
-        Dimensions dimensions()
+        Dimensions dimensions() const
         {
             return dims_;
         }
@@ -63,8 +67,8 @@ namespace math::core::types {
             return buff_.data().p[i * dims_.m + j];
         }
 
-        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_Buffer_o>
-        friend bool operator==(const Matrix<T_o, Internal_Buffer_o>& lhs, const Matrix<T_o, Internal_Buffer_o>& rhs);
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend bool operator==(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
         Matrix<T, Internal_buffer> get_slice(std::size_t si, std::size_t sj, Dimensions dims) const
         {
@@ -92,13 +96,98 @@ namespace math::core::types {
             return *this;
         }
 
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> operator+(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
+
+        Matrix<T, Internal_buffer>& operator+=(const Matrix<T, Internal_buffer>& other)
+        {
+            CORE_EXPECT(dims_.n == other.dims_.n && dims_.m == other.dims_.m, std::invalid_argument, "matrices size mismatch (dims_.n = %d, other.dims_.n = %d, dims_.m = %d, other.dims_.m = %d)", dims_.n, other.dims_.n, dims_.m, other.dims_.m);
+
+            for (std::size_t i = 0; i < buff_.data().s; ++i) {
+                buff_.data().p[i] += other.buff_.data().p[i];
+            }
+            return *this;
+        }
+
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> operator-(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
+
+        Matrix<T, Internal_buffer>& operator-=(const Matrix<T, Internal_buffer>& other)
+        {
+            CORE_EXPECT(dims_.n == other.dims_.n && dims_.m == other.dims_.m, std::invalid_argument, "matrices size mismatch (dims_.n = %d, other.dims_.n = %d, dims_.m = %d, other.dims_.m = %d)", dims_.n, other.dims_.n, dims_.m, other.dims_.m);
+
+            for (std::size_t i = 0; i < buff_.data().s; ++i) {
+                buff_.data().p[i] -= other.buff_.data().p[i];
+            }
+            return *this;
+        }
+
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> operator*(const Matrix<T_o, Internal_buffer_o>& lhs, const T_o& rhs);
+
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> operator*(const T_o& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
+
+        Matrix<T, Internal_buffer>& operator*=(const T& other)
+        {
+            for (std::size_t i = 0; i < buff_.data().s; ++i) {
+                buff_.data().p[i] *= other;
+            }
+            return *this;
+        }
+
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> operator*(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
+
+        Matrix<T, Internal_buffer>& operator*=(const Matrix<T, Internal_buffer>& other)
+        {
+            CORE_EXPECT(dims_.m == other.dims_.n, std::invalid_argument, "matrices size mismatch (dims_.m = %d, other.dims_.n = %d)", dims_.m, other.dims_.n);
+
+            Matrix<T, Internal_buffer> multiplication{ {dims_.n, other.dims_.m}, T{} };
+
+            for (std::size_t i = 0; i < multiplication.dims_.n; ++i) {
+                for (std::size_t k = 0; k < dims_.m; ++k) {
+                    for (std::size_t j = 0; j < multiplication.dims_.m; ++j) {
+                        multiplication.buff_.data().p[i * multiplication.dims_.m + j] += buff_.data().p[i * dims_.m + k] * other.buff_.data().p[k * other.dims_.m + j];
+                    }
+                }
+            }
+            *this = std::move(multiplication);
+            return *this;
+        }
+
+        Matrix<T, Internal_buffer> transposed() const
+        {
+            Matrix<T, Internal_buffer> tmat{ {dims_.m, dims_.n}, T{} };
+
+            for (std::size_t i = 0; i < tmat.dims_.n; ++i) {
+                for (std::size_t j = 0; j < tmat.dims_.m; ++j) {
+                    tmat.buff_.data().p[i * tmat.dims_.m + j] = buff_.data().p[j * dims_.m + i];
+                }
+            }
+            return tmat;
+        }
+
+        Matrix<T, Internal_buffer>& transpose()
+        {
+            Matrix<T, Internal_buffer> tmat{ {dims_.m, dims_.n}, T{} };
+
+            for (std::size_t i = 0; i < tmat.dims_.n; ++i) {
+                for (std::size_t j = 0; j < tmat.dims_.m; ++j) {
+                    tmat.buff_.data().p[i * tmat.dims_.m + j] = buff_.data().p[j * dims_.m + i];
+                }
+            }
+            *this = std::move(tmat);
+            return *this;
+        }
+
     private:
         Dimensions dims_{};
         Internal_buffer buff_{};
     };
 
-    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_Buffer>
-    inline bool operator==(const Matrix<T, Internal_Buffer>& lhs, const Matrix<T, Internal_Buffer>& rhs)
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline bool operator==(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
     {
         if (lhs.dims_.n != rhs.dims_.n || lhs.dims_.m != rhs.dims_.m) {
             return false;
@@ -111,6 +200,78 @@ namespace math::core::types {
         }
         return true;
     }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> operator+(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
+    {
+        CORE_EXPECT(lhs.dims_.n == rhs.dims_.n && lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "matrices size mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d, lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.n, rhs.dims_.n, lhs.dims_.m, rhs.dims_.m);
+
+        Matrix<T, Internal_buffer> sum{lhs};
+
+        for (std::size_t i = 0; i < sum.buff_.data().s; ++i) {
+            sum.buff_.data().p[i] += rhs.buff_.data().p[i];
+        }
+        return sum;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> operator-(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
+    {
+        CORE_EXPECT(lhs.dims_.n == rhs.dims_.n && lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "matrices size mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d, lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.n, rhs.dims_.n, lhs.dims_.m, rhs.dims_.m);
+
+        Matrix<T, Internal_buffer> subtraction{ lhs };
+
+        for (std::size_t i = 0; i < subtraction.buff_.data().s; ++i) {
+            subtraction.buff_.data().p[i] -= rhs.buff_.data().p[i];
+        }
+        return subtraction;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> operator*(const Matrix<T, Internal_buffer>& lhs, const T& rhs)
+    {
+        Matrix<T, Internal_buffer> multiplication{ lhs };
+
+        for (std::size_t i = 0; i < multiplication.buff_.data().s; ++i) {
+            multiplication.buff_.data().p[i] *= rhs;
+        }
+        return multiplication;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> operator*(const T& lhs, const Matrix<T, Internal_buffer>& rhs)
+    {
+        return operator*(rhs, lhs);
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> operator*(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
+    {
+        CORE_EXPECT(lhs.dims_.m == rhs.dims_.n, std::invalid_argument, "matrices size mismatch (lhs.dims_.m = %d, rhs.dims_.n = %d)", lhs.dims_.m, rhs.dims_.n);
+
+        Matrix<T, Internal_buffer> multiplication{ {lhs.dims_.n, rhs.dims_.m}, T{} };
+
+        for (std::size_t i = 0; i < multiplication.dims_.n; ++i) {
+            for (std::size_t k = 0; k < lhs.dims_.m; ++k) {
+                for (std::size_t j = 0; j < multiplication.dims_.m; ++j) {
+                    multiplication.buff_.data().p[i * multiplication.dims_.m + j] += lhs.buff_.data().p[i * lhs.dims_.m + k] * rhs.buff_.data().p[k * rhs.dims_.m + j];
+                }
+            }
+        }
+        return multiplication;
+    }
+
+    //template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+    //std::ostream& operator<<(std::ostream& os, const Matrix<T_o, Internal_buffer_o>& mat)
+    //{
+    //    for (std::size_t i = 0; i < mat.dimensions().n; ++i) {
+    //        for (std::size_t j = 0; j < mat.dimensions().m; ++j) {
+    //            std::cout << mat(i, j) << " ";
+    //        }
+    //        std::cout << "\n";
+    //    }
+    //    return os;
+    //}
 }
 
 #endif // MATH_TYPE_MATRIX_H
