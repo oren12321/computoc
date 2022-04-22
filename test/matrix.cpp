@@ -179,6 +179,8 @@ TEST(Matrix_test, can_be_added_with_another_matrix)
     Integer_matrix rmat{ {n, m}, rdata };
 
     EXPECT_EQ(mat, rmat);
+
+    EXPECT_THROW((mat + Integer_matrix{{1, 1}, 0}), std::invalid_argument);
 }
 
 TEST(Matrix_test, can_be_subtracted_from_another_matrix)
@@ -196,6 +198,8 @@ TEST(Matrix_test, can_be_subtracted_from_another_matrix)
     mat -= mat - mat;
 
     EXPECT_EQ(mat, rmat);
+
+    EXPECT_THROW((mat - Integer_matrix{{1, 1}, 0}), std::invalid_argument);
 }
 
 TEST(Matrix_test, can_be_multiplied_by_a_constant)
@@ -251,6 +255,8 @@ TEST(Matrix_test, can_be_multiplied_by_another_matrix)
     
     mat1 *= mat2;
     EXPECT_EQ(mat1, rmat);
+
+    EXPECT_THROW(mat2 * mat2, std::invalid_argument);
 }
 
 TEST(Matrix_test, can_be_transposed)
