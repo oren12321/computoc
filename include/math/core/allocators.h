@@ -456,10 +456,10 @@ namespace math::core::allocators {
             ++number_of_records_;
         }
 
-        Record* root_{ nullptr };
-        Record* tail_{ nullptr };
         std::size_t number_of_records_{ 0 };
         std::int64_t total_allocated_{ 0 };
+        Record* root_{ nullptr };
+        Record* tail_{ nullptr };
     };
 
     template <Allocator Internal_allocator>

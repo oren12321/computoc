@@ -153,7 +153,7 @@ TEST(Matrix_test, can_write_into_slice)
         4, 0, 6 };
     const std::size_t rn = 2;
     const std::size_t rm = 3;
-    Integer_matrix rmat{ {rn, m}, rdata };
+    Integer_matrix rmat{ {rn, rm}, rdata };
 
     EXPECT_EQ(mat, rmat);
 
