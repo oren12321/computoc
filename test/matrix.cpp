@@ -111,7 +111,7 @@ TEST(Matrix_test, can_return_slice)
     const std::size_t sn1 = 1;
     const std::size_t sm1 = 3;
     Integer_matrix smat1{ {sn1, sm1}, sdata1 };
-    EXPECT_EQ(mat.get_slice(0, 0, 0, 2), smat1);
+    EXPECT_EQ(mat.get_slice(0, 0, smat1.dimensions()), smat1);
 
     const int sdata2[] = {
         2,
@@ -119,14 +119,14 @@ TEST(Matrix_test, can_return_slice)
     const std::size_t sn2 = 2;
     const std::size_t sm2 = 1;
     Integer_matrix smat2{ {sn2, sm2}, sdata2 };
-    EXPECT_EQ(mat.get_slice(0, 1, 1, 1), smat2);
+    EXPECT_EQ(mat.get_slice(0, 1, smat2.dimensions()), smat2);
 
-    EXPECT_THROW(mat.get_slice(0, n, 0, 0), std::out_of_range);
-    EXPECT_THROW(mat.get_slice(0, 0, 0, m), std::out_of_range);
-    EXPECT_THROW(mat.get_slice(0, n, 0, m), std::out_of_range);
-    EXPECT_THROW(mat.get_slice(n - 1, 0, 0, 0), std::out_of_range);
-    EXPECT_THROW(mat.get_slice(0, 0, m - 1, 0), std::out_of_range);
-    EXPECT_THROW(mat.get_slice(n - 1, 0, m - 1, 0), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(n, 0, { 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(0, m, { 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(n, m, { 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(0, 0, { n + 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(0, 0, { 1, m + 1 }), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(0, 0, { n + 1, m + 1 }), std::out_of_range);
 }
 
 TEST(Matrix_test, can_write_into_slice)
@@ -146,7 +146,7 @@ TEST(Matrix_test, can_write_into_slice)
     const std::size_t sn = 2;
     const std::size_t sm = 1;
     Integer_matrix smat{ {sn, sm}, sdata };
-    mat.set_slice(0, 1, 1, 1, smat);
+    mat.set_slice(0, 1, smat);
 
     const int rdata[] = {
         1, 0, 3,
@@ -157,6 +157,6 @@ TEST(Matrix_test, can_write_into_slice)
 
     EXPECT_EQ(mat, rmat);
 
-    EXPECT_THROW(mat.set_slice(0, 0, 0, 0, smat), std::invalid_argument);
+    EXPECT_THROW(smat.set_slice(0, 0, mat), std::out_of_range);
 }
 

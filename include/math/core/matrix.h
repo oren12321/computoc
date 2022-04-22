@@ -63,42 +63,34 @@ namespace math::core::types {
             return buff_.data().p[i * dims_.m + j];
         }
 
-        Matrix<T, Internal_buffer>& set_slice(std::size_t si, std::size_t ei, std::size_t sj, std::size_t ej, const Matrix<T, Internal_buffer> mat)
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_Buffer_o>
+        friend bool operator==(const Matrix<T_o, Internal_Buffer_o>& lhs, const Matrix<T_o, Internal_Buffer_o>& rhs);
+
+        Matrix<T, Internal_buffer> get_slice(std::size_t si, std::size_t sj, Dimensions dims) const
         {
-            CORE_EXPECT(si <= ei && ei < dims_.n&& sj <= ej && ej < dims_.m, std::out_of_range, "out of range indices (si = %d, ei = %d, sj = %d, ej = %d)", si, ei, sj, ej);
+            CORE_EXPECT(si + dims.n <= dims_.n && sj + dims.m <= dims_.m, std::out_of_range, "out of range indices (si = %d, sj = %d, dims.n = %d, dims.m = %d)", si, sj, dims.n, dims.m);
 
-            std::size_t sliced_n = ei - si + 1;
-            std::size_t sliced_m = ej - sj + 1;
+            Matrix<T, Internal_buffer> slice{ dims, T{} };
 
-            CORE_EXPECT(sliced_n == mat.dims_.n && sliced_m == mat.dims_.m, std::invalid_argument, "input mat size and slice size mismatch (slice_n = %d, input_n = %d, slice_m = %d, input_m = %d)", sliced_n, mat.dims_.n, sliced_m, mat.dims_.m);
+            for (std::size_t i = 0; i < dims.n; ++i) {
+                for (std::size_t j = 0; j < dims.m; ++j) {
+                    slice.buff_.data().p[i * dims.m + j] = buff_.data().p[(si + i) * dims_.m + sj + j];
+                }
+            }
+            return slice;
+        }
 
-            for (std::size_t i = 0; i < sliced_n; ++i) {
-                for (std::size_t j = 0; j < sliced_m; ++j) {
+        Matrix<T, Internal_buffer>& set_slice(std::size_t si, std::size_t sj, const Matrix<T, Internal_buffer>& mat)
+        {
+            CORE_EXPECT(si + mat.dims_.n <= dims_.n && sj + mat.dims_.m <= dims_.m, std::out_of_range, "out of range indices (si = %d, sj = %d, mat.dims_.n = %d, mat.dims_.m = %d)", si, sj, mat.dims_.n, mat.dims_.m);
+
+            for (std::size_t i = 0; i < mat.dims_.n; ++i) {
+                for (std::size_t j = 0; j < mat.dims_.m; ++j) {
                     buff_.data().p[(si + i) * dims_.m + sj + j] = mat.buff_.data().p[i * mat.dims_.m + j];
                 }
             }
             return *this;
         }
-
-        Matrix<T, Internal_buffer> get_slice(std::size_t si, std::size_t ei, std::size_t sj, std::size_t ej) const
-        {
-            CORE_EXPECT(si <= ei && ei < dims_.n&& sj <= ej && ej < dims_.m, std::out_of_range, "out of range indices (si = %d, ei = %d, sj = %d, ej = %d)", si, ei, sj, ej);
-
-            std::size_t sliced_n = ei - si + 1;
-            std::size_t sliced_m = ej - sj + 1;
-
-            Matrix<T, Internal_buffer> sliced{ {sliced_n, sliced_m}, T{} };
-
-            for (std::size_t i = 0; i < sliced_n; ++i) {
-                for (std::size_t j = 0; j < sliced_m; ++j) {
-                    sliced.buff_.data().p[i * sliced_m + j] = buff_.data().p[(si + i) * dims_.m + sj + j];
-                }
-            }
-            return sliced;
-        }
-
-        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_Buffer_o>
-        friend bool operator==(const Matrix<T_o, Internal_Buffer_o>& lhs, const Matrix<T_o, Internal_Buffer_o>& rhs);
 
     private:
         Dimensions dims_{};
