@@ -1,4 +1,4 @@
-if (NOT WIN32)
+if (DEFINED IN_DOCKER)
     find_package(benchmark REQUIRED)
 endif()
 

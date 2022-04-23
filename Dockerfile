@@ -45,7 +45,7 @@ RUN git clone -b v1.6.1 https://github.com/google/benchmark.git \
 
 WORKDIR /tmp/
 COPY . /tmp/
-RUN cmake . -DCMAKE_BUILD_TYPE=Release \
+RUN cmake . -DIN_DOCKER=TRUE -DCMAKE_BUILD_TYPE=Release \
  && make -j$(nproc) \
  && ./test/math_test \
  && ./benchmark/math_benchmark \
