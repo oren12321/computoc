@@ -1,4 +1,6 @@
-find_package(benchmark REQUIRED)
+if (NOT WIN32)
+    find_package(benchmark REQUIRED)
+endif()
 
 add_executable(math_benchmark
     allocators.cpp

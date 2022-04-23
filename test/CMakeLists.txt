@@ -1,4 +1,6 @@
-find_package(GTest REQUIRED)
+if (NOT WIN32)
+    find_package(GTest REQUIRED)
+endif()
 
 add_executable(math_test
     memory.cpp
