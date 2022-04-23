@@ -49,6 +49,5 @@ RUN cmake . -DCMAKE_BUILD_TYPE=Release \
  && make -j$(nproc) \
  && ./test/math_test \
  && ./benchmark/math_benchmark \
- && make install \
  && rm -rf /tmp/*
 
