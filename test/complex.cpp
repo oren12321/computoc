@@ -32,3 +32,23 @@ TEST(Complex_test, can_be_compared_with_other_number)
     EXPECT_EQ((Complex{ 0, 1 }), (Complex{ 0, 1 }));
     EXPECT_EQ(0.5, (Complex{ 0.5 }));
 }
+
+TEST(Complex_test, can_negate)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ(0, (-Complex{ 0 }));
+    EXPECT_EQ((Complex{ -1, -2 }), (-Complex{ 1, 2 }));
+    EXPECT_EQ((Complex{ 0, -1 }), (-Complex{ 0, 1 }));
+    EXPECT_EQ(-0.5, (-Complex{ 0.5 }));
+}
+
+TEST(Complex_test, have_conjugate)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ(0, (Complex{ 0 }.conjugate()));
+    EXPECT_EQ((Complex{ 1, -2 }), (Complex{ 1, 2 }.conjugate()));
+    EXPECT_EQ((Complex{ 0, -1 }), (Complex{ 0, 1 }.conjugate()));
+    EXPECT_EQ(0.5, (Complex{ 0.5 }.conjugate()));
+}

@@ -31,6 +31,16 @@ namespace math::core::types {
             return r_;
         }
 
+        Complex<N> operator-() const noexcept
+        {
+            return { -r_, -i_ };
+        }
+
+        Complex<N> conjugate() const noexcept
+        {
+            return { r_, -i_ };
+        }
+
     private:
         N r_{ 0 };
         N i_{ 0 };
