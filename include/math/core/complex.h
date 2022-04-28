@@ -5,7 +5,7 @@
 
 namespace math::core::types {
     template <typename T>
-        concept Number = (std::is_integral_v<T> && std::is_signed_v<T> && !std::is_same_v<T, bool>) || std::is_floating_point_v<T>;
+    concept Number = (std::is_integral_v<T> && std::is_signed_v<T> && !std::is_same_v<T, bool>) || std::is_floating_point_v<T>;
 
     template <Number N>
     class Complex {
@@ -61,6 +61,18 @@ namespace math::core::types {
             return *this;
         }
 
+        template <Number N_o>
+        friend Complex<N_o> operator*(const Complex<N_o>& lhs, const Complex<N_o>& rhs) noexcept;
+
+        Complex<N>& operator*=(const Complex<N>& other) noexcept
+        {
+            N nr{r_ * other.r_ - i_ * other.i_};
+            N ni{r_ * other.i_ + other.r_ * i_};
+            r_ = nr;
+            i_ = ni;
+            return *this;
+        }
+
     private:
         N r_{ 0 };
         N i_{ 0 };
@@ -82,6 +94,12 @@ namespace math::core::types {
     inline Complex<N> operator-(const Complex<N>& lhs, const Complex<N>& rhs) noexcept
     {
         return {lhs.r_ - rhs.r_, lhs.i_ - rhs.i_};
+    }
+
+    template <Number N>
+    inline Complex<N> operator*(const Complex<N>& lhs, const Complex<N>& rhs) noexcept
+    {
+        return {lhs.r_ * rhs.r_ - lhs.i_ * rhs.i_, lhs.r_ * rhs.i_ + rhs.r_ * lhs.i_};
     }
 }
 

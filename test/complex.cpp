@@ -81,3 +81,17 @@ TEST(Complex_test, can_be_subtracted_from_other_number)
     EXPECT_EQ((Complex{0, 3}), c);
 }
 
+TEST(Complex_test, can_be_multiplied_with_other_number)
+{
+    using namespace math::core::types;
+
+    Complex c{6, -2};
+    EXPECT_EQ(0, c * 0);
+    EXPECT_EQ(c, c * 1);
+    EXPECT_EQ((Complex{1.5, -0.5}), c * 0.25);
+    EXPECT_EQ((Complex{30, 10}), (c * Complex{4, 3}));
+
+    c *= Complex{4, 3};
+    EXPECT_EQ((Complex{30, 10}), c);
+}
+
