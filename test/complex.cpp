@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <stdexcept>
+#include <numbers>
 
 #include <math/core/complex.h>
 
@@ -119,3 +120,22 @@ TEST(Complex_test, can_be_divided_by_other_number)
     EXPECT_EQ((Complex{2.5, 0.5}), c);
 }
 
+TEST(Complex_test, have_squared_magnitude)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ(0, (Complex{ 0 }.squared_magnitude()));
+    EXPECT_EQ(2, (Complex{ 1, 1 }.squared_magnitude()));
+    EXPECT_EQ(5, (Complex{ 1, 2 }.squared_magnitude()));
+    EXPECT_EQ(4, (Complex{ 0, 2 }.squared_magnitude()));
+}
+
+TEST(Complex_test, have_angle)
+{
+    using namespace math::core::types;
+
+    EXPECT_THROW((Complex{ 0 }.theta()), std::overflow_error);
+
+    EXPECT_EQ(0, (Complex{ 1, 0 }.theta()));
+    EXPECT_EQ(std::numbers::pi / 4.0, (Complex{ 1.0, 1.0 }.theta()));
+}

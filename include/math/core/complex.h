@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <stdexcept>
+#include <cmath>
 
 #include <math/core/utils.h>
 
@@ -89,6 +90,18 @@ namespace math::core::types {
         Complex<N>& operator/=(const Complex<N>& other)
         {
             return operator*=(other.multiplicative_inverse());
+        }
+
+        N squared_magnitude() const noexcept
+        {
+            return r_ * r_ + i_ * i_;
+        }
+
+        N theta() const
+        {
+            CORE_EXPECT(r_ != 0, std::overflow_error, "division by zero");
+
+            return std::atan(i_ / r_);
         }
 
     private:
