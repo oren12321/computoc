@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <stdexcept>
+
 #include <math/core/complex.h>
 
 TEST(Complex_test, can_be_initialized_with_components_or_a_number)
@@ -93,5 +95,27 @@ TEST(Complex_test, can_be_multiplied_with_other_number)
 
     c *= Complex{4, 3};
     EXPECT_EQ((Complex{30, 10}), c);
+}
+
+TEST(Complex_test, have_multiplicate_reciprocal)
+{
+    using namespace math::core::types;
+
+    EXPECT_THROW((Complex{0}.multiplicative_inverse()), std::overflow_error);
+
+    EXPECT_EQ((Complex{3.0 / 25.0, -4.0 / 25.0}), (Complex{3.0, 4.0}.multiplicative_inverse()));
+}
+
+TEST(Complex_test, can_be_divided_by_other_number)
+{
+    using namespace math::core::types;
+
+    Complex c{2.0, 3.0};
+    EXPECT_THROW((c / Complex{0.0}), std::overflow_error);
+    EXPECT_EQ((Complex{1.0, 1.5}), c / 2);
+    EXPECT_EQ((Complex{2.5, 0.5}), (c / Complex{1.0, 1.0}));
+
+    c /= Complex{1.0, 1.0};
+    EXPECT_EQ((Complex{2.5, 0.5}), c);
 }
 

@@ -2,6 +2,9 @@
 #define MATH_TYPES_COMPLEX_H
 
 #include <type_traits>
+#include <stdexcept>
+
+#include <math/core/utils.h>
 
 namespace math::core::types {
     template <typename T>
@@ -73,6 +76,21 @@ namespace math::core::types {
             return *this;
         }
 
+        Complex<N> multiplicative_inverse() const
+        {
+            CORE_EXPECT(r_ != 0 || i_ != 0, std::overflow_error, "division by zero");
+
+            return {r_ / (r_ * r_ + i_ * i_), -i_ / (r_ * r_ + i_ * i_)};
+        }
+
+        template <Number N_o>
+        friend Complex<N_o> operator/(const Complex<N_o>& lhs, const Complex<N_o>& rhs);
+
+        Complex<N>& operator/=(const Complex<N>& other)
+        {
+            return operator*=(other.multiplicative_inverse());
+        }
+
     private:
         N r_{ 0 };
         N i_{ 0 };
@@ -100,6 +118,12 @@ namespace math::core::types {
     inline Complex<N> operator*(const Complex<N>& lhs, const Complex<N>& rhs) noexcept
     {
         return {lhs.r_ * rhs.r_ - lhs.i_ * rhs.i_, lhs.r_ * rhs.i_ + rhs.r_ * lhs.i_};
+    }
+
+    template <Number N>
+    inline Complex<N> operator/(const Complex<N>& lhs, const Complex<N>& rhs)
+    {
+        return operator*(lhs, rhs.multiplicative_inverse());
     }
 }
 
