@@ -41,6 +41,26 @@ namespace math::core::types {
             return { r_, -i_ };
         }
 
+        template <Number N_o>
+        friend Complex<N_o> operator+(const Complex<N_o>& lhs, const Complex<N_o>& rhs) noexcept;
+
+        Complex<N>& operator+=(const Complex<N>& other) noexcept
+        {
+            r_ += other.r_;
+            i_ += other.i_;
+            return *this;
+        }
+
+        template <Number N_o>
+        friend Complex<N_o> operator-(const Complex<N_o>& lhs, const Complex<N_o>& rhs) noexcept;
+
+        Complex<N>& operator-=(const Complex<N>& other) noexcept
+        {
+            r_ -= other.r_;
+            i_ -= other.i_;
+            return *this;
+        }
+
     private:
         N r_{ 0 };
         N i_{ 0 };
@@ -50,6 +70,18 @@ namespace math::core::types {
     inline bool operator==(const Complex<N>& lhs, const Complex<N>& rhs) noexcept
     {
         return lhs.r_ == rhs.r_ && lhs.i_ == rhs.i_;
+    }
+
+    template <Number N>
+    inline Complex<N> operator+(const Complex<N>& lhs, const Complex<N>& rhs) noexcept
+    {
+        return {lhs.r_ + rhs.r_, lhs.i_ + rhs.i_};
+    }
+
+    template <Number N>
+    inline Complex<N> operator-(const Complex<N>& lhs, const Complex<N>& rhs) noexcept
+    {
+        return {lhs.r_ - rhs.r_, lhs.i_ - rhs.i_};
     }
 }
 

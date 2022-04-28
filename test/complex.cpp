@@ -52,3 +52,32 @@ TEST(Complex_test, have_conjugate)
     EXPECT_EQ((Complex{ 0, -1 }), (Complex{ 0, 1 }.conjugate()));
     EXPECT_EQ(0.5, (Complex{ 0.5 }.conjugate()));
 }
+
+TEST(Complex_test, can_be_added_to_other_number)
+{
+    using namespace math::core::types;
+
+    Complex c{1, 2};
+    EXPECT_EQ(c, c + 0);
+    EXPECT_EQ((Complex{3, 2}), c + 2);
+    EXPECT_EQ((Complex{1.5, 2.0}), c + 0.5);
+    EXPECT_EQ((Complex{2, 1}), (c + Complex{1, -1}));
+
+    c += Complex{1, -1};
+    EXPECT_EQ((Complex{2, 1}), c);
+}
+
+TEST(Complex_test, can_be_subtracted_from_other_number)
+{
+    using namespace math::core::types;
+
+    Complex c{1, 2};
+    EXPECT_EQ(c, c - 0);
+    EXPECT_EQ((Complex{-1, 2}), c - 2);
+    EXPECT_EQ((Complex{0.5, 2.0}), c - 0.5);
+    EXPECT_EQ((Complex{0, 3}), (c - Complex{1, -1}));
+
+    c -= Complex{1, -1};
+    EXPECT_EQ((Complex{0, 3}), c);
+}
+
