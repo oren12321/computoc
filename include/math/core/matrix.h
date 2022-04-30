@@ -217,6 +217,9 @@ namespace math::core::types {
         template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
         friend T_o determinant(const Matrix<T_o, Internal_buffer_o>& mat);
 
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> inverse(const Matrix<T_o, Internal_buffer_o>& mat);
+
     private:
         Dimensions dims_{};
         Internal_buffer buff_{};
@@ -300,7 +303,7 @@ namespace math::core::types {
     template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
     inline T determinant(const Matrix<T, Internal_buffer>& mat)
     {
-        CORE_EXPECT(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not rectangular matrix");
+        CORE_EXPECT(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not square matrix");
 
         std::size_t n = mat.dims_.n;
 
@@ -322,6 +325,30 @@ namespace math::core::types {
             sign *= T{ -1 };
         }
         return d;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> inverse(const Matrix<T, Internal_buffer>& mat)
+    {
+        CORE_EXPECT(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not square matrix");
+        std::size_t n = mat.dims_.n;
+
+        T d{ determinant(mat) };
+        CORE_EXPECT(d != 0, std::invalid_argument, "zero determinant");
+
+        Matrix<T, Internal_buffer> inv(mat.dims_, T{});
+
+        for (std::size_t i = 0; i < n; ++i) {
+            T sign = (i + 1) % 2 == 0 ? T{ -1 } : T{ 1 };
+            for (std::size_t j = 0; j < n; ++j) {
+                inv.buff_.data().p[i * n + j] = sign * determinant(mat.get_slice(i, j));
+                sign *= T{ -1 };
+            }
+        }
+
+        inv.transpose();
+
+        return T{ 1 / d } * inv;
     }
 
     //template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>

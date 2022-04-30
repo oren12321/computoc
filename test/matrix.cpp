@@ -335,3 +335,23 @@ TEST(Matrix_test, have_determinant_if_squared)
     EXPECT_THROW(math::core::types::determinant(Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
     EXPECT_THROW(math::core::types::determinant(Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
 }
+
+TEST(Matrix_test, have_inverse_if_squared_and_zero_determinant)
+{
+    using Double_matrix = math::core::types::Matrix<double>;
+
+    const double data[] = {
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16 };
+    const std::size_t n = 4;
+    Double_matrix mat{ {n, n}, data };
+
+    const double inv_data1[] = {
+        -1.5, 0.5,
+        1.25, -0.25 };
+    const std::size_t in1 = 2;
+    Double_matrix inv_mat1{ {in1, in1}, inv_data1 };
+    EXPECT_EQ(inv_mat1, math::core::types::inverse(mat.get_slice(0, 0, { 2, 2 })));
+}
