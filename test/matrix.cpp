@@ -354,4 +354,15 @@ TEST(Matrix_test, have_inverse_if_squared_and_zero_determinant)
     const std::size_t in1 = 2;
     Double_matrix inv_mat1{ {in1, in1}, inv_data1 };
     EXPECT_EQ(inv_mat1, math::core::types::inverse(mat.get_slice(0, 0, { 2, 2 })));
+
+    const double unit_data2[] = {
+    1, 0,
+    0, 1 };
+    const std::size_t un1 = 2;
+    Double_matrix unit_mat2{ {un1, un1}, unit_data2 };
+    EXPECT_EQ(unit_mat2, inv_mat1 * mat.get_slice(0, 0, { 2, 2 }));
+
+    EXPECT_THROW(math::core::types::inverse(Double_matrix{ {1, 2}, 0.0 }), std::invalid_argument);
+    EXPECT_THROW(math::core::types::inverse(Double_matrix{ {2, 1}, 0.0 }), std::invalid_argument);
+    EXPECT_THROW(math::core::types::inverse(mat), std::invalid_argument);
 }
