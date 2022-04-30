@@ -21,7 +21,7 @@ namespace math::core::types {
         math::core::buffers::Allocated_buffer<math::core::allocators::Malloc_allocator, true>>>;
 
     template <typename T>
-    concept Arithmetic = std::is_arithmetic_v<T>;
+    concept Arithmetic = (std::is_integral_v<T> && std::is_signed_v<T> && !std::is_same_v<T, bool>) || std::is_floating_point_v<T>;
 
     struct Dimensions {
         std::size_t n{ 0 };
@@ -214,6 +214,9 @@ namespace math::core::types {
             return *this;
         }
 
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend T_o determinant(const Matrix<T_o, Internal_buffer_o>& mat);
+
     private:
         Dimensions dims_{};
         Internal_buffer buff_{};
@@ -292,6 +295,33 @@ namespace math::core::types {
             }
         }
         return multiplication;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline T determinant(const Matrix<T, Internal_buffer>& mat)
+    {
+        CORE_EXPECT(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not rectangular matrix");
+
+        std::size_t n = mat.dims_.n;
+
+        if (n == 1) {
+            return mat.buff_.data().p[0];
+        }
+
+        if (n == 2) {
+            return mat.buff_.data().p[0] * mat.buff_.data().p[3] - mat.buff_.data().p[1] * mat.buff_.data().p[2];
+        }
+
+        int sign = T{ 1 };
+        T d{ 0 };
+        for (std::size_t j = 0; j < n; ++j) {
+            T p{ mat.buff_.data().p[j] };
+            if (p != T{ 0 }) {
+                d += sign * p * determinant<T, Internal_buffer>(mat.get_slice(0, j));
+            }
+            sign *= T{ -1 };
+        }
+        return d;
     }
 
     //template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>

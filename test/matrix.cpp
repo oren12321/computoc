@@ -315,3 +315,23 @@ TEST(Matrix_test, can_be_transposed)
     EXPECT_EQ(mat, rmat);
 }
 
+TEST(Matrix_test, have_determinant_if_squared)
+{
+    using Integer_matrix = math::core::types::Matrix<int>;
+
+    const int data[] = {
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16 };
+    const std::size_t n = 4;
+    Integer_matrix mat{ {n, n}, data };
+
+    EXPECT_EQ(1, math::core::types::determinant(mat.get_slice(0, 0, { 1, 1 })));
+    EXPECT_EQ(-4, math::core::types::determinant(mat.get_slice(0, 0, { 2, 2 })));
+    EXPECT_EQ(0, math::core::types::determinant(mat.get_slice(0, 0, { 3, 3 })));
+    EXPECT_EQ(0, math::core::types::determinant(mat));
+
+    EXPECT_THROW(math::core::types::determinant(Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
+    EXPECT_THROW(math::core::types::determinant(Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
+}
