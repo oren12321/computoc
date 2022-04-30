@@ -84,6 +84,39 @@ namespace math::core::types {
             return slice;
         }
 
+        Matrix<T, Internal_buffer> get_slice(std::size_t pi, std::size_t pj) const
+        {
+            CORE_EXPECT(pi < dims_.n&& pj < dims_.m, std::out_of_range, "out of range indices (pi = %d, pj = %d)", pi, pj);
+
+            Matrix<T, Internal_buffer> slice{ {dims_.n - 1, dims_.m - 1}, T{} };
+
+            for (std::size_t i = 0; i < pi; ++i) {
+                for (std::size_t j = 0; j < pj; ++j) {
+                    slice.buff_.data().p[i * slice.dims_.m + j] = buff_.data().p[i * dims_.m + j];
+                }
+            }
+
+            for (std::size_t i = 0; i < pi; ++i) {
+                for (std::size_t j = pj + 1; j < dims_.m; ++j) {
+                    slice.buff_.data().p[i * slice.dims_.m + (j - 1)] = buff_.data().p[i * dims_.m + j];
+                }
+            }
+
+            for (std::size_t i = pi + 1; i < dims_.n; ++i) {
+                for (std::size_t j = 0; j < pj; ++j) {
+                    slice.buff_.data().p[(i - 1) * slice.dims_.m + j] = buff_.data().p[i * dims_.m + j];
+                }
+            }
+
+            for (std::size_t i = pi + 1; i < dims_.n; ++i) {
+                for (std::size_t j = pj + 1; j < dims_.m; ++j) {
+                    slice.buff_.data().p[(i - 1) * slice.dims_.m + (j - 1)] = buff_.data().p[i * dims_.m + j];
+                }
+            }
+
+            return slice;
+        }
+
         Matrix<T, Internal_buffer>& set_slice(std::size_t si, std::size_t sj, const Matrix<T, Internal_buffer>& mat)
         {
             CORE_EXPECT(si + mat.dims_.n <= dims_.n && sj + mat.dims_.m <= dims_.m, std::out_of_range, "out of range indices (si = %d, sj = %d, mat.dims_.n = %d, mat.dims_.m = %d)", si, sj, mat.dims_.n, mat.dims_.m);

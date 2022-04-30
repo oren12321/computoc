@@ -129,6 +129,37 @@ TEST(Matrix_test, can_return_slice)
     EXPECT_THROW(mat.get_slice(0, 0, { n + 1, m + 1 }), std::out_of_range);
 }
 
+TEST(Matrix_test, can_return_slice_by_pivot)
+{
+    using Integer_matrix = math::core::types::Matrix<int>;
+
+    const int data[] = {
+        1, 2, 3, 4, 5,
+        6, 7, 8, 9, 10,
+        11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20 };
+    const std::size_t n = 4;
+    const std::size_t m = 5;
+    Integer_matrix mat{ {n, m}, data };
+
+    const std::size_t pi = 2;
+    const std::size_t pj = 1;
+    Integer_matrix slice{ mat.get_slice(pi, pj) };
+
+    const int rdata[] = {
+        1, 3, 4, 5,
+        6, 8, 9, 10,
+        16, 18, 19, 20 };
+    const std::size_t rn = 3;
+    const std::size_t rm = 4;
+    Integer_matrix rmat{ {rn, rm}, rdata };
+
+    EXPECT_EQ(rmat, slice);
+    EXPECT_THROW(mat.get_slice(n, 0), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(0, m), std::out_of_range);
+    EXPECT_THROW(mat.get_slice(n, m), std::out_of_range);
+}
+
 TEST(Matrix_test, can_write_into_slice)
 {
     using Integer_matrix = math::core::types::Matrix<int>;
