@@ -366,3 +366,42 @@ TEST(Matrix_test, have_inverse_if_squared_and_zero_determinant)
     EXPECT_THROW(math::core::types::inverse(Double_matrix{ {2, 1}, 0.0 }), std::invalid_argument);
     EXPECT_THROW(math::core::types::inverse(mat), std::invalid_argument);
 }
+
+TEST(Matrix_test, can_be_merged)
+{
+    using Integer_matrix = math::core::types::Matrix<int>;
+
+    const int data1[] = {
+        1, 2, 3,
+        4, 5, 6 };
+    const std::size_t n1 = 2;
+    const std::size_t m1 = 3;
+    Integer_matrix mat1{ {n1, m1}, data1 };
+
+    const int data2[] = {
+        7, 8, 9,
+        10, 11, 12 };
+    const std::size_t n2 = 2;
+    const std::size_t m2 = 3;
+    Integer_matrix mat2{ {n2, m2}, data2 };
+
+    const int hmerged_data[] = {
+        1, 2, 3, 7, 8, 9,
+        4, 5, 6, 10, 11, 12 };
+    const std::size_t hn = 2;
+    const std::size_t hm = 6;
+    Integer_matrix hmerged{ {hn, hm}, hmerged_data };
+    EXPECT_EQ(hmerged, math::core::types::merge_horizontal(mat1, mat2));
+    EXPECT_THROW(math::core::types::merge_horizontal(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
+
+    const int vmerged_data[] = {
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9,
+        10, 11, 12 };
+    const std::size_t vn = 4;
+    const std::size_t vm = 3;
+    Integer_matrix vmerged{ {vn, vm}, vmerged_data };
+    EXPECT_EQ(vmerged, math::core::types::merge_vertical(mat1, mat2));
+    EXPECT_THROW(math::core::types::merge_vertical(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
+}

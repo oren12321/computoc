@@ -220,6 +220,12 @@ namespace math::core::types {
         template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
         friend Matrix<T_o, Internal_buffer_o> inverse(const Matrix<T_o, Internal_buffer_o>& mat);
 
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> merge_horizontal(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
+
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> merge_vertical(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
+
     private:
         Dimensions dims_{};
         Internal_buffer buff_{};
@@ -349,6 +355,32 @@ namespace math::core::types {
         inv.transpose();
 
         return T{ 1 / d } * inv;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> merge_horizontal(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
+    {
+        CORE_EXPECT(lhs.dims_.n == rhs.dims_.n, std::invalid_argument, "dimensions mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d)", lhs.dims_.n, rhs.dims_.n);
+
+        Matrix<T, Internal_buffer> merged{ {lhs.dims_.n, lhs.dims_.m + rhs.dims_.m}, T{} };
+
+        merged.set_slice(0, 0, lhs);
+        merged.set_slice(0, lhs.dims_.m, rhs);
+
+        return merged;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> merge_vertical(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
+    {
+        CORE_EXPECT(lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "dimensions mismatch (lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.m, rhs.dims_.m);
+
+        Matrix<T, Internal_buffer> merged{ {lhs.dims_.n + rhs.dims_.n, lhs.dims_.m}, T{} };
+
+        merged.set_slice(0, 0, lhs);
+        merged.set_slice(lhs.dims_.n, 0, rhs);
+
+        return merged;
     }
 
     //template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
