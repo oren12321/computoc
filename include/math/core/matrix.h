@@ -226,6 +226,29 @@ namespace math::core::types {
         template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
         friend Matrix<T_o, Internal_buffer_o> merge_vertical(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
+        Matrix<T, Internal_buffer>& multiply_row(std::size_t i, const T& factor)
+        {
+            CORE_EXPECT(i < dims_.n, std::out_of_range, "out of range index (i = %d)", i);
+
+            for (std::size_t j = 0; j < dims_.m; ++j) {
+                buff_.data().p[i * dims_.m + j] *= factor;
+            }
+            return *this;
+        }
+
+        Matrix<T, Internal_buffer>& add_row(std::size_t si, std::size_t di, const T& factor)
+        {
+            CORE_EXPECT(si < dims_.n&& di < dims_.n, std::out_of_range, "out of range indices (si = %d, di = %d)", si, di);
+
+            for (std::size_t j = 0; j < dims_.m; ++j) {
+                buff_.data().p[di * dims_.m + j] += factor * buff_.data().p[si * dims_.m + j];
+            }
+            return *this;
+        }
+
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> reduced_row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
+
     private:
         Dimensions dims_{};
         Internal_buffer buff_{};
@@ -381,6 +404,28 @@ namespace math::core::types {
         merged.set_slice(lhs.dims_.n, 0, rhs);
 
         return merged;
+    }
+
+    template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    inline Matrix<T, Internal_buffer> reduced_row_echelon_form(const Matrix<T, Internal_buffer>& mat)
+    {
+        Matrix<T, Internal_buffer> rref_mat{ mat };
+
+        std::size_t r = mat.dims_.n > mat.dims_.m ? mat.dims_.m : mat.dims_.n;
+
+        for (std::size_t k = 0; k < r; ++k) {
+            T factor{ rref_mat(k, k) };
+            if (factor != T{ 0 }) {
+                rref_mat.multiply_row(k, T{ 1 } / factor);
+                for (std::size_t i = 0; i < mat.dims_.n; ++i) {
+                    if (i != k) {
+                        rref_mat.add_row(k, i, -rref_mat(i, k));
+                    }
+                }
+            }
+        }
+
+        return rref_mat;
     }
 
     //template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>

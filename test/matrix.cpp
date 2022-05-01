@@ -405,3 +405,58 @@ TEST(Matrix_test, can_be_merged)
     EXPECT_EQ(vmerged, math::core::types::merge_vertical(mat1, mat2));
     EXPECT_THROW(math::core::types::merge_vertical(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
 }
+
+TEST(Matrix_test, can_add_and_multiply_row)
+{
+    using Double_matrix = math::core::types::Matrix<double>;
+
+    const double data[] = {
+        1, 2, 3, 4,
+        5, 6, 7, 8 };
+    const std::size_t n = 4;
+    Double_matrix mat{ {n, n}, data };
+
+    mat.multiply_row(0, 2);
+    const double rdata1[] = {
+        2, 4, 6, 8,
+        5, 6, 7, 8 };
+    const std::size_t rn1 = 4;
+    Double_matrix rmat1{ {rn1, rn1}, rdata1 };
+    EXPECT_EQ(rmat1, mat);
+
+    mat.add_row(0, 1, 0.5);
+    const double rdata2[] = {
+        2, 4, 6, 8,
+        6, 8, 10, 12 };
+    const std::size_t rn2 = 4;
+    Double_matrix rmat2{ {rn2, rn2}, rdata2 };
+    EXPECT_EQ(rmat2, mat);
+
+    EXPECT_THROW(mat.multiply_row(n + 1, 1), std::out_of_range);
+
+    EXPECT_THROW(mat.add_row(n + 1, 0, 1), std::out_of_range);
+    EXPECT_THROW(mat.add_row(0, n + 1, 1), std::out_of_range);
+}
+
+TEST(Matrix_test, have_reduced_row_echelon_form)
+{
+    using Double_matrix = math::core::types::Matrix<double>;
+
+    const double data[] = {
+        0.25, 0.5, 1, 5.75, 
+        1, 1, 1, 7,
+        4, 2, 1, 2 };
+    const std::size_t n = 3;
+    const std::size_t m = 4;
+    Double_matrix mat{ {n, m}, data };
+
+    const double rdata[] = {
+        1, 0, 0, -5,
+        0, 1, 0, 10,
+        0, 0, 1, 2 };
+    const std::size_t rn = 3;
+    const std::size_t rm = 4;
+    Double_matrix rmat{ {rn, rm}, rdata };
+
+    EXPECT_EQ(rmat, math::core::types::reduced_row_echelon_form(mat));
+}
