@@ -246,6 +246,18 @@ namespace math::core::types {
             return *this;
         }
 
+        Matrix<T, Internal_buffer>& swap_rows(std::size_t i1, std::size_t i2)
+        {
+            CORE_EXPECT(i1 < dims_.n&& i2 < dims_.n, std::out_of_range, "out of range indices (i1 = %d, i2 = %d)", i1, i2);
+
+            for (std::size_t j = 0; j < dims_.m; ++j) {
+                T temp{ buff_.data().p[i1 * dims_.m + j] };
+                buff_.data().p[i1 * dims_.m + j] = buff_.data().p[i2 * dims_.m + j];
+                buff_.data().p[i2 * dims_.m + j] = temp;
+            }
+            return *this;
+        }
+
         template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
         friend Matrix<T_o, Internal_buffer_o> reduced_row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
 

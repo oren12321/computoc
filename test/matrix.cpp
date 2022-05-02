@@ -406,7 +406,7 @@ TEST(Matrix_test, can_be_merged)
     EXPECT_THROW(math::core::types::merge_vertical(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
 }
 
-TEST(Matrix_test, can_add_and_multiply_row)
+TEST(Matrix_test, can_add_multiply_and_swap_rows)
 {
     using Double_matrix = math::core::types::Matrix<double>;
 
@@ -432,10 +432,21 @@ TEST(Matrix_test, can_add_and_multiply_row)
     Double_matrix rmat2{ {rn2, rn2}, rdata2 };
     EXPECT_EQ(rmat2, mat);
 
+    mat.swap_rows(0, 1);
+    const double rdata3[] = {
+        6, 8, 10, 12,
+        2, 4, 6, 8 };
+    const std::size_t rn3 = 4;
+    Double_matrix rmat3{ {rn3, rn3}, rdata3 };
+    EXPECT_EQ(rmat3, mat);
+
     EXPECT_THROW(mat.multiply_row(n + 1, 1), std::out_of_range);
 
     EXPECT_THROW(mat.add_row(n + 1, 0, 1), std::out_of_range);
     EXPECT_THROW(mat.add_row(0, n + 1, 1), std::out_of_range);
+
+    EXPECT_THROW(mat.swap_rows(n + 1, 0), std::out_of_range);
+    EXPECT_THROW(mat.swap_rows(0, n + 1), std::out_of_range);
 }
 
 TEST(Matrix_test, have_reduced_row_echelon_form)
