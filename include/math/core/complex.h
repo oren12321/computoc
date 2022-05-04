@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include <math/core/utils.h>
+#include <math/core/algorithms.h>
 
 namespace math::core::types {
     template <typename T>
@@ -79,7 +80,7 @@ namespace math::core::types {
 
         Complex<F> multiplicative_inverse() const
         {
-            CORE_EXPECT(r_ != 0 || i_ != 0, std::overflow_error, "division by zero");
+            CORE_EXPECT(!math::algorithms::is_equal(r_, F{ 0 }) || !math::algorithms::is_equal(i_, F{ 0 }) , std::overflow_error, "division by zero");
 
             return {r_ / (r_ * r_ + i_ * i_), -i_ / (r_ * r_ + i_ * i_)};
         }
@@ -112,7 +113,7 @@ namespace math::core::types {
     template <Decimal F>
     inline bool operator==(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
     {
-        return lhs.r_ == rhs.r_ && lhs.i_ == rhs.i_;
+        return math::algorithms::is_equal(lhs.r_, rhs.r_) && math::algorithms::is_equal(lhs.i_, rhs.i_);
     }
 
     template <Decimal F>

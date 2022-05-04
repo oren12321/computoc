@@ -12,6 +12,7 @@
 #include <math/core/allocators.h>
 #include <math/core/buffers.h>
 #include <math/core/utils.h>
+#include <math/core/algorithms.h>
 
 namespace math::core::types {
     // Every matrix with size less or equal to 9 will be allocated on stack
@@ -259,6 +260,9 @@ namespace math::core::types {
         }
 
         template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
+        friend Matrix<T_o, Internal_buffer_o> row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
+
+        template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
         friend Matrix<T_o, Internal_buffer_o> reduced_row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
 
     private:
@@ -274,7 +278,7 @@ namespace math::core::types {
         }
 
         for (std::size_t i = 0; i < lhs.buff_.data().s; ++i) {
-            if (lhs.buff_.data().p[i] != rhs.buff_.data().p[i]) {
+            if (!math::algorithms::is_equal(lhs.buff_.data().p[i], rhs.buff_.data().p[i])) {
                 return false;
             }
         }
@@ -360,7 +364,7 @@ namespace math::core::types {
         T d{ 0 };
         for (std::size_t j = 0; j < n; ++j) {
             T p{ mat.buff_.data().p[j] };
-            if (p != T{ 0 }) {
+            if (!math::algorithms::is_equal(p, T{ 0 })) {
                 d += sign * p * determinant<T, Internal_buffer>(mat.get_slice(0, j));
             }
             sign *= T{ -1 };
@@ -375,7 +379,7 @@ namespace math::core::types {
         std::size_t n = mat.dims_.n;
 
         T d{ determinant(mat) };
-        CORE_EXPECT(d != 0, std::invalid_argument, "zero determinant");
+        CORE_EXPECT(!math::algorithms::is_equal(d, T{ 0 }), std::invalid_argument, "zero determinant");
 
         Matrix<T, Internal_buffer> inv(mat.dims_, T{});
 
@@ -418,6 +422,34 @@ namespace math::core::types {
         return merged;
     }
 
+    //template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
+    //inline Matrix<T, Internal_buffer> row_echelon_form(const Matrix<T, Internal_buffer>& mat)
+    //{
+    //    Matrix<T, Internal_buffer> rref_mat{ mat };
+
+    //    std::size_t r = mat.dims_.n > mat.dims_.m ? mat.dims_.m : mat.dims_.n;
+
+    //    for (std::size_t k = 0; k < r - 1; ++k) {
+    //        if (math::algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+    //            for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
+    //                if (!math::algorithms::is_equal(rref_mat(i, k), T{ 0 })) {
+    //                    rref_mat.swap_rows(k, i);
+    //                }
+    //            }
+    //        }
+    //        if (!math::algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+    //            rref_mat.multiply_row(k, T{ 1 } / rref_mat(k, k));
+    //            for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
+    //                if (i != k) {
+    //                    rref_mat.add_row(k, i, -rref_mat(i, k));
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    return rref_mat;
+    //}
+
     template <Arithmetic T, math::core::buffers::T_buffer<T> Internal_buffer>
     inline Matrix<T, Internal_buffer> reduced_row_echelon_form(const Matrix<T, Internal_buffer>& mat)
     {
@@ -426,9 +458,15 @@ namespace math::core::types {
         std::size_t r = mat.dims_.n > mat.dims_.m ? mat.dims_.m : mat.dims_.n;
 
         for (std::size_t k = 0; k < r; ++k) {
-            T factor{ rref_mat(k, k) };
-            if (factor != T{ 0 }) {
-                rref_mat.multiply_row(k, T{ 1 } / factor);
+            if (math::algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+                for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
+                    if (!math::algorithms::is_equal(rref_mat(i, k), T{ 0 })) {
+                        rref_mat.swap_rows(k, i);
+                    }
+                }
+            }
+            if (!math::algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+                rref_mat.multiply_row(k, T{ 1 } / rref_mat(k, k));
                 for (std::size_t i = 0; i < mat.dims_.n; ++i) {
                     if (i != k) {
                         rref_mat.add_row(k, i, -rref_mat(i, k));
