@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 namespace math::core::memory {
     template <typename T>
@@ -29,6 +30,14 @@ namespace math::core::memory {
     };
 
     using Block = Typed_block<void>;
+
+    namespace aux {
+        template <typename T, typename ...Args>
+        T* construct_at(T* dst_address, Args&&... args)
+        {
+            return new (dst_address) T(std::forward<Args>(args)...);
+        }
+    }
 }
 
 #endif // MATH_CORE_MEMORY_H
