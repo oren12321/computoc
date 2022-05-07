@@ -413,31 +413,35 @@ TEST(Matrix_test, can_add_multiply_and_swap_rows)
     const double data[] = {
         1, 2, 3, 4,
         5, 6, 7, 8 };
-    const std::size_t n = 4;
-    Double_matrix mat{ {n, n}, data };
+    const std::size_t n = 2;
+    const std::size_t m = 4;
+    Double_matrix mat{ {n, m}, data };
 
     mat.multiply_row(0, 2);
     const double rdata1[] = {
         2, 4, 6, 8,
         5, 6, 7, 8 };
-    const std::size_t rn1 = 4;
-    Double_matrix rmat1{ {rn1, rn1}, rdata1 };
+    const std::size_t rn1 = 2;
+    const std::size_t rm1 = 4;
+    Double_matrix rmat1{ {rn1, rm1}, rdata1 };
     EXPECT_EQ(rmat1, mat);
 
     mat.add_row(0, 1, 0.5);
     const double rdata2[] = {
         2, 4, 6, 8,
         6, 8, 10, 12 };
-    const std::size_t rn2 = 4;
-    Double_matrix rmat2{ {rn2, rn2}, rdata2 };
+    const std::size_t rn2 = 2;
+    const std::size_t rm2 = 4;
+    Double_matrix rmat2{ {rn2, rm2}, rdata2 };
     EXPECT_EQ(rmat2, mat);
 
     mat.swap_rows(0, 1);
     const double rdata3[] = {
         6, 8, 10, 12,
         2, 4, 6, 8 };
-    const std::size_t rn3 = 4;
-    Double_matrix rmat3{ {rn3, rn3}, rdata3 };
+    const std::size_t rn3 = 2;
+    const std::size_t rm3 = 4;
+    Double_matrix rmat3{ {rn3, rm3}, rdata3 };
     EXPECT_EQ(rmat3, mat);
 
     EXPECT_THROW(mat.multiply_row(n + 1, 1), std::out_of_range);
