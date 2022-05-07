@@ -9,6 +9,7 @@
 #include <utility>
 #include <type_traits>
 #include <concepts>
+#include <memory>
 
 #include <math/core/memory.h>
 
@@ -482,6 +483,56 @@ namespace math::core::allocators {
     private:
         inline static Internal_allocator allocator_{};
     };
+
+    namespace aux {
+        template <Allocator Internal_allocator, typename T>
+        class Custom_deleter {
+        public:
+            void operator()(T* ptr)
+            {
+                math::core::memory::Block b{ ptr, sizeof(T) };
+                ptr->~T();
+                allocator_.deallocate(&b);
+            }
+        private:
+            Internal_allocator allocator_{};
+        };
+
+        template <Allocator Internal_allocator, typename T, typename ...Args>
+        std::unique_ptr<T, Custom_deleter<Internal_allocator, T>> make_unique(Args&&... args)
+        {
+            Internal_allocator allocator{};
+            math::core::memory::Block b = allocator.allocate(sizeof(T));
+            return std::unique_ptr<T, Custom_deleter<Internal_allocator, T>>(
+                math::core::memory::aux::construct_at<T>(reinterpret_cast<T*>(b.p), std::forward<Args>(args)...));
+        }
+
+        template <Allocator Internal_allocator, typename T>
+        std::unique_ptr<T, Custom_deleter<Internal_allocator, T>> make_unique(T* ptr)
+        {
+            return std::unique_ptr<T, Custom_deleter<Internal_allocator, T>>(ptr);
+        }
+
+        template <Allocator Internal_allocator, typename T, typename ...Args>
+        std::shared_ptr<T> make_shared(Args&&... args)
+        {
+            Internal_allocator allocator{};
+            math::core::memory::Block b = allocator.allocate(sizeof(T));
+            return std::shared_ptr<T>(
+                math::core::memory::aux::construct_at<T>(reinterpret_cast<T*>(b.p), std::forward<Args>(args)...),
+                Custom_deleter<Internal_allocator, T>{},
+                Stl_adapter_allocator<T, Internal_allocator>{});
+        }
+
+        template <Allocator Internal_allocator, typename T>
+        std::shared_ptr<T> make_shared(T* ptr)
+        {
+            return std::shared_ptr<T>(
+                ptr,
+                Custom_deleter<Internal_allocator, T>{},
+                Stl_adapter_allocator<T, Internal_allocator>{});
+        }
+    }
 }
 
 #endif // MATH_CORE_ALLOCATORS_H
