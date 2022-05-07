@@ -463,7 +463,7 @@ namespace math::core::allocators {
         Record* tail_{ nullptr };
     };
 
-    template <Allocator Internal_allocator>
+    template <Allocator Internal_allocator, int id = -1>
     class Shared_allocator {
     public:
         [[nodiscard]] math::core::memory::Block allocate(math::core::memory::Block::Size_type s) noexcept
