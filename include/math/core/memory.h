@@ -37,6 +37,12 @@ namespace math::core::memory {
         {
             return new (dst_address) T(std::forward<Args>(args)...);
         }
+
+        template <typename T>
+        void destruct_at(T* dst_address)
+        {
+            dst_address->~T();
+        }
     }
 }
 
