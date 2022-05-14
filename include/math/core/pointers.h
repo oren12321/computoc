@@ -16,24 +16,26 @@ namespace math::core::pointers {
 	public:
 		// Not recommended - ptr should be allocated using Internal_allocator
 		Shared_ptr(T* ptr = nullptr)
-			: use_count_(reinterpret_cast<std::size_t*>(allocator_.allocate(sizeof(std::size_t)).p)), ptr_(ptr)
+			: use_count_(ptr ? reinterpret_cast<std::size_t*>(allocator_.allocate(sizeof(std::size_t)).p) : nullptr), ptr_(ptr)
 		{
-			CORE_EXPECT(use_count_, std::runtime_error, "internal memory allocation failed");
-			*use_count_ = ptr ? 1 : 0;
+			CORE_EXPECT((ptr_ && use_count_) || (!ptr_ && !use_count_), std::runtime_error, "internal memory allocation failed");
+			if (use_count_) {
+				*use_count_ = 1;
+			}
 		}
 
 		template <typename T_o>
 		Shared_ptr(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
 			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
 		{
-			if (other.ptr_) {
+			if (other.ptr_ && use_count_) {
 				++(*use_count_);
 			}
 		}
 		Shared_ptr(const Shared_ptr& other) noexcept
 			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
 		{
-			if (other.ptr_) {
+			if (other.ptr_ && use_count_) {
 				++(*use_count_);
 			}
 		}
@@ -45,21 +47,12 @@ namespace math::core::pointers {
 				return *this;
 			}
 
+			remove_reference();
+
 			allocator_ = other.allocator_;
-			if (*use_count_ <= 1) {
-				math::core::memory::aux::destruct_at<std::size_t>(use_count_);
-				math::core::memory::Block use_count_b = { use_count_, sizeof(std::size_t) };
-				allocator_.deallocate(&use_count_b);
-				use_count_ = nullptr;
-				if (ptr_) {
-					math::core::memory::aux::destruct_at<T>(ptr_);
-					math::core::memory::Block ptr_b = { ptr_, sizeof(T) };
-					allocator_.deallocate(&ptr_b);
-					ptr_ = nullptr;
-				}
-			}
 			use_count_ = other.use_count_;
 			ptr_ = other.ptr_;
+
 			if (other.ptr_) {
 				++(*use_count_);
 			}
@@ -71,21 +64,12 @@ namespace math::core::pointers {
 				return *this;
 			}
 
+			remove_reference();
+
 			allocator_ = other.allocator_;
-			if (*use_count_ <= 1) {
-				math::core::memory::aux::destruct_at<std::size_t>(use_count_);
-				math::core::memory::Block use_count_b = { use_count_, sizeof(std::size_t) };
-				allocator_.deallocate(&use_count_b);
-				use_count_ = nullptr;
-				if (ptr_) {
-					math::core::memory::aux::destruct_at<T>(ptr_);
-					math::core::memory::Block ptr_b = { ptr_, sizeof(T) };
-					allocator_.deallocate(&ptr_b);
-					ptr_ = nullptr;
-				}
-			}
 			use_count_ = other.use_count_;
 			ptr_ = other.ptr_;
+
 			if (other.ptr_) {
 				++(*use_count_);
 			}
@@ -96,15 +80,13 @@ namespace math::core::pointers {
 		Shared_ptr(Shared_ptr<T_o, Internal_allocator>&& other) noexcept
 			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
 		{
-			other.use_count_ = reinterpret_cast<std::size_t*>(other.allocator_.allocate(sizeof(std::size_t)).p);
-			*(other.use_count_) = 0;
+			other.use_count_ = nullptr;
 			other.ptr_ = nullptr;
 		}
 		Shared_ptr(Shared_ptr&& other) noexcept
 			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
 		{
-			other.use_count_ = reinterpret_cast<std::size_t*>(other.allocator_.allocate(sizeof(std::size_t)).p);
-			*(other.use_count_) = 0;
+			other.use_count_ = nullptr;
 			other.ptr_ = nullptr;
 		}
 
@@ -115,19 +97,13 @@ namespace math::core::pointers {
 				return *this;
 			}
 
+			remove_reference();
+
 			allocator_ = other.allocator_;
-
-			if (*use_count_ <= 1) {
-				math::core::memory::aux::destruct_at<std::size_t>(use_count_);
-				math::core::memory::Block use_count_b = { use_count_, sizeof(std::size_t) };
-				allocator_.deallocate(&use_count_b);
-			}
 			use_count_ = other.use_count_;
-
 			ptr_ = other.ptr_;
 
-			other.use_count_ = reinterpret_cast<std::size_t*>(other.allocator_.allocate(sizeof(std::size_t)).p);
-			*(other.use_count_) = 0;
+			other.use_count_ = nullptr;
 			other.ptr_ = nullptr;
 			return *this;
 		}
@@ -137,43 +113,25 @@ namespace math::core::pointers {
 				return *this;
 			}
 
+			remove_reference();
+
 			allocator_ = other.allocator_;
-
-			if (*use_count_ <= 1) {
-				math::core::memory::aux::destruct_at<std::size_t>(use_count_);
-				math::core::memory::Block use_count_b = { use_count_, sizeof(std::size_t) };
-				allocator_.deallocate(&use_count_b);
-			}
 			use_count_ = other.use_count_;
-
 			ptr_ = other.ptr_;
 
-			other.use_count_ = reinterpret_cast<std::size_t*>(other.allocator_.allocate(sizeof(std::size_t)).p);
-			*(other.use_count_) = 0;
+			other.use_count_ = nullptr;
 			other.ptr_ = nullptr;
 			return *this;
 		}
 
 		virtual ~Shared_ptr() noexcept
 		{
-			decrease_use_count();
-			if (*use_count_ == 0) {
-				math::core::memory::aux::destruct_at<std::size_t>(use_count_);
-				math::core::memory::Block use_count_b = { use_count_, sizeof(std::size_t) };
-				allocator_.deallocate(&use_count_b);
-				use_count_ = nullptr;
-				if (ptr_) {
-					math::core::memory::aux::destruct_at<T>(ptr_);
-					math::core::memory::Block ptr_b = { ptr_, sizeof(T) };
-					allocator_.deallocate(&ptr_b);
-					ptr_ = nullptr;
-				}
-			}
+			remove_reference();
 		}
 
 		std::size_t use_count() const noexcept
 		{
-			return *use_count_;
+			return use_count_ ? *use_count_ : 0;
 		}
 
 		T* get() noexcept
@@ -198,16 +156,8 @@ namespace math::core::pointers {
 
 		void reset() noexcept
 		{
-			decrease_use_count();
-			if (*use_count_ > 0) {
-				use_count_ = reinterpret_cast<std::size_t*>(allocator_.allocate(sizeof(std::size_t)).p);
-				*(use_count_) = 0;
-			}
-			else if (ptr_) {
-				math::core::memory::aux::destruct_at<T>(ptr_);
-				math::core::memory::Block ptr_b = { ptr_, sizeof(T) };
-				allocator_.deallocate(&ptr_b);
-			}
+			remove_reference();
+			use_count_ = nullptr;
 			ptr_ = nullptr;
 		}
 
@@ -217,14 +167,10 @@ namespace math::core::pointers {
 			if (!ptr) {
 				reset();
 			}
-			else if (!(ptr_ == ptr)) {
-				decrease_use_count();
-				if (*use_count_ > 0) {
-					use_count_ = reinterpret_cast<std::size_t*>(allocator_.allocate(sizeof(std::size_t)).p);
-					*(use_count_) = 1;
-				}
-                ptr_ = ptr;
-            }
+			remove_reference();
+			use_count_ = reinterpret_cast<std::size_t*>(allocator_.allocate(sizeof(std::size_t)).p);
+			*(use_count_) = 1;
+			ptr_ = ptr;
         }
 
         template <typename ...Args>
@@ -252,10 +198,22 @@ namespace math::core::pointers {
 		friend std::strong_ordering operator<=>(const Shared_ptr<T_o, Internal_allocator_o>& lhs, std::nullptr_t);
 
     private:
-		void decrease_use_count()
+		void remove_reference()
 		{
-			if (*use_count_ > 0) {
-				--(*use_count_);
+			// Check if there's an object in use
+			if (ptr_ && use_count_) {
+				--(*use_count_); // Allocated use count must be positive
+				if (*use_count_ == 0) {
+					math::core::memory::aux::destruct_at<std::size_t>(use_count_);
+					math::core::memory::Block use_count_b = { use_count_, sizeof(std::size_t) };
+					allocator_.deallocate(&use_count_b);
+					use_count_ = nullptr;
+
+					math::core::memory::aux::destruct_at<T>(ptr_);
+					math::core::memory::Block ptr_b = { ptr_, sizeof(T) };
+					allocator_.deallocate(&ptr_b);
+					ptr_ = nullptr;
+				}
 			}
 		}
 
