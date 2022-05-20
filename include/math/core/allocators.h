@@ -31,9 +31,9 @@ namespace math::core::allocators {
     concept Allocator = Rule_of_five<T> &&
     requires (T t, std::size_t s, math::core::memory::Block b)
     {
-        {t.allocate(s)} -> std::same_as<decltype(b)>;
-        {t.deallocate(&b)} -> std::same_as<void>;
-        {t.owns(b)} -> std::same_as<bool>;
+        {t.allocate(s)} noexcept -> std::same_as<decltype(b)>;
+        {t.deallocate(&b)} noexcept -> std::same_as<void>;
+        {t.owns(b)} noexcept -> std::same_as<bool>;
     };
 
     template <Allocator Primary, Allocator Fallback>

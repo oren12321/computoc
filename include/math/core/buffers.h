@@ -24,24 +24,17 @@ namespace math::core::buffers {
         std::is_move_assignable_v<T>;
         std::is_destructible_v<T>;
     };
-    template <class T>
-    concept Buffer = Rule_of_five<T> &&
-    requires (T t, std::size_t size, const void* data)
-    {
-        {T(size, data)};
-        {t.usable()} -> std::same_as<bool>;
-        {t.data()} -> std::same_as<math::core::memory::Block>;
-        {t.init(data)} -> std::same_as<void>;
-    };
     template <class T, typename U>
     concept T_buffer = Rule_of_five<T> &&
     requires (T t, std::size_t size, const U * data)
     {
-        {T(size, data)};
-        {t.usable()} -> std::same_as<bool>;
-        {t.data()} -> std::same_as<math::core::memory::Typed_block<U>>;
-        {t.init(data)} -> std::same_as<void>;
+        {T(size, data)} noexcept;
+        {t.usable()} noexcept -> std::same_as<bool>;
+        {t.data()} noexcept -> std::same_as<math::core::memory::Typed_block<U>>;
+        {t.init(data)} noexcept -> std::same_as<void>;
     };
+    template <class T>
+    concept Buffer = Rule_of_five<T> && T_buffer<T, void>;
 
     template <std::size_t Stack_size = 2, bool Lazy_init = false>
     class Stack_buffer {
