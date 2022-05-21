@@ -192,3 +192,99 @@ TEST(Complex_test, have_square_root)
 
     EXPECT_EQ((Complex{ 0.0, 2.0 }), sqrt(Complex{ -4.0, 0.0 }));
 }
+
+TEST(Complex_test, have_sin)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ std::sin(1.0), 0.0 }), sin(Complex{ 1.0, 0.0 }));
+    EXPECT_EQ((Complex{ 0.0, std::sinh(1.0) }), sin(Complex{ 0.0, 1.0 }));
+}
+
+TEST(Complex_test, have_cos)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ std::cos(1.0), 0.0 }), cos(Complex{ 1.0, 0.0 }));
+    EXPECT_EQ((Complex{ std::cosh(1.0), 0.0 }), cos(Complex{ 0.0, 1.0 }));
+}
+
+TEST(Complex_test, have_tan)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ std::tan(1.0), 0.0 }), tan(Complex{ 1.0, 0.0 }));
+    EXPECT_EQ((Complex{ 0.0, std::tanh(1.0) }), tan(Complex{ 0.0, 1.0 }));
+}
+
+TEST(Complex_test, have_asin)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 1.0, 0.0 }), sin(asin(Complex{ 1.0, 0.0 })));
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), sin(asin(Complex{ 0.0, 1.0 })));
+}
+
+TEST(Complex_test, have_acos)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 1.0, 0.0 }), cos(acos(Complex{ 1.0, 0.0 })));
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), cos(acos(Complex{ 0.0, 1.0 })));
+}
+
+TEST(Complex_test, have_atan)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 1.0, 0.0 }), tan(atan(Complex{ 1.0, 0.0 })));
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), tan(atan(Complex{ 0.0, 1.0 })));
+}
+
+TEST(Complex_test, have_sinh)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ std::sinh(1.0), 0.0 }), sinh(Complex{ 1.0, 0.0 }));
+    EXPECT_EQ((Complex{ 0.0, std::sin(1.0) }), sinh(Complex{ 0.0, 1.0 }));
+}
+
+TEST(Complex_test, have_cosh)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ std::cosh(1.0), 0.0 }), cosh(Complex{ 1.0, 0.0 }));
+    EXPECT_EQ((Complex{ std::cos(1.0), 0.0 }), cosh(Complex{ 0.0, 1.0 }));
+}
+
+TEST(Complex_test, have_tanh)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ std::tanh(1.0), 0.0 }), tanh(Complex{ 1.0, 0.0 }));
+    EXPECT_EQ((Complex{ 0.0, std::tan(1.0) }), tanh(Complex{ 0.0, 1.0 }));
+}
+
+TEST(Complex_test, have_asinh)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 1.0, 0.0 }), sinh(asinh(Complex{ 1.0, 0.0 })));
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), sinh(asinh(Complex{ 0.0, 1.0 })));
+}
+
+TEST(Complex_test, have_acosh)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 1.0, 0.0 }), cosh(acosh(Complex{ 1.0, 0.0 })));
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), cosh(acosh(Complex{ 0.0, 1.0 })));
+}
+
+TEST(Complex_test, have_atanh)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 1.0, 0.0 }), tanh(atanh(Complex{ 1.0, 0.0 })));
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), tanh(atanh(Complex{ 0.0, 1.0 })));
+}

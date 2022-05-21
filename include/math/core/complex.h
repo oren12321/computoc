@@ -174,6 +174,42 @@ namespace math::core::types {
         template <Decimal F_o>
         friend Complex<F_o> sqrt(const Complex<F_o>& c);
 
+        template <Decimal F_o>
+        friend Complex<F_o> sin(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> cos(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> tan(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> asin(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> acos(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> atan(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> sinh(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> cosh(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> tanh(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> asinh(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> acosh(const Complex<F_o>& c);
+
+        template <Decimal F_o>
+        friend Complex<F_o> atanh(const Complex<F_o>& c);
+
     private:
         operator std::complex<F>() const noexcept
         {
@@ -369,6 +405,90 @@ namespace math::core::types {
     inline Complex<F> sqrt(const Complex<F>& c)
     {
         std::complex<F> rc = std::sqrt<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> sin(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::sin<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> cos(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::cos<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> tan(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::tan<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> asin(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::asin<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> acos(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::acos<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> atan(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::atan<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> sinh(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::sinh<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> cosh(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::cosh<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> tanh(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::tanh<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> asinh(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::asinh<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> acosh(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::acosh<F>(c);
+        return { rc.real(), rc.imag() };
+    }
+
+    template <Decimal F>
+    inline Complex<F> atanh(const Complex<F>& c)
+    {
+        std::complex<F> rc = std::atanh<F>(c);
         return { rc.real(), rc.imag() };
     }
 }
