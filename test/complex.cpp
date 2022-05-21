@@ -10,20 +10,20 @@ TEST(Complex_test, can_be_initialized_with_components_or_a_number)
     using namespace math::core::types;
 
     Complex c1 = 0.0;
-    EXPECT_EQ(0.0, c1.r());
-    EXPECT_EQ(0.0, c1.i());
+    EXPECT_EQ(0.0, c1.real());
+    EXPECT_EQ(0.0, c1.imag());
 
     Complex c2 = 0.5;
-    EXPECT_EQ(0.5, c2.r());
-    EXPECT_EQ(0.0, c2.i());
+    EXPECT_EQ(0.5, c2.real());
+    EXPECT_EQ(0.0, c2.imag());
 
     Complex c3{ 0.0, 1.0 };
-    EXPECT_EQ(0.0, c3.r());
-    EXPECT_EQ(1.0, c3.i());
+    EXPECT_EQ(0.0, c3.real());
+    EXPECT_EQ(1.0, c3.imag());
 
     Complex c4 = { 1.0, 2.0 };
-    EXPECT_EQ(1.0, c4.r());
-    EXPECT_EQ(2.0, c4.i());
+    EXPECT_EQ(1.0, c4.real());
+    EXPECT_EQ(2.0, c4.imag());
 }
 
 TEST(Complex_test, can_be_compared_with_other_number)
@@ -44,16 +44,6 @@ TEST(Complex_test, can_negate)
     EXPECT_EQ((Complex{ -1.0, -2.0 }), (-Complex{ 1.0, 2.0 }));
     EXPECT_EQ((Complex{ 0.0, -1.0 }), (-Complex{ 0.0, 1.0 }));
     EXPECT_EQ(-0.5, (-Complex{ 0.5 }));
-}
-
-TEST(Complex_test, have_conjugate)
-{
-    using namespace math::core::types;
-
-    EXPECT_EQ(0.0, (Complex{ 0.0 }.conjugate()));
-    EXPECT_EQ((Complex{ 1.0, -2.0 }), (Complex{ 1.0, 2.0 }.conjugate()));
-    EXPECT_EQ((Complex{ 0.0, -1.0 }), (Complex{ 0.0, 1.0 }.conjugate()));
-    EXPECT_EQ(0.5, (Complex{ 0.5 }.conjugate()));
 }
 
 TEST(Complex_test, can_be_added_to_other_number)
@@ -98,15 +88,6 @@ TEST(Complex_test, can_be_multiplied_with_other_number)
     EXPECT_EQ((Complex{30.0, 10.0}), c);
 }
 
-TEST(Complex_test, have_multiplicate_reciprocal)
-{
-    using namespace math::core::types;
-
-    EXPECT_THROW((Complex{0.0}.multiplicative_inverse()), std::overflow_error);
-
-    EXPECT_EQ((Complex{3.0 / 25.0, -4.0 / 25.0}), (Complex{3.0, 4.0}.multiplicative_inverse()));
-}
-
 TEST(Complex_test, can_be_divided_by_other_number)
 {
     using namespace math::core::types;
@@ -120,22 +101,47 @@ TEST(Complex_test, can_be_divided_by_other_number)
     EXPECT_EQ((Complex{2.5, 0.5}), c);
 }
 
+TEST(Complex_test, have_absolute_value)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ(0.0, abs(Complex{ 0.0 }));
+    EXPECT_EQ(5.0, abs(Complex{ 3.0, 4.0 }));
+}
+
+TEST(Complex_test, have_phase_angle)
+{
+    using namespace math::core::types;
+
+    EXPECT_THROW(arg(Complex{ 0.0 }), std::overflow_error);
+
+    EXPECT_EQ(0.0, arg(Complex{ 1.0, 0.0 }));
+    EXPECT_EQ(std::numbers::pi / 4.0, arg(Complex{ 1.0, 1.0 }));
+}
+
 TEST(Complex_test, have_squared_magnitude)
 {
     using namespace math::core::types;
 
-    EXPECT_EQ(0.0, (Complex{ 0.0 }.squared_magnitude()));
-    EXPECT_EQ(2.0, (Complex{ 1.0, 1.0 }.squared_magnitude()));
-    EXPECT_EQ(5.0, (Complex{ 1.0, 2.0 }.squared_magnitude()));
-    EXPECT_EQ(4.0, (Complex{ 0.0, 2.0 }.squared_magnitude()));
+    EXPECT_EQ(0.0, norm(Complex{ 0.0 }));
+    EXPECT_EQ(2.0, norm(Complex{ 1.0, 1.0 }));
+    EXPECT_EQ(5.0, norm(Complex{ 1.0, 2.0 }));
+    EXPECT_EQ(4.0, norm(Complex{ 0.0, 2.0 }));
 }
 
-TEST(Complex_test, have_angle)
+TEST(Complex_test, have_conjugate)
 {
     using namespace math::core::types;
 
-    EXPECT_THROW((Complex{ 0.0 }.theta()), std::overflow_error);
+    EXPECT_EQ(0.0, conj(Complex{ 0.0 }));
+    EXPECT_EQ((Complex{ 1.0, -2.0 }), conj(Complex{ 1.0, 2.0 }));
+    EXPECT_EQ((Complex{ 0.0, -1.0 }), conj(Complex{ 0.0, 1.0 }));
+    EXPECT_EQ(0.5, conj(Complex{ 0.5 }));
+}
 
-    EXPECT_EQ(0.0, (Complex{ 1.0, 0.0 }.theta()));
-    EXPECT_EQ(std::numbers::pi / 4.0, (Complex{ 1.0, 1.0 }.theta()));
+TEST(Comlex_test, have_projection)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 1.0, 2.0 }), proj(Complex{ 1.0, 2.0 }));
 }
