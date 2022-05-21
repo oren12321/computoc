@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <numbers>
+#include <cmath>
 
 #include <math/core/complex.h>
 
@@ -94,7 +95,7 @@ TEST(Complex_test, can_be_divided_by_other_number)
 
     Complex c{2.0, 3.0};
     EXPECT_THROW((c / Complex{0.0}), std::overflow_error);
-    EXPECT_EQ((Complex{1.0, 1.5}), c / 2);
+    EXPECT_EQ((Complex{1.0, 1.5}), c / 2.0);
     EXPECT_EQ((Complex{2.5, 0.5}), (c / Complex{1.0, 1.0}));
 
     c /= Complex{1.0, 1.0};
@@ -144,4 +145,50 @@ TEST(Comlex_test, have_projection)
     using namespace math::core::types;
 
     EXPECT_EQ((Complex{ 1.0, 2.0 }), proj(Complex{ 1.0, 2.0 }));
+}
+
+TEST(Complex_test, can_be_constructed_from_magnitude_and_phase_angle)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), polar(1.0, std::numbers::pi / 2.0));
+}
+
+TEST(Complex_test, have_base_e_exponential)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ -1.0, 0.0 }), exp(Complex{0.0, std::numbers::pi}));
+}
+
+TEST(Complex_test, have_natural_logarithm)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 0.0, std::numbers::pi }), log(Complex{ -1.0, 0.0 }));
+}
+
+TEST(Complex_test, have_common_logarithm)
+{
+    using namespace math::core::types;
+
+    Complex c{ -100.0, 0.0 };
+    Complex r = log(c) / std::log(10.0);
+
+    EXPECT_EQ(r, log10(c));
+}
+
+TEST(Complex_test, have_complex_power)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ -3.0, 4.0 }), pow(Complex{ 1.0, 2.0 }, 2.0));
+    EXPECT_EQ(exp(Complex{ -std::numbers::pi / 2.0, 0.0 }), pow(Complex{ 0.0, 1.0 }, Complex{ 0.0, 1.0 }));
+}
+
+TEST(Complex_test, have_square_root)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ((Complex{ 0.0, 2.0 }), sqrt(Complex{ -4.0, 0.0 }));
 }
