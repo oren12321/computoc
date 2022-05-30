@@ -134,17 +134,17 @@ namespace math::core::pointers {
 			return use_count_ ? *use_count_ : 0;
 		}
 
-		T* get() noexcept
+		T* get() const noexcept
 		{
 			return ptr_;
 		}
 
-		T* operator->() noexcept
+		T* operator->() const noexcept
 		{
 			return ptr_;
 		}
 
-		T& operator*() noexcept
+		T& operator*() const noexcept
 		{
 			return *(ptr_);
 		}
