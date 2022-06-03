@@ -173,15 +173,6 @@ namespace math::core::pointers {
 			ptr_ = ptr;
         }
 
-        template <typename ...Args>
-        static Shared_ptr<T, Internal_allocator> make_shared(Args&&... args)
-        {
-            Internal_allocator allocator_{};
-			math::core::memory::Block b = allocator_.allocate(sizeof(T));
-            T* ptr = math::core::memory::aux::construct_at<T>(reinterpret_cast<T*>(b.p), std::forward<Args>(args)...);
-            return Shared_ptr<T, Internal_allocator>(ptr);
-        }
-
 		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
 		friend class Shared_ptr;
 
@@ -221,6 +212,15 @@ namespace math::core::pointers {
 		std::size_t* use_count_{nullptr};
 		T* ptr_{nullptr};
     };
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator, typename ...Args>
+	inline Shared_ptr<T, Internal_allocator> make_shared(Args&&... args)
+	{
+		Internal_allocator allocator_{};
+		math::core::memory::Block b = allocator_.allocate(sizeof(T));
+		T* ptr = math::core::memory::aux::construct_at<T>(reinterpret_cast<T*>(b.p), std::forward<Args>(args)...);
+		return Shared_ptr<T, Internal_allocator>(ptr);
+	}
 
 	template <typename T, math::core::allocators::Allocator Internal_allocator>
 	inline bool operator==(const Shared_ptr<T, Internal_allocator>& lhs, const Shared_ptr<T, Internal_allocator>& rhs)
