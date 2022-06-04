@@ -41,6 +41,15 @@ namespace math::core::pointers {
 		}
 
 		template <typename T_o>
+		Shared_ptr(const Shared_ptr<T_o, Internal_allocator>& other, T* ptr) noexcept
+			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(ptr)
+		{
+			if (other.ptr_ && use_count_) {
+				++(*use_count_);
+			}
+		}
+
+		template <typename T_o>
 		Shared_ptr& operator=(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
 		{
 			if (this == &other) {
@@ -85,6 +94,14 @@ namespace math::core::pointers {
 		}
 		Shared_ptr(Shared_ptr&& other) noexcept
 			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
+		{
+			other.use_count_ = nullptr;
+			other.ptr_ = nullptr;
+		}
+
+		template <typename T_o>
+		Shared_ptr(Shared_ptr<T_o, Internal_allocator>&& other, T* ptr) noexcept
+			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(ptr)
 		{
 			other.use_count_ = nullptr;
 			other.ptr_ = nullptr;
@@ -201,7 +218,7 @@ namespace math::core::pointers {
 					use_count_ = nullptr;
 
 					math::core::memory::aux::destruct_at<T>(ptr_);
-					math::core::memory::Block ptr_b = { ptr_, sizeof(T) };
+					math::core::memory::Block ptr_b = { const_cast<std::remove_const_t<T>*>(ptr_), sizeof(T) };
 					allocator_.deallocate(&ptr_b);
 					ptr_ = nullptr;
 				}
@@ -212,15 +229,6 @@ namespace math::core::pointers {
 		std::size_t* use_count_{nullptr};
 		T* ptr_{nullptr};
     };
-
-	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator, typename ...Args>
-	inline Shared_ptr<T, Internal_allocator> make_shared(Args&&... args)
-	{
-		Internal_allocator allocator_{};
-		math::core::memory::Block b = allocator_.allocate(sizeof(T));
-		T* ptr = math::core::memory::aux::construct_at<T>(reinterpret_cast<T*>(b.p), std::forward<Args>(args)...);
-		return Shared_ptr<T, Internal_allocator>(ptr);
-	}
 
 	template <typename T, math::core::allocators::Allocator Internal_allocator>
 	inline bool operator==(const Shared_ptr<T, Internal_allocator>& lhs, const Shared_ptr<T, Internal_allocator>& rhs)
@@ -244,6 +252,76 @@ namespace math::core::pointers {
 	inline std::strong_ordering operator<=>(const Shared_ptr<T, Internal_allocator>& lhs, std::nullptr_t)
 	{
 		return std::compare_three_way{}(lhs.ptr_, nullptr);
+	}
+
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator, typename ...Args>
+	inline Shared_ptr<T, Internal_allocator> make_shared(Args&&... args)
+	{
+		Internal_allocator allocator_{};
+		math::core::memory::Block b = allocator_.allocate(sizeof(T));
+		T* ptr = math::core::memory::aux::construct_at<T>(reinterpret_cast<T*>(b.p), std::forward<Args>(args)...);
+		return Shared_ptr<T, Internal_allocator>(ptr);
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> static_pointer_cast(const Shared_ptr<U, Internal_allocator>& other) noexcept
+	{
+		T* p = static_cast<T*>(other.get());
+		return Shared_ptr<T, Internal_allocator>(other, p);
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> static_pointer_cast(Shared_ptr<U, Internal_allocator>&& other) noexcept
+	{
+		T* p = static_cast<T*>(other.get());
+		return Shared_ptr<T, Internal_allocator>(std::move(other), p);
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> dynamic_pointer_cast(const Shared_ptr<U, Internal_allocator>& other) noexcept
+	{
+		if (T* p = dynamic_cast<T*>(other.get())) {
+			return Shared_ptr<T, Internal_allocator>(other, p);
+		}
+		return Shared_ptr<T, Internal_allocator>{};
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> dynamic_pointer_cast(Shared_ptr<U, Internal_allocator>&& other) noexcept
+	{
+		if (T* p = dynamic_cast<T*>(other.get())) {
+			return Shared_ptr<T, Internal_allocator>(std::move(other), p);
+		}
+		return Shared_ptr<T, Internal_allocator>{};
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> const_pointer_cast(const Shared_ptr<U, Internal_allocator>& other) noexcept
+	{
+		T* p = const_cast<T*>(other.get());
+		return Shared_ptr<T, Internal_allocator>(other, p);
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> const_pointer_cast(Shared_ptr<U, Internal_allocator>&& other) noexcept
+	{
+		T* p = const_cast<T*>(other.get());
+		return Shared_ptr<T, Internal_allocator>(std::move(other), p);
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> reinterpret_pointer_cast(const Shared_ptr<U, Internal_allocator>& other) noexcept
+	{
+		T* p = reinterpret_cast<T*>(other.get());
+		return Shared_ptr<T, Internal_allocator>(other, p);
+	}
+
+	template <typename T, typename U, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	inline Shared_ptr<T, Internal_allocator> reinterpret_pointer_cast(Shared_ptr<U, Internal_allocator>&& other) noexcept
+	{
+		T* p = reinterpret_cast<T*>(other.get());
+		return Shared_ptr<T, Internal_allocator>(std::move(other), p);
 	}
 }
 
