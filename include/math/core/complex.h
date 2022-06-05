@@ -43,6 +43,11 @@ namespace math::core::types {
             return { -r_, -i_ };
         }
 
+        Complex<F> operator+() const noexcept
+        {
+            return *this;
+        }
+
         template <Decimal F_o>
         friend Complex<F_o> operator+(const Complex<F_o>& lhs, const Complex<F_o>& rhs) noexcept;
 

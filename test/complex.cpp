@@ -47,6 +47,16 @@ TEST(Complex_test, can_negate)
     EXPECT_EQ(-0.5, (-Complex{ 0.5 }));
 }
 
+TEST(Complex_test, have_positive)
+{
+    using namespace math::core::types;
+
+    EXPECT_EQ(0.0, (+Complex{ 0.0 }));
+    EXPECT_EQ((Complex{ 1.0, 2.0 }), (+Complex{ 1.0, 2.0 }));
+    EXPECT_EQ((Complex{ 0.0, 1.0 }), (+Complex{ 0.0, 1.0 }));
+    EXPECT_EQ(0.5, (+Complex{ 0.5 }));
+}
+
 TEST(Complex_test, can_be_added_to_other_number)
 {
     using namespace math::core::types;
