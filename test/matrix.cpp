@@ -191,6 +191,41 @@ TEST(Matrix_test, can_write_into_slice)
     EXPECT_THROW(smat.set_slice(0, 0, mat), std::out_of_range);
 }
 
+TEST(Matrix_test, can_negate)
+{
+    using Integer_matrix = math::core::types::Matrix<int>;
+
+    const int data[] = {
+    1, 2, 3,
+    4, 5, 6 };
+    const std::size_t n = 2;
+    const std::size_t m = 3;
+    Integer_matrix mat{ {n, m}, data };
+
+    const int rdata[] = {
+    -1, -2, -3,
+    -4, -5, -6 };
+    const std::size_t rn = 2;
+    const std::size_t rm = 3;
+    Integer_matrix rmat{ {rn, rm}, rdata };
+
+    EXPECT_EQ(rmat, -mat);
+}
+
+TEST(Matrix_test, have_positive)
+{
+    using Integer_matrix = math::core::types::Matrix<int>;
+
+    const int data[] = {
+    1, 2, 3,
+    4, 5, 6 };
+    const std::size_t n = 2;
+    const std::size_t m = 3;
+    Integer_matrix mat{ {n, m}, data };
+
+    EXPECT_EQ(mat, +mat);
+}
+
 TEST(Matrix_test, can_be_added_with_another_matrix)
 {
     using Integer_matrix = math::core::types::Matrix<int>;

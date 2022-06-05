@@ -130,6 +130,20 @@ namespace math::core::types {
             return *this;
         }
 
+        Matrix<T, Internal_buffer> operator-()
+        {
+            Matrix<T, Internal_buffer> neg{ { dims_.n, dims_.m }, T{} };
+            for (std::size_t i = 0; i < buff_.data().s; ++i) {
+                neg.buff_.data().p[i] = -buff_.data().p[i];
+            }
+            return neg;
+        }
+
+        Matrix<T, Internal_buffer> operator+()
+        {
+            return *this;
+        }
+
         template <Arithmetic T_o, math::core::buffers::T_buffer<T_o> Internal_buffer_o>
         friend Matrix<T_o, Internal_buffer_o> operator+(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
