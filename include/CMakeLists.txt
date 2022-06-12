@@ -8,6 +8,7 @@ if (WIN32)
     add_library(math_ ${MATH_SRC})
     set_target_properties(math_ PROPERTIES LINKER_LANGUAGE CXX)
     target_link_libraries(math_ math)
+    set_property(TARGET math_ PROPERTY CXX_STANDARD 20)
 endif()
 
 add_subdirectory(memoc)
