@@ -10,3 +10,5 @@ if (WIN32)
     target_link_libraries(math_ math)
 endif()
 
+add_subdirectory(memoc)
+
