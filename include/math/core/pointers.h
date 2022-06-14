@@ -99,6 +99,13 @@ namespace math::core::pointers {
 			ptr_ = nullptr;
 		}
 
+		T* release() noexcept
+		{
+			T* tmp_ptr = ptr_;
+			ptr_ = nullptr;
+			return tmp_ptr;
+		}
+
 		template <typename T_o>
 		void reset(T_o* ptr) noexcept
 		{
@@ -203,6 +210,8 @@ namespace math::core::pointers {
 			}
 		}
 
+		// Should not be used directly
+		// If used directly, user should release 'ptr'
 		template <typename T_o>
 		Shared_ptr(const Shared_ptr<T_o, Internal_allocator>& other, T* ptr) noexcept
 			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(ptr)
@@ -352,6 +361,17 @@ namespace math::core::pointers {
 			*(use_count_) = 1;
 			ptr_ = ptr;
         }
+
+		template <typename T_o>
+		Shared_ptr(Unique_ptr<T_o, Internal_allocator>&& other)
+			: Shared_ptr<T_o, Internal_allocator>(other.release()) {}
+
+		template <typename T_o>
+		Shared_ptr& operator=(Unique_ptr<T_o, Internal_allocator>&& other) noexcept
+		{
+			reset(other.release());
+			return *this;
+		}
 
 		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
 		friend class Shared_ptr;
