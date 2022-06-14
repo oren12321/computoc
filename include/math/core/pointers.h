@@ -9,8 +9,171 @@
 #include <math/core/utils.h>
 
 namespace math::core::pointers {
-	// This class is not thread safe
+	// These class are not thread safe
 	// The behaviour for array, pointer or reference is undefined
+	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	class Unique_ptr {
+	public:
+		// Not recommended - ptr should be allocated using Internal_allocator
+		Unique_ptr(T* ptr = nullptr)
+			: ptr_(ptr) {}
+
+		template <typename T_o>
+		Unique_ptr(const Unique_ptr<T_o, Internal_allocator>& other) noexcept = delete;
+		Unique_ptr(const Unique_ptr& other) noexcept = delete;
+
+		template <typename T_o>
+		Unique_ptr& operator=(const Unique_ptr<T_o, Internal_allocator>& other) noexcept = delete;
+		Unique_ptr& operator=(const Unique_ptr& other) noexcept = delete;
+
+		template <typename T_o>
+		Unique_ptr(Unique_ptr<T_o, Internal_allocator>&& other) noexcept
+			: allocator_(other.allocator_), ptr_(other.ptr_)
+		{
+			other.ptr_ = nullptr;
+		}
+		Unique_ptr(Unique_ptr&& other) noexcept
+			: allocator_(other.allocator_), ptr_(other.ptr_)
+		{
+			other.ptr_ = nullptr;
+		}
+
+		template <typename T_o>
+		Unique_ptr& operator=(Unique_ptr<T_o, Internal_allocator>&& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			remove_reference();
+
+			allocator_ = other.allocator_;
+			ptr_ = other.ptr_;
+
+			other.ptr_ = nullptr;
+			return *this;
+		}
+		Unique_ptr& operator=(Unique_ptr&& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			remove_reference();
+
+			allocator_ = other.allocator_;
+			ptr_ = other.ptr_;
+
+			other.ptr_ = nullptr;
+			return *this;
+		}
+
+		virtual ~Unique_ptr() noexcept
+		{
+			remove_reference();
+		}
+
+		T* get() const noexcept
+		{
+			return ptr_;
+		}
+
+		T* operator->() const noexcept
+		{
+			return ptr_;
+		}
+
+		T& operator*() const noexcept
+		{
+			return *(ptr_);
+		}
+
+		operator bool() const noexcept
+		{
+			return ptr_;
+		}
+
+		void reset() noexcept
+		{
+			remove_reference();
+			ptr_ = nullptr;
+		}
+
+		template <typename T_o>
+		void reset(T_o* ptr) noexcept
+		{
+			if (!ptr) {
+				reset();
+			}
+			remove_reference();
+			ptr_ = ptr;
+		}
+
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend class Unique_ptr;
+
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend bool operator==(const Unique_ptr<T_o, Internal_allocator_o>& lhs, const Unique_ptr<T_o, Internal_allocator_o>& rhs);
+
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend std::strong_ordering operator<=>(const Unique_ptr<T_o, Internal_allocator_o>& lhs, const Unique_ptr<T_o, Internal_allocator_o>& rhs);
+
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend bool operator==(const Unique_ptr<T_o, Internal_allocator_o>& lhs, std::nullptr_t);
+
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend std::strong_ordering operator<=>(const Unique_ptr<T_o, Internal_allocator_o>& lhs, std::nullptr_t);
+
+	private:
+		void remove_reference()
+		{
+			// Check if there's an object in use
+			if (ptr_) {
+				math::core::memory::aux::destruct_at<T>(ptr_);
+				math::core::memory::Block ptr_b = { const_cast<std::remove_const_t<T>*>(ptr_), sizeof(T) };
+				allocator_.deallocate(&ptr_b);
+				ptr_ = nullptr;
+			}
+		}
+
+		Internal_allocator allocator_{};
+		T* ptr_{ nullptr };
+	};
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator>
+	inline bool operator==(const Unique_ptr<T, Internal_allocator>& lhs, const Unique_ptr<T, Internal_allocator>& rhs)
+	{
+		return lhs.ptr_ == rhs.ptr_;
+	}
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator>
+	inline std::strong_ordering operator<=>(const Unique_ptr<T, Internal_allocator>& lhs, const Unique_ptr<T, Internal_allocator>& rhs)
+	{
+		return std::compare_three_way{}(lhs.ptr_, rhs.ptr_);
+	}
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator>
+	inline bool operator==(const Unique_ptr<T, Internal_allocator>& lhs, std::nullptr_t)
+	{
+		return !lhs;
+	}
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator>
+	inline std::strong_ordering operator<=>(const Unique_ptr<T, Internal_allocator>& lhs, std::nullptr_t)
+	{
+		return std::compare_three_way{}(lhs.ptr_, nullptr);
+	}
+
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator, typename ...Args>
+	inline Unique_ptr<T, Internal_allocator> make_unique(Args&&... args)
+	{
+		Internal_allocator allocator_{};
+		math::core::memory::Block b = allocator_.allocate(sizeof(T));
+		T* ptr = math::core::memory::aux::construct_at<T>(reinterpret_cast<T*>(b.p), std::forward<Args>(args)...);
+		return Unique_ptr<T, Internal_allocator>(ptr);
+	}
+
 	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
 	class Shared_ptr {
 	public:
