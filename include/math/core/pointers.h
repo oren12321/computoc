@@ -181,32 +181,37 @@ namespace math::core::pointers {
 		return Unique_ptr<T, Internal_allocator>(ptr);
 	}
 
+	struct Control_block {
+		std::size_t use_count{ 0 };
+		std::size_t weak_count{ 0 };
+	};
+
 	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
 	class Shared_ptr {
 	public:
 		// Not recommended - ptr should be allocated using Internal_allocator
 		Shared_ptr(T* ptr = nullptr)
-			: use_count_(ptr ? reinterpret_cast<std::size_t*>(allocator_.allocate(sizeof(std::size_t)).p) : nullptr), ptr_(ptr)
+			: cb_(reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p)), ptr_(ptr)
 		{
-			CORE_EXPECT((ptr_ && use_count_) || (!ptr_ && !use_count_), std::runtime_error, "internal memory allocation failed");
-			if (use_count_) {
-				*use_count_ = 1;
-			}
+			CORE_EXPECT(cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(cb_);
+			cb_->use_count = ptr_ ? 1 : 0;
+			cb_->weak_count = 0;
 		}
 
 		template <typename T_o>
 		Shared_ptr(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
-			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			if (other.ptr_ && use_count_) {
-				++(*use_count_);
+			if (other.ptr_) {
+				++cb_->use_count;
 			}
 		}
 		Shared_ptr(const Shared_ptr& other) noexcept
-			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			if (other.ptr_ && use_count_) {
-				++(*use_count_);
+			if (other.ptr_) {
+				++cb_->use_count;
 			}
 		}
 
@@ -214,10 +219,10 @@ namespace math::core::pointers {
 		// If used directly, user should release 'ptr'
 		template <typename T_o>
 		Shared_ptr(const Shared_ptr<T_o, Internal_allocator>& other, T* ptr) noexcept
-			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(ptr)
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(ptr)
 		{
-			if (other.ptr_ && use_count_) {
-				++(*use_count_);
+			if (other.ptr_) {
+				++cb_->use_count;
 			}
 		}
 
@@ -231,11 +236,11 @@ namespace math::core::pointers {
 			remove_reference();
 
 			allocator_ = other.allocator_;
-			use_count_ = other.use_count_;
+			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
 			if (other.ptr_) {
-				++(*use_count_);
+				++cb_->use_count;
 			}
 			return *this;
 		}
@@ -248,39 +253,51 @@ namespace math::core::pointers {
 			remove_reference();
 
 			allocator_ = other.allocator_;
-			use_count_ = other.use_count_;
+			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
 			if (other.ptr_) {
-				++(*use_count_);
+				++cb_->use_count;
 			}
 			return *this;
 		}
 
 		template <typename T_o>
-		Shared_ptr(Shared_ptr<T_o, Internal_allocator>&& other) noexcept
-			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
+		Shared_ptr(Shared_ptr<T_o, Internal_allocator>&& other)
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			other.use_count_ = nullptr;
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
 			other.ptr_ = nullptr;
 		}
-		Shared_ptr(Shared_ptr&& other) noexcept
-			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(other.ptr_)
+		Shared_ptr(Shared_ptr&& other)
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			other.use_count_ = nullptr;
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
 			other.ptr_ = nullptr;
 		}
 
 		template <typename T_o>
-		Shared_ptr(Shared_ptr<T_o, Internal_allocator>&& other, T* ptr) noexcept
-			: allocator_(other.allocator_), use_count_(other.use_count_), ptr_(ptr)
+		Shared_ptr(Shared_ptr<T_o, Internal_allocator>&& other, T* ptr)
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(ptr)
 		{
-			other.use_count_ = nullptr;
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
 			other.ptr_ = nullptr;
 		}
 
 		template <typename T_o>
-		Shared_ptr& operator=(Shared_ptr<T_o, Internal_allocator>&& other) noexcept
+		Shared_ptr& operator=(Shared_ptr<T_o, Internal_allocator>&& other)
 		{
 			if (this == &other) {
 				return *this;
@@ -289,14 +306,18 @@ namespace math::core::pointers {
 			remove_reference();
 
 			allocator_ = other.allocator_;
-			use_count_ = other.use_count_;
+			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
-			other.use_count_ = nullptr;
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
 			other.ptr_ = nullptr;
 			return *this;
 		}
-		Shared_ptr& operator=(Shared_ptr&& other) noexcept
+		Shared_ptr& operator=(Shared_ptr&& other)
 		{
 			if (this == &other) {
 				return *this;
@@ -305,10 +326,14 @@ namespace math::core::pointers {
 			remove_reference();
 
 			allocator_ = other.allocator_;
-			use_count_ = other.use_count_;
+			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
-			other.use_count_ = nullptr;
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
 			other.ptr_ = nullptr;
 			return *this;
 		}
@@ -320,7 +345,7 @@ namespace math::core::pointers {
 
 		std::size_t use_count() const noexcept
 		{
-			return use_count_ ? *use_count_ : 0;
+			return cb_->use_count;
 		}
 
 		T* get() const noexcept
@@ -343,24 +368,28 @@ namespace math::core::pointers {
 			return ptr_;
 		}
 
-		void reset() noexcept
+		void reset()
 		{
 			remove_reference();
-			use_count_ = nullptr;
+			cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(cb_);
+			cb_->use_count = 0;
+			cb_->weak_count = 0;
 			ptr_ = nullptr;
 		}
 
 		template <typename T_o>
-		void reset(T_o* ptr) noexcept
+		void reset(T_o* ptr)
 		{
-			if (!ptr) {
-				reset();
-			}
 			remove_reference();
-			use_count_ = reinterpret_cast<std::size_t*>(allocator_.allocate(sizeof(std::size_t)).p);
-			*(use_count_) = 1;
+			cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(cb_);
+			cb_->use_count = ptr ? 1 : 0;
+			cb_->weak_count = 0;
 			ptr_ = ptr;
-        }
+		}
 
 		template <typename T_o>
 		Shared_ptr(Unique_ptr<T_o, Internal_allocator>&& other)
@@ -391,25 +420,25 @@ namespace math::core::pointers {
     private:
 		void remove_reference()
 		{
-			// Check if there's an object in use
-			if (ptr_ && use_count_) {
-				--(*use_count_); // Allocated use count must be positive
-				if (*use_count_ == 0) {
-					math::core::memory::aux::destruct_at<std::size_t>(use_count_);
-					math::core::memory::Block use_count_b = { use_count_, sizeof(std::size_t) };
-					allocator_.deallocate(&use_count_b);
-					use_count_ = nullptr;
-
-					math::core::memory::aux::destruct_at<T>(ptr_);
-					math::core::memory::Block ptr_b = { const_cast<std::remove_const_t<T>*>(ptr_), sizeof(T) };
-					allocator_.deallocate(&ptr_b);
-					ptr_ = nullptr;
-				}
+			if (cb_->use_count > 0) {
+				--cb_->use_count;
+			}
+			if (cb_->use_count == 0 && ptr_) {
+				math::core::memory::aux::destruct_at<T>(ptr_);
+				math::core::memory::Block ptr_b = { const_cast<std::remove_const_t<T>*>(ptr_), sizeof(T) };
+				allocator_.deallocate(&ptr_b);
+				ptr_ = nullptr;
+			}
+			if (cb_->use_count == 0 && cb_->weak_count == 0) {
+				math::core::memory::aux::destruct_at<Control_block>(cb_);
+				math::core::memory::Block cb_b = { cb_, sizeof(Control_block) };
+				allocator_.deallocate(&cb_b);
+				cb_ = nullptr;
 			}
 		}
 
         Internal_allocator allocator_{};
-		std::size_t* use_count_{nullptr};
+	    Control_block* cb_{nullptr};
 		T* ptr_{nullptr};
     };
 
@@ -506,6 +535,252 @@ namespace math::core::pointers {
 		T* p = reinterpret_cast<T*>(other.get());
 		return Shared_ptr<T, Internal_allocator>(std::move(other), p);
 	}
+
+
+	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
+	class Weak_ptr {
+	public:
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend class Shared_ptr;
+
+		template <typename T_o>
+		Weak_ptr(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
+		{
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+		}
+		Weak_ptr(const Shared_ptr<T, Internal_allocator>& other) noexcept
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
+		{
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+		}
+		template <typename T_o>
+		Weak_ptr& operator=(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			allocator_ = other.allocator_;
+			cb_ = other.cb_;
+			ptr_ = other.ptr_;
+
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+			return *this;
+		}
+		Weak_ptr& operator=(const Shared_ptr<T, Internal_allocator>& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			allocator_ = other.allocator_;
+			cb_ = other.cb_;
+			ptr_ = other.ptr_;
+
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+			return *this;
+		}
+
+		template <typename T_o>
+		Weak_ptr(const Weak_ptr<T_o, Internal_allocator>& other) noexcept
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
+		{
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+		}
+		Weak_ptr(const Weak_ptr& other) noexcept
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
+		{
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+		}
+
+		template <typename T_o>
+		Weak_ptr& operator=(const Weak_ptr<T_o, Internal_allocator>& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			remove_reference();
+
+			allocator_ = other.allocator_;
+			cb_ = other.cb_;
+			ptr_ = other.ptr_;
+
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+			return *this;
+		}
+		Weak_ptr& operator=(const Weak_ptr& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			remove_reference();
+
+			allocator_ = other.allocator_;
+			cb_ = other.cb_;
+			ptr_ = other.ptr_;
+
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
+			return *this;
+		}
+
+		template <typename T_o>
+		Weak_ptr(Weak_ptr<T_o, Internal_allocator>&& other) noexcept
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
+		{
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
+			other.ptr_ = nullptr;
+		}
+		Weak_ptr(Weak_ptr&& other) noexcept
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
+		{
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
+			other.ptr_ = nullptr;
+		}
+
+		template <typename T_o>
+		Weak_ptr(Weak_ptr<T_o, Internal_allocator>&& other, T* ptr) noexcept
+			: allocator_(other.allocator_), cb_(other.cb_), ptr_(ptr)
+		{
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
+			other.ptr_ = nullptr;
+		}
+
+		template <typename T_o>
+		Weak_ptr& operator=(Weak_ptr<T_o, Internal_allocator>&& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			remove_reference();
+
+			allocator_ = other.allocator_;
+			cb_ = other.cb_;
+			ptr_ = other.ptr_;
+
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
+			other.ptr_ = nullptr;
+			return *this;
+		}
+		Weak_ptr& operator=(Weak_ptr&& other) noexcept
+		{
+			if (this == &other) {
+				return *this;
+			}
+
+			remove_reference();
+
+			allocator_ = other.allocator_;
+			cb_ = other.cb_;
+			ptr_ = other.ptr_;
+
+			other.cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(other.cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(other.cb_);
+			other.cb_->use_count = 0;
+			other.cb_->weak_count = 0;
+			other.ptr_ = nullptr;
+			return *this;
+		}
+
+		virtual ~Weak_ptr() noexcept
+		{
+			remove_reference();
+		}
+
+		std::size_t use_count() const noexcept
+		{
+			return cb_->use_count;
+		}
+
+		bool expired() const noexcept
+		{
+			return !cb_->use_count;
+		}
+
+		T* get() const noexcept
+		{
+			return ptr_;
+		}
+
+		T* operator->() const noexcept
+		{
+			return ptr_;
+		}
+
+		T& operator*() const noexcept
+		{
+			return *(ptr_);
+		}
+
+		operator bool() const noexcept
+		{
+			return ptr_;
+		}
+
+		void reset() noexcept
+		{
+			remove_reference();
+			cb_ = reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p);
+			CORE_EXPECT(cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(cb_);
+			cb_->use_count = 0;
+			cb_->weak_count = 0;
+			ptr_ = nullptr;
+		}
+
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend class Shared_ptr;
+
+		Shared_ptr<T, Internal_allocator> lock()
+		{
+			Shared_ptr<T, Internal_allocator> sp{ nullptr };
+			if (!cb_->use_count) {
+				return sp;
+			}
+			sp.ptr_ = ptr_;
+			sp.cb_ = cb_;
+			++sp.cb_->use_count;
+			return sp;
+		}
+
+	private:
+		void remove_reference()
+		{
+			if (cb_->weak_count > 0) {
+				--cb_->weak_count;
+			}
+			if (cb_->use_count == 0 && cb_->weak_count == 0) {
+				math::core::memory::aux::destruct_at<Control_block>(cb_);
+				math::core::memory::Block cb_b = { cb_, sizeof(Control_block) };
+				allocator_.deallocate(&cb_b);
+				cb_ = nullptr;
+			}
+		}
+
+		Internal_allocator allocator_{};
+		Control_block* cb_{ nullptr };
+		T* ptr_{ nullptr };
+	};
 }
 
 #endif // MATH_CORE_POINTERS_H
