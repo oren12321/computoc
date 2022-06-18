@@ -552,19 +552,19 @@ namespace math::core::pointers {
 			CORE_EXPECT(cb_, std::runtime_error, "internal memory allocation failed");
 			math::core::memory::aux::construct_at<Control_block>(cb_);
 			cb_->use_count = 0;
-			cb_->weak_count = 1;
+			cb_->weak_count = 0;
 		}
 
 		template <typename T_o>
 		Weak_ptr(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
 			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 		}
 		Weak_ptr(const Shared_ptr<T, Internal_allocator>& other) noexcept
 			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 		}
 		template <typename T_o>
 		Weak_ptr& operator=(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
@@ -573,7 +573,7 @@ namespace math::core::pointers {
 			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 			return *this;
 		}
 		Weak_ptr& operator=(const Shared_ptr<T, Internal_allocator>& other) noexcept
@@ -582,7 +582,7 @@ namespace math::core::pointers {
 			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 			return *this;
 		}
 
@@ -590,12 +590,12 @@ namespace math::core::pointers {
 		Weak_ptr(const Weak_ptr<T_o, Internal_allocator>& other) noexcept
 			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 		}
 		Weak_ptr(const Weak_ptr& other) noexcept
 			: allocator_(other.allocator_), cb_(other.cb_), ptr_(other.ptr_)
 		{
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 		}
 
 		template <typename T_o>
@@ -611,7 +611,7 @@ namespace math::core::pointers {
 			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 			return *this;
 		}
 		Weak_ptr& operator=(const Weak_ptr& other) noexcept
@@ -626,7 +626,7 @@ namespace math::core::pointers {
 			cb_ = other.cb_;
 			ptr_ = other.ptr_;
 
-			++cb_->weak_count;
+			cb_->weak_count = cb_->use_count ? cb_->weak_count + 1 : 0;
 			return *this;
 		}
 
@@ -728,7 +728,7 @@ namespace math::core::pointers {
 			CORE_EXPECT(cb_, std::runtime_error, "internal memory allocation failed");
 			math::core::memory::aux::construct_at<Control_block>(cb_);
 			cb_->use_count = 0;
-			cb_->weak_count = 1;
+			cb_->weak_count = 0;
 			ptr_ = nullptr;
 		}
 
@@ -753,7 +753,7 @@ namespace math::core::pointers {
 			if (cb_->weak_count > 0) {
 				--cb_->weak_count;
 			}
-			if (cb_->use_count == 0 && cb_->weak_count == 0 && ptr_ /* edge case for weak ptr from null shared ptr */) {
+			if (cb_->use_count == 0 && cb_->weak_count == 0) {
 				math::core::memory::aux::destruct_at<Control_block>(cb_);
 				math::core::memory::Block cb_b = { cb_, sizeof(Control_block) };
 				allocator_.deallocate(&cb_b);
