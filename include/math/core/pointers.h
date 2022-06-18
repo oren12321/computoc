@@ -186,9 +186,15 @@ namespace math::core::pointers {
 		std::size_t weak_count{ 0 };
 	};
 
+	template <typename T, math::core::allocators::Allocator Internal_allocator>
+	class Weak_ptr;
+
 	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
 	class Shared_ptr {
 	public:
+		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
+		friend class Weak_ptr;
+
 		// Not recommended - ptr should be allocated using Internal_allocator
 		Shared_ptr(T* ptr = nullptr)
 			: cb_(reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p)), ptr_(ptr)
@@ -540,8 +546,14 @@ namespace math::core::pointers {
 	template <typename T, math::core::allocators::Allocator Internal_allocator = math::core::allocators::Malloc_allocator>
 	class Weak_ptr {
 	public:
-		template <typename T_o, math::core::allocators::Allocator Internal_allocator_o>
-		friend class Shared_ptr;
+		Weak_ptr()
+			: cb_(reinterpret_cast<Control_block*>(allocator_.allocate(sizeof(Control_block)).p))
+		{
+			CORE_EXPECT(cb_, std::runtime_error, "internal memory allocation failed");
+			math::core::memory::aux::construct_at<Control_block>(cb_);
+			cb_->use_count = 0;
+			cb_->weak_count = 0;
+		}
 
 		template <typename T_o>
 		Weak_ptr(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
@@ -557,10 +569,6 @@ namespace math::core::pointers {
 		template <typename T_o>
 		Weak_ptr& operator=(const Shared_ptr<T_o, Internal_allocator>& other) noexcept
 		{
-			if (this == &other) {
-				return *this;
-			}
-
 			allocator_ = other.allocator_;
 			cb_ = other.cb_;
 			ptr_ = other.ptr_;
@@ -570,10 +578,6 @@ namespace math::core::pointers {
 		}
 		Weak_ptr& operator=(const Shared_ptr<T, Internal_allocator>& other) noexcept
 		{
-			if (this == &other) {
-				return *this;
-			}
-
 			allocator_ = other.allocator_;
 			cb_ = other.cb_;
 			ptr_ = other.ptr_;
@@ -715,26 +719,6 @@ namespace math::core::pointers {
 		bool expired() const noexcept
 		{
 			return !cb_->use_count;
-		}
-
-		T* get() const noexcept
-		{
-			return ptr_;
-		}
-
-		T* operator->() const noexcept
-		{
-			return ptr_;
-		}
-
-		T& operator*() const noexcept
-		{
-			return *(ptr_);
-		}
-
-		operator bool() const noexcept
-		{
-			return ptr_;
 		}
 
 		void reset() noexcept
