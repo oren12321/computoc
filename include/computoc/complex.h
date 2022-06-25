@@ -6,8 +6,8 @@
 #include <cmath>
 #include <complex>
 
-#include <math/core/utils.h>
-#include <math/core/algorithms.h>
+#include <computoc/utils.h>
+#include <computoc/algorithms.h>
 
 namespace math::core::types {
     template <typename T>

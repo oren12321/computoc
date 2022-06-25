@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <math/core/matrix.h>
+#include <computoc/matrix.h>
 
 TEST(Matrix_test, can_be_initialized_with_valid_size_and_data)
 {

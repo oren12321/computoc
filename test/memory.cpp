@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-#include <math/core/memory.h>
+#include <computoc/memory.h>
 
 // Block tests
 

@@ -9,10 +9,10 @@
 //#include <iostream>
 //#include <ostream>
 
-#include <math/core/allocators.h>
-#include <math/core/buffers.h>
-#include <math/core/utils.h>
-#include <math/core/algorithms.h>
+#include <computoc/allocators.h>
+#include <computoc/buffers.h>
+#include <computoc/utils.h>
+#include <computoc/algorithms.h>
 
 namespace math::core::types {
     // Every matrix with size less or equal to 9 will be allocated on stack

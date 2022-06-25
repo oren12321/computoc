@@ -8,8 +8,8 @@
 #include <type_traits>
 #include <concepts>
 
-#include <math/core/memory.h>
-#include <math/core/allocators.h>
+#include <computoc/memory.h>
+#include <computoc/allocators.h>
 
 namespace math::core::buffers {
     template <typename T>

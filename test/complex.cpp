@@ -4,7 +4,7 @@
 #include <numbers>
 #include <cmath>
 
-#include <math/core/complex.h>
+#include <computoc/complex.h>
 
 TEST(Complex_test, can_be_initialized_with_components_or_a_number)
 {

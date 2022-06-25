@@ -1,3 +1,2 @@
-add_subdirectory(math)
 add_subdirectory(memoc)
-
+add_subdirectory(computoc)

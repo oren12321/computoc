@@ -13,7 +13,7 @@ add_executable(math_test
     algorithms.cpp
     pointers.cpp
     main.cpp)
-target_link_libraries(math_test GTest::gtest GTest::gtest_main math)
+target_link_libraries(math_test GTest::gtest GTest::gtest_main computoc)
 set_property(TARGET math_test PROPERTY CXX_STANDARD 20)
 
 add_subdirectory(memoc)

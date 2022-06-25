@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <regex>
 
-#include <math/core/utils.h>
+#include <computoc/utils.h>
 
 TEST(Utils_test, core_expect_not_throwing_exception_when_condition_is_true)
 {

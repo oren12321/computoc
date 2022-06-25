@@ -11,7 +11,7 @@
 #include <concepts>
 #include <memory>
 
-#include <math/core/memory.h>
+#include <computoc/memory.h>
 
 namespace math::core::allocators {
     template <typename T>

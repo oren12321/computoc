@@ -5,8 +5,8 @@
 #include <cstddef>
 #include <compare>
 
-#include <math/core/allocators.h>
-#include <math/core/utils.h>
+#include <computoc/allocators.h>
+#include <computoc/utils.h>
 
 namespace math::core::pointers {
 	// These class are not thread safe
