@@ -47,8 +47,8 @@ WORKDIR /tmp/
 COPY . /tmp/
 RUN cmake . -DIN_DOCKER=TRUE -DCMAKE_BUILD_TYPE=Release \
  && make -j$(nproc) \
- && ./test/math_test \
+ && ./test/computoc/computoc_test \
  && ./test/memoc/memoc_test \
- && ./benchmark/math_benchmark \
+ && ./benchmark/memoc/memoc_benchmark \
  && rm -rf /tmp/*
 
