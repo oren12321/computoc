@@ -6,7 +6,7 @@
 #include <cmath>
 #include <complex>
 
-#include <computoc/utils.h>
+#include <computoc/errors.h>
 #include <computoc/algorithms.h>
 
 namespace math::core::types {
@@ -133,7 +133,7 @@ namespace math::core::types {
 
         Complex<F>& operator/=(F other)
         {
-            CORE_EXPECT(!math::algorithms::is_equal(other, F{ 0 }), std::overflow_error, "division by zero");
+            COMPUTOC_THROW_IF_FALSE(!math::algorithms::is_equal(other, F{ 0 }), std::overflow_error, "division by zero");
 
             r_ /= other;
             i_ /= other;
@@ -223,7 +223,7 @@ namespace math::core::types {
 
         Complex<F> multiplicative_inverse() const
         {
-            CORE_EXPECT(!math::algorithms::is_equal(r_, F{ 0 }) || !math::algorithms::is_equal(i_, F{ 0 }), std::overflow_error, "division by zero");
+            COMPUTOC_THROW_IF_FALSE(!math::algorithms::is_equal(r_, F{ 0 }) || !math::algorithms::is_equal(i_, F{ 0 }), std::overflow_error, "division by zero");
 
             return { r_ / (r_ * r_ + i_ * i_), -i_ / (r_ * r_ + i_ * i_) };
         }
@@ -313,7 +313,7 @@ namespace math::core::types {
     template <Decimal F>
     inline Complex<F> operator/(const Complex<F>& lhs, F rhs) noexcept
     {
-        CORE_EXPECT(!math::algorithms::is_equal(rhs, F{ 0 }), std::overflow_error, "division by zero");
+        COMPUTOC_THROW_IF_FALSE(!math::algorithms::is_equal(rhs, F{ 0 }), std::overflow_error, "division by zero");
 
         return { lhs.r_ / rhs, lhs.i_ / rhs };
     }
@@ -333,7 +333,7 @@ namespace math::core::types {
     template <Decimal F>
     inline F arg(const Complex<F>& c)
     {
-        CORE_EXPECT(c.r_ != 0, std::overflow_error, "division by zero");
+        COMPUTOC_THROW_IF_FALSE(c.r_ != 0, std::overflow_error, "division by zero");
 
         return std::atan(c.i_ / c.r_);
     }

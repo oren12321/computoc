@@ -1,5 +1,6 @@
 add_library(computoc INTERFACE)
 target_include_directories(computoc INTERFACE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(computoc INTERFACE memoc)
 
 set_property(TARGET computoc PROPERTY CXX_STANDARD 20)
 
