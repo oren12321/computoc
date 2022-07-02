@@ -1,5 +1,5 @@
-#ifndef MATH_TYPES_MATRIX_H
-#define MATH_TYPES_MATRIX_H
+#ifndef COMPUTOC_TYPES_MATRIX_H
+#define COMPUTOC_TYPES_MATRIX_H
 
 #include <cstddef>
 #include <type_traits>
@@ -519,5 +519,5 @@ namespace computoc {
     //using types::details::row_echelon_form;
 }
 
-#endif // MATH_TYPE_MATRIX_H
+#endif // COMPUTOC_TYPE_MATRIX_H
 

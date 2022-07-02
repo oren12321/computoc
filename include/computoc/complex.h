@@ -1,5 +1,5 @@
-#ifndef MATH_TYPES_COMPLEX_H
-#define MATH_TYPES_COMPLEX_H
+#ifndef COMPUTOC_TYPES_COMPLEX_H
+#define COMPUTOC_TYPES_COMPLEX_H
 
 #include <type_traits>
 #include <stdexcept>
@@ -11,8 +11,11 @@
 
 namespace computoc::types {
     namespace details {
+#ifndef DECIMAL_CONCEPT_PATCH
+#define DECIMAL_CONCEPT_PATCH
         template <typename T>
         concept Decimal = std::is_floating_point_v<T>;
+#endif // DECIMAL_CONCEPT_PATCH
 
         template <Decimal F>
         class Complex {
@@ -528,4 +531,4 @@ namespace computoc {
     using types::details::tanh;
 }
 
-#endif // MATH_TYPES_COMPLEX_H
+#endif // COMPUTOC_TYPES_COMPLEX_H
