@@ -4,7 +4,7 @@
 
 TEST(Matrix_test, can_be_initialized_with_valid_size_and_data)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = { 0 };
     EXPECT_NO_THROW((Integer_matrix{ {1, 1}, data }));
@@ -19,7 +19,7 @@ TEST(Matrix_test, can_be_initialized_with_valid_size_and_data)
 
 TEST(Matrix_test, can_be_initialized_with_valid_size_and_value)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int value{ 0 };
     EXPECT_NO_THROW((Integer_matrix{ {1, 1}, value }));
@@ -31,21 +31,21 @@ TEST(Matrix_test, can_be_initialized_with_valid_size_and_value)
 
 TEST(Matrix_test, can_return_its_size)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int value{ 0 };
     const std::size_t n = 1;
     const std::size_t m = 2;
     Integer_matrix mat{ {n, m}, value };
 
-    math::core::types::Dimensions d{ mat.dimensions() };
+    computoc::types::Dimensions d{ mat.dimensions() };
     EXPECT_EQ(n, d.n);
     EXPECT_EQ(m, d.m);
 }
 
 TEST(Matrix_test, have_read_write_access_to_its_cells)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
         1, 2, 3,
@@ -74,7 +74,7 @@ TEST(Matrix_test, have_read_write_access_to_its_cells)
 
 TEST(Matrix_test, can_be_compared_with_another_matrix)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data1[] = {
         1, 2, 3,
@@ -98,7 +98,7 @@ TEST(Matrix_test, can_be_compared_with_another_matrix)
 
 TEST(Matrix_test, can_return_slice)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
     1, 2, 3,
@@ -131,7 +131,7 @@ TEST(Matrix_test, can_return_slice)
 
 TEST(Matrix_test, can_return_slice_by_pivot)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
         1, 2, 3, 4, 5,
@@ -162,7 +162,7 @@ TEST(Matrix_test, can_return_slice_by_pivot)
 
 TEST(Matrix_test, can_write_into_slice)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
     1, 2, 3,
@@ -193,7 +193,7 @@ TEST(Matrix_test, can_write_into_slice)
 
 TEST(Matrix_test, can_negate)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
     1, 2, 3,
@@ -214,7 +214,7 @@ TEST(Matrix_test, can_negate)
 
 TEST(Matrix_test, have_positive)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
     1, 2, 3,
@@ -228,7 +228,7 @@ TEST(Matrix_test, have_positive)
 
 TEST(Matrix_test, can_be_added_with_another_matrix)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
         1, 2, 3,
@@ -251,7 +251,7 @@ TEST(Matrix_test, can_be_added_with_another_matrix)
 
 TEST(Matrix_test, can_be_subtracted_from_another_matrix)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
         1, 2, 3,
@@ -270,7 +270,7 @@ TEST(Matrix_test, can_be_subtracted_from_another_matrix)
 
 TEST(Matrix_test, can_be_multiplied_by_a_constant)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
         1, 2, 3,
@@ -293,7 +293,7 @@ TEST(Matrix_test, can_be_multiplied_by_a_constant)
 
 TEST(Matrix_test, can_be_multiplied_by_another_matrix)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data1[] = {
         1, 2, 3,
@@ -327,7 +327,7 @@ TEST(Matrix_test, can_be_multiplied_by_another_matrix)
 
 TEST(Matrix_test, can_be_transposed)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
     1, 2, 3,
@@ -352,7 +352,7 @@ TEST(Matrix_test, can_be_transposed)
 
 TEST(Matrix_test, have_determinant_if_squared)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
         1, 2, 3, 4,
@@ -362,18 +362,18 @@ TEST(Matrix_test, have_determinant_if_squared)
     const std::size_t n = 4;
     Integer_matrix mat{ {n, n}, data };
 
-    EXPECT_EQ(1, math::core::types::determinant(mat.get_slice(0, 0, { 1, 1 })));
-    EXPECT_EQ(-4, math::core::types::determinant(mat.get_slice(0, 0, { 2, 2 })));
-    EXPECT_EQ(0, math::core::types::determinant(mat.get_slice(0, 0, { 3, 3 })));
-    EXPECT_EQ(0, math::core::types::determinant(mat));
+    EXPECT_EQ(1, computoc::determinant(mat.get_slice(0, 0, { 1, 1 })));
+    EXPECT_EQ(-4, computoc::determinant(mat.get_slice(0, 0, { 2, 2 })));
+    EXPECT_EQ(0, computoc::determinant(mat.get_slice(0, 0, { 3, 3 })));
+    EXPECT_EQ(0, computoc::determinant(mat));
 
-    EXPECT_THROW(math::core::types::determinant(Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
-    EXPECT_THROW(math::core::types::determinant(Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::determinant(Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::determinant(Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
 }
 
 TEST(Matrix_test, have_inverse_if_squared_and_zero_determinant)
 {
-    using Double_matrix = math::core::types::Matrix<double>;
+    using Double_matrix = computoc::types::Matrix<double>;
 
     const double data[] = {
         1, 2, 3, 4,
@@ -388,7 +388,7 @@ TEST(Matrix_test, have_inverse_if_squared_and_zero_determinant)
         1.25, -0.25 };
     const std::size_t in1 = 2;
     Double_matrix inv_mat1{ {in1, in1}, inv_data1 };
-    EXPECT_EQ(inv_mat1, math::core::types::inverse(mat.get_slice(0, 0, { 2, 2 })));
+    EXPECT_EQ(inv_mat1, computoc::inverse(mat.get_slice(0, 0, { 2, 2 })));
 
     const double unit_data2[] = {
     1, 0,
@@ -397,14 +397,14 @@ TEST(Matrix_test, have_inverse_if_squared_and_zero_determinant)
     Double_matrix unit_mat2{ {un1, un1}, unit_data2 };
     EXPECT_EQ(unit_mat2, inv_mat1 * mat.get_slice(0, 0, { 2, 2 }));
 
-    EXPECT_THROW(math::core::types::inverse(Double_matrix{ {1, 2}, 0.0 }), std::invalid_argument);
-    EXPECT_THROW(math::core::types::inverse(Double_matrix{ {2, 1}, 0.0 }), std::invalid_argument);
-    EXPECT_THROW(math::core::types::inverse(mat), std::invalid_argument);
+    EXPECT_THROW(computoc::inverse(Double_matrix{ {1, 2}, 0.0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::inverse(Double_matrix{ {2, 1}, 0.0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::inverse(mat), std::invalid_argument);
 }
 
 TEST(Matrix_test, can_be_merged)
 {
-    using Integer_matrix = math::core::types::Matrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data1[] = {
         1, 2, 3,
@@ -426,8 +426,8 @@ TEST(Matrix_test, can_be_merged)
     const std::size_t hn = 2;
     const std::size_t hm = 6;
     Integer_matrix hmerged{ {hn, hm}, hmerged_data };
-    EXPECT_EQ(hmerged, math::core::types::merge_horizontal(mat1, mat2));
-    EXPECT_THROW(math::core::types::merge_horizontal(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
+    EXPECT_EQ(hmerged, computoc::merge_horizontal(mat1, mat2));
+    EXPECT_THROW(computoc::merge_horizontal(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
 
     const int vmerged_data[] = {
         1, 2, 3,
@@ -437,13 +437,13 @@ TEST(Matrix_test, can_be_merged)
     const std::size_t vn = 4;
     const std::size_t vm = 3;
     Integer_matrix vmerged{ {vn, vm}, vmerged_data };
-    EXPECT_EQ(vmerged, math::core::types::merge_vertical(mat1, mat2));
-    EXPECT_THROW(math::core::types::merge_vertical(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
+    EXPECT_EQ(vmerged, computoc::merge_vertical(mat1, mat2));
+    EXPECT_THROW(computoc::merge_vertical(Integer_matrix{ {1, 1}, 0 }, Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
 }
 
 TEST(Matrix_test, can_add_multiply_and_swap_rows)
 {
-    using Double_matrix = math::core::types::Matrix<double>;
+    using Double_matrix = computoc::types::Matrix<double>;
 
     const double data[] = {
         1, 2, 3, 4,
@@ -490,7 +490,7 @@ TEST(Matrix_test, can_add_multiply_and_swap_rows)
 
 //TEST(Matrix_test, have_row_echelon_form)
 //{
-//    using Double_matrix = math::core::types::Matrix<double>;
+//    using Double_matrix = computoc::types::Matrix<double>;
 //
 //    const double data[] = {
 //        0.25, 0.5, 1, 5.75,
@@ -508,12 +508,12 @@ TEST(Matrix_test, can_add_multiply_and_swap_rows)
 //    const std::size_t rm = 4;
 //    Double_matrix rmat{ {rn, rm}, rdata };
 //
-//    EXPECT_EQ(rmat, math::core::types::row_echelon_form(mat));
+//    EXPECT_EQ(rmat, computoc::types::row_echelon_form(mat));
 //}
 
 TEST(Matrix_test, have_reduced_row_echelon_form)
 {
-    using Double_matrix = math::core::types::Matrix<double>;
+    using Double_matrix = computoc::types::Matrix<double>;
 
     const double data1[] = {
         0.25, 0.5, 1, 5.75, 
@@ -531,7 +531,7 @@ TEST(Matrix_test, have_reduced_row_echelon_form)
     const std::size_t rm1 = 4;
     Double_matrix rmat1{ {rn1, rm1}, rdata1 };
 
-    EXPECT_EQ(rmat1, math::core::types::reduced_row_echelon_form(mat1));
+    EXPECT_EQ(rmat1, computoc::reduced_row_echelon_form(mat1));
 
     const double data2[] = {
         6, 10, 4, 22,
@@ -549,5 +549,5 @@ TEST(Matrix_test, have_reduced_row_echelon_form)
     const std::size_t rm2 = 4;
     Double_matrix rmat2{ {rn2, rm2}, rdata2 };
 
-    EXPECT_EQ(rmat2, math::core::types::reduced_row_echelon_form(mat2));
+    EXPECT_EQ(rmat2, computoc::reduced_row_echelon_form(mat2));
 }
