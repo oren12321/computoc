@@ -1,7 +1,6 @@
 #ifndef COMPUTOC_TYPES_COMPLEX_H
 #define COMPUTOC_TYPES_COMPLEX_H
 
-#include <type_traits>
 #include <stdexcept>
 #include <cmath>
 #include <complex>

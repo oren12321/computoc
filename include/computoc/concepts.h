@@ -2,6 +2,7 @@
 #define COMPUTOC_CONCEPTS_H
 
 #include <type_traits>
+#include <concepts>
 
 namespace computoc::concepts {
     template <typename T>
@@ -11,7 +12,13 @@ namespace computoc::concepts {
     concept Decimal = std::is_floating_point_v<T>;
 
     template <typename T>
-    concept Arithmetic = Integer<T> || Decimal<T>;
+    concept Arithmetic = requires(T a, T b)
+    {
+        {a + b};
+        {a - b};
+        {a * b};
+        {a / b};
+    };
 }
 
 #endif // COMPUTOC_CONCEPTS_H

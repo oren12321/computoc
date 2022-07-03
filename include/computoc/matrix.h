@@ -2,7 +2,6 @@
 #define COMPUTOC_TYPES_MATRIX_H
 
 #include <cstddef>
-#include <type_traits>
 #include <stdexcept>
 #include <utility>
 
