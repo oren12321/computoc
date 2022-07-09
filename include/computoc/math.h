@@ -2,8 +2,17 @@
 #define COMPUTOC_MATH_H
 
 #include <cmath>
+#include <limits>
 
 namespace computoc {
+    namespace details {
+        template <typename T>
+        T epsilon() noexcept
+        {
+            return std::numeric_limits<T>::epsilon();
+        }
+    }
+
     using std::abs;
     using std::acos;
     using std::acosh;
@@ -22,6 +31,8 @@ namespace computoc {
     using std::sqrt;
     using std::tan;
     using std::tanh;
+
+    using details::epsilon;
 }
 
 #endif // COMPUTOC_MATH_H
