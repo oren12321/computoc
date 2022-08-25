@@ -14,13 +14,179 @@
 #include <computoc/algorithms.h>
 #include <computoc/concepts.h>
 
+#include <memoc/pointers.h>
+
 namespace computoc::types {
+
+    /*
+    * Basic Matrix (element type can be any type):
+    * - Properties:
+    *   - buffer
+    *   - dimensions: width, height, depth (n, m, d)
+    * - Constructors:
+    *   - dimensions, data (optional)
+    *   - dimensions, value
+    *   - assignment, copy, etc.
+    * - Methods:
+    *   - accessor: mat(i, j, k), getter and setter
+    *   - equal
+    *   - to string
+    *   - slice: mat(dimensions, i, j, k), getter and setter
+    */
+
     namespace details {
         // Every matrix with size less or equal to 9 will be allocated on stack
+        using Matrix_allocator = memoc::allocators::Malloc_allocator;
+
         template <typename T>
         using Matrix_buffer = memoc::buffers::Typed_buffer<T, memoc::buffers::Fallback_buffer<
             memoc::buffers::Stack_buffer<9 * sizeof(T)>,
-            memoc::buffers::Allocated_buffer<memoc::allocators::Malloc_allocator, true>>>;
+            memoc::buffers::Allocated_buffer<Matrix_allocator, true>>>;
+
+        struct Dims {
+            std::size_t n{ 0 }, m{ 0 }, d{ 1 };
+        };
+
+        template <typename T>
+        using Fake_ref = T;
+
+        template <typename T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::allocators::Allocator Internal_allocator = Matrix_allocator>
+        class BMatrix {
+        public:
+            BMatrix() = default;
+
+            BMatrix(BMatrix<T, Internal_buffer, Internal_allocator>&& other) = default;
+            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(BMatrix<T, Internal_buffer, Internal_allocator>&& other) = default;
+
+            BMatrix(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
+                : odims_{ other.odims_ }, udims_{ other.udims_ }, offset_{ other.offset_ },
+                buffsp_{ other.buffsp_ ? memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(other.odims_.n * other.odims_.m * other.odims_.d) : nullptr }
+            {
+                if (buffsp_) {
+                    *buffsp_ = *(other.buffsp_);
+                }
+            }
+            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
+            {
+                if (this == &other) {
+                    return *this;
+                }
+
+                if (!is_fake_ref_) {
+                    odims_ = other.odims_;
+                    udims_ = other.udims_;
+                    offset_ = other.offset_;
+
+                    if (!other.buffsp_) {
+                        buffsp_ = nullptr;
+                        return *this;
+                    }
+
+                    if (!buffsp_ || odims_.n != other.odims_.n || odims_.m != other.odims_.m || odims_.d != other.odims_.d) {
+                        buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(other.odims_.n * other.odims_.m * other.odims_.d);
+                    }
+                    *buffsp_ = *(other.buffsp_);
+                    return *this;
+                }
+
+                if (!buffsp_ && !other.buffsp_) {
+                    return *this;
+                }
+
+                COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
+
+                for (std::size_t k = 0; k < udims_.d; ++k) {
+                    for (std::size_t i = 0; i < udims_.n; ++i) {
+                        for (std::size_t j = 0; j < udims_.m; ++j) {
+                            (*this)(i, j, k) = other(i, j, k);
+                        }
+                    }
+                }
+
+                return *this;
+            }
+
+            virtual ~BMatrix() = default;
+
+            BMatrix(Dims dims, const T* data = nullptr)
+                : odims_{ dims }, udims_{ dims }, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.d, data))
+            {
+                COMPUTOC_THROW_IF_FALSE(odims_.n * odims_.m * odims_.d != 0, std::invalid_argument, "non-positive dimensions (n = %d, m = %d, d = %d)", odims_.n, odims_.m, odims_.d);
+                COMPUTOC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
+            }
+
+            BMatrix(Dims dims, const T& value)
+                : odims_{ dims }, udims_{ dims }, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.d))
+            {
+                COMPUTOC_THROW_IF_FALSE(odims_.n* odims_.m* odims_.d != 0, std::invalid_argument, "non-positive dimensions (n = %d, m = %d, d = %d)", odims_.n, odims_.m, odims_.d);
+                COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
+
+                for (std::size_t i = 0; i < buffsp_->data().s; ++i) {
+                    buffsp_->data().p[i] = value;
+                }
+            }
+
+            Dims dims() const
+            {
+                return udims_;
+            }
+
+            const T& operator()(std::size_t i, std::size_t j, std::size_t k = 0) const
+            {
+                COMPUTOC_THROW_IF_FALSE(i < udims_.n&& j < udims_.m && k < udims_.d, std::out_of_range, "out of range indices (i = %d, j = %d, k = %d)", i, j, k);
+                return buffsp_->data().p[offset_ + k * (odims_.n * odims_.m) + i * odims_.m + j];
+            }
+
+            T& operator()(std::size_t i, std::size_t j, std::size_t k = 0)
+            {
+                COMPUTOC_THROW_IF_FALSE(i < udims_.n&& j < udims_.m&& k < udims_.d, std::out_of_range, "out of range indices (i = %d, j = %d, k = %d)", i, j, k);
+                return buffsp_->data().p[offset_ + k * (odims_.n * odims_.m) + i * odims_.m + j];
+            }
+
+            template <typename T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o, memoc::allocators::Allocator Internal_allocator_o>
+            friend bool operator==(const BMatrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const BMatrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
+
+            Fake_ref<BMatrix<T, Internal_buffer, Internal_allocator>> operator()(Dims dims, std::size_t si, std::size_t sj, std::size_t sk = 0)
+            {
+                COMPUTOC_THROW_IF_FALSE(si + dims.n <= udims_.n && sj + dims.m <= udims_.m && sk + dims.d <= udims_.d, std::out_of_range, "out of range indices (si = %d, sj = %d, sk = %d, dims.n = %d, dims.m = %d, dims.d = %d)", si, sj, sk, dims.n, dims.m, dims.d);
+
+                BMatrix<T, Internal_buffer, Internal_allocator> slice{};
+                slice.buffsp_ = buffsp_;
+                slice.odims_ = odims_;
+                slice.udims_ = dims;
+                slice.offset_ = offset_ + sk * (odims_.n * odims_.m) + si * odims_.m + sj;
+                slice.is_fake_ref_ = true;
+
+                return slice;
+            }
+
+        private:
+            std::size_t offset_{ 0 };
+            Dims odims_{}; // original
+            Dims udims_{}; // used
+            bool is_fake_ref_ = false;
+            memoc::pointers::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
+        };
+
+        template <typename T, memoc::buffers::Buffer<T> Internal_buffer, memoc::allocators::Allocator Internal_allocator>
+        inline bool operator==(const BMatrix<T, Internal_buffer, Internal_allocator>& lhs, const BMatrix<T, Internal_buffer, Internal_allocator>& rhs)
+        {
+            if (lhs.udims_.n != rhs.udims_.n || lhs.udims_.m != rhs.udims_.m || lhs.udims_.d != rhs.udims_.d) {
+                return false;
+            }
+
+            for (std::size_t k = 0; k < lhs.udims_.d; ++k) {
+                for (std::size_t i = 0; i < lhs.udims_.n; ++i) {
+                    for (std::size_t j = 0; j < lhs.udims_.m; ++j) {
+                        if (!algorithms::is_equal(lhs(i, j, k), rhs(i, j, k))) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
 
         struct Dimensions {
             std::size_t n{ 0 };
@@ -502,6 +668,9 @@ namespace computoc::types {
         //    return os;
         //}
     }
+
+    using details::Dims;
+    using details::BMatrix;
 
     using details::Dimensions;
     using details::Matrix;
