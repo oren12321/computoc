@@ -34,6 +34,39 @@ namespace computoc::types {
     *   - slice: mat(dimensions, i, j, k), getter and setter
     */
 
+    /*
+    * Basic matrix (element type can be any type):
+    * - Assumptions:
+    *   - All copy/move constructors and assignment operators are not copying the data
+    *   - Assignment to sub matrix is not allowed
+    * - Properties:
+    *   - Header
+    *   - Buffer shared pointer
+    * - Constructors:
+    *   - Default, copy, move, etc.
+    *   - Dimensions and optional data
+    *   - Dimensions and value
+    * - Operators:
+    *   - Copy/move assignemnt
+    *   - Cell by value and reference
+    *   - Sub matrix reference (should have a flag indicating that it is a submatrix)
+    * - Methods:
+    *   - Copy to matrix
+    *   - Copy from matrix
+    *   - Resize
+    *   - Reshape
+    *   - Merge
+    *   - Split
+    */
+
+    /*
+    * Matrix header:
+    * - Original matrix size
+    * - Used matrix size
+    * - First cell address
+    * - Sub matrix flag
+    */
+
     namespace details {
         // Every matrix with size less or equal to 9 will be allocated on stack
         using Matrix_allocator = memoc::allocators::Malloc_allocator;
@@ -47,61 +80,76 @@ namespace computoc::types {
             std::size_t n{ 0 }, m{ 0 }, d{ 1 };
         };
 
-        template <typename T>
-        using Fake_ref = T;
-
         template <typename T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::allocators::Allocator Internal_allocator = Matrix_allocator>
         class BMatrix {
         public:
             BMatrix() = default;
 
             BMatrix(BMatrix<T, Internal_buffer, Internal_allocator>&& other) = default;
-            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(BMatrix<T, Internal_buffer, Internal_allocator>&& other) = default;
+            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(BMatrix<T, Internal_buffer, Internal_allocator>&& other)
+            {
+                COMPUTOC_THROW_IF_FALSE(!is_submatrix_, std::runtime_error, "copy assignemnt to submatrix");
 
-            BMatrix(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
-                : odims_{ other.odims_ }, udims_{ other.udims_ }, offset_{ other.offset_ },
-                buffsp_{ other.buffsp_ ? memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(other.odims_.n * other.odims_.m * other.odims_.d) : nullptr }
-            {
-                if (buffsp_) {
-                    *buffsp_ = *(other.buffsp_);
-                }
-            }
-            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
-            {
                 if (this == &other) {
                     return *this;
                 }
 
-                if (!is_fake_ref_) {
-                    odims_ = other.odims_;
-                    udims_ = other.udims_;
-                    offset_ = other.offset_;
+                odims_ = other.odims_;
+                udims_ = other.udims_;
+                offset_ = other.offset_;
+                buffsp_ = other.buffsp_;
+                is_submatrix_ = other.is_submatrix_;
 
-                    if (!other.buffsp_) {
-                        buffsp_ = nullptr;
-                        return *this;
-                    }
+                other.odims_ = Dims{};
+                other.udims_ = Dims{};
+                other.offset_ = 0;
+                other.buffsp_ = nullptr;
+                other.is_submatrix_ = false;
+            }
 
-                    if (!buffsp_ || odims_.n != other.odims_.n || odims_.m != other.odims_.m || odims_.d != other.odims_.d) {
-                        buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(other.odims_.n * other.odims_.m * other.odims_.d);
-                    }
-                    *buffsp_ = *(other.buffsp_);
+            BMatrix(const BMatrix<T, Internal_buffer, Internal_allocator>& other) = default;
+            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
+            {
+                COMPUTOC_THROW_IF_FALSE(!is_submatrix_, std::runtime_error, "copy assignemnt to submatrix");
+
+                if (this == &other) {
                     return *this;
                 }
 
-                if (!buffsp_ && !other.buffsp_) {
-                    return *this;
-                }
+                odims_ = other.odims_;
+                udims_ = other.udims_;
+                offset_ = other.offset_;
+                buffsp_ = other.buffsp_;
+                is_submatrix_ = other.is_submatrix_;
 
-                COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
+                //if (!is_fake_ref_) {
 
-                for (std::size_t k = 0; k < udims_.d; ++k) {
-                    for (std::size_t i = 0; i < udims_.n; ++i) {
-                        for (std::size_t j = 0; j < udims_.m; ++j) {
-                            (*this)(i, j, k) = other(i, j, k);
-                        }
-                    }
-                }
+
+                //    if (!other.buffsp_) {
+                //        buffsp_ = nullptr;
+                //        return *this;
+                //    }
+
+                //    if (!buffsp_ || odims_.n != other.odims_.n || odims_.m != other.odims_.m || odims_.d != other.odims_.d) {
+                //        buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(other.odims_.n * other.odims_.m * other.odims_.d);
+                //    }
+                //    *buffsp_ = *(other.buffsp_);
+                //    return *this;
+                //}
+
+                //if (!buffsp_ && !other.buffsp_) {
+                //    return *this;
+                //}
+
+                //COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
+
+                //for (std::size_t k = 0; k < udims_.d; ++k) {
+                //    for (std::size_t i = 0; i < udims_.n; ++i) {
+                //        for (std::size_t j = 0; j < udims_.m; ++j) {
+                //            (*this)(i, j, k) = other(i, j, k);
+                //        }
+                //    }
+                //}
 
                 return *this;
             }
@@ -146,7 +194,7 @@ namespace computoc::types {
             template <typename T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o, memoc::allocators::Allocator Internal_allocator_o>
             friend bool operator==(const BMatrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const BMatrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
 
-            Fake_ref<BMatrix<T, Internal_buffer, Internal_allocator>> operator()(Dims dims, std::size_t si, std::size_t sj, std::size_t sk = 0)
+            BMatrix<T, Internal_buffer, Internal_allocator> operator()(Dims dims, std::size_t si, std::size_t sj, std::size_t sk = 0)
             {
                 COMPUTOC_THROW_IF_FALSE(si + dims.n <= udims_.n && sj + dims.m <= udims_.m && sk + dims.d <= udims_.d, std::out_of_range, "out of range indices (si = %d, sj = %d, sk = %d, dims.n = %d, dims.m = %d, dims.d = %d)", si, sj, sk, dims.n, dims.m, dims.d);
 
@@ -155,16 +203,72 @@ namespace computoc::types {
                 slice.odims_ = odims_;
                 slice.udims_ = dims;
                 slice.offset_ = offset_ + sk * (odims_.n * odims_.m) + si * odims_.m + sj;
-                slice.is_fake_ref_ = true;
+                slice.is_submatrix_ = true;
 
                 return slice;
+            }
+
+            BMatrix<T, Internal_buffer, Internal_allocator>& copy_from(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
+            {
+                COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
+
+                for (std::size_t k = 0; k < udims_.d; ++k) {
+                    for (std::size_t i = 0; i < udims_.n; ++i) {
+                        for (std::size_t j = 0; j < udims_.m; ++j) {
+                            (*this)(i, j, k) = other(i, j, k);
+                        }
+                    }
+                }
+
+                return *this;
+            }
+
+            BMatrix<T, Internal_buffer, Internal_allocator>& copy_to(BMatrix<T, Internal_buffer, Internal_allocator>& other)
+            {
+                //COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
+
+                if (!(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d)) {
+                    other.odims_ = other.udims_ = udims_;
+                    other.offset_ = 0;
+                    other.is_submatrix_ = false;
+                    other.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(udims_.n * udims_.m * udims_.d);
+                }
+
+                for (std::size_t k = 0; k < udims_.d; ++k) {
+                    for (std::size_t i = 0; i < udims_.n; ++i) {
+                        for (std::size_t j = 0; j < udims_.m; ++j) {
+                            other(i, j, k) = (*this)(i, j, k);
+                        }
+                    }
+                }
+
+                return *this;
+            }
+
+            BMatrix<T, Internal_buffer, Internal_allocator> copy()
+            {
+                BMatrix<T, Internal_buffer, Internal_allocator> clone{};
+                clone.odims_ = clone.udims_ = udims_;
+                clone.offset_ = 0;
+                clone.is_submatrix_ = false;
+                if (buffsp_) {
+                    clone.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(udims_.n * udims_.m * udims_.d);
+                    for (std::size_t k = 0; k < udims_.d; ++k) {
+                        for (std::size_t i = 0; i < udims_.n; ++i) {
+                            for (std::size_t j = 0; j < udims_.m; ++j) {
+                                clone(i, j, k) = (*this)(i, j, k);
+                            }
+                        }
+                    }
+                }
+                return clone;
             }
 
         private:
             std::size_t offset_{ 0 };
             Dims odims_{}; // original
             Dims udims_{}; // used
-            bool is_fake_ref_ = false;
+            bool is_submatrix_ = false;
             memoc::pointers::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
         };
 

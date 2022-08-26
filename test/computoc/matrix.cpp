@@ -139,6 +139,8 @@ TEST(BMatrix_test, can_write_into_slice)
     const std::size_t n = 2;
     const std::size_t m = 3;
     Integer_matrix mat{ {n, m}, data };
+    Integer_matrix cmat1 = mat.copy();
+    EXPECT_EQ(mat, cmat1);
 
     const int sdata[] = {
         0,
@@ -146,7 +148,9 @@ TEST(BMatrix_test, can_write_into_slice)
     const std::size_t sn = 2;
     const std::size_t sm = 1;
     Integer_matrix smat{ {sn, sm}, sdata };
-    mat(smat.dims(), 0, 1) = smat;
+    Integer_matrix cmat2{};
+    mat(smat.dims(), 0, 1).copy_from(smat).copy_to(cmat2);
+    EXPECT_EQ(smat, cmat2);
 
     const int rdata[] = {
         1, 0, 3,
