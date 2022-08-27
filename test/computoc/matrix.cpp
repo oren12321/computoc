@@ -161,6 +161,15 @@ TEST(BMatrix_test, can_write_into_slice)
 
     EXPECT_EQ(mat, rmat);
 
+    const int reshaped_data[] = {
+        1, 0,
+        3, 4,
+        0, 6,
+    };
+    const computoc::types::Dims reshaped_dims = { 1, 2, 3 };
+    Integer_matrix reshaped_mat{ reshaped_dims, reshaped_data };
+    EXPECT_EQ(reshaped_mat, rmat.reshape(reshaped_dims));
+
     //EXPECT_THROW(smat.set_slice(0, 0, mat), std::out_of_range);
 }
 

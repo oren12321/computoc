@@ -55,8 +55,8 @@ namespace computoc::types {
     *   - Copy from matrix
     *   - Resize
     *   - Reshape
-    *   - Merge
-    *   - Split
+    *   - Merge (should be done by the user with sub matrix)
+    *   - Split (should be done by the user with sub matrix)
     */
 
     /*
@@ -262,6 +262,46 @@ namespace computoc::types {
                     }
                 }
                 return clone;
+            }
+
+            BMatrix<T, Internal_buffer, Internal_allocator> reshape(Dims new_dims)
+            {
+                COMPUTOC_THROW_IF_FALSE(buffsp_, std::runtime_error, "matrix should not be empty");
+                COMPUTOC_THROW_IF_FALSE(new_dims.n * new_dims.m * new_dims.d == udims_.n * udims_.m * udims_.d, std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
+
+                udims_ = new_dims;
+                odims_ = new_dims;
+
+                return *this;
+            }
+
+            BMatrix<T, Internal_buffer, Internal_allocator>& resize(Dims new_dims)
+            {
+                COMPUTOC_THROW_IF_FALSE(!is_submatrix_, std::runtime_error, "resize for sub matrix is undefined");
+
+                if (!buffsp_) {
+                    BMatrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
+                    *this = resized;
+                    return *this;
+                }
+
+                if (new_dims.n * new_dims.m * new_dims.d == udims_.n * udims_.m * udims_.d) {
+                    *this = reshape(new_dims);
+                    return *this;
+                }
+
+                if (new_dims.n * new_dims.m * new_dims.d < udims_.n * udims_.m * udims_.d) {
+                    BMatrix<T, Internal_buffer, Internal_allocator> resized{ new_dims, buffsp_->data().p };
+                    *this = resized;
+                    return *this;
+                }
+
+                BMatrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
+                for (int i = 0; i < buffsp_->size(); ++i) {
+                    resized.buffsp_->data().p[i] = buffsp_->data().p[i];
+                }
+                *this = resized;
+                return *this;
             }
 
         private:
