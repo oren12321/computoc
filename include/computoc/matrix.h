@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <utility>
+#include <ostream>
 
 //#include <iostream>
 //#include <ostream>
@@ -80,93 +81,108 @@ namespace computoc::types {
             std::size_t n{ 0 }, m{ 0 }, d{ 1 };
         };
 
+        inline bool operator!(const Dims& dims)
+        {
+            return (dims.n * dims.m * dims.d == 0);
+        }
+
+        inline bool operator==(const Dims& lhv, const Dims& rhv)
+        {
+            return (lhv.n == rhv.n && lhv.m == rhv.m && lhv.d == rhv.d);
+        }
+
+        inline std::size_t to_count(const Dims& dims)
+        {
+            return (dims.n * dims.m * dims.d);
+        }
+        
+        struct Pos {
+            std::size_t i{ 0 }, j{ 0 }, k{ 0 };
+        };
+
+        inline bool is_inside(const Pos& pos, const Dims& dims)
+        {
+            return (pos.i < dims.n&& pos.j < dims.m&& pos.k < dims.d);
+        }
+
+        inline std::size_t to_index(const Pos& pos, const Dims& dims, std::size_t offset = 0)
+        {
+            return (offset + pos.k * (dims.n * dims.m) + pos.i * dims.m + pos.j);
+        }
+
+        inline Pos operator+(const Pos& pos, const Dims& dims)
+        {
+            return { pos.i + dims.n, pos.j + dims.m, pos.k + dims.d };
+        }
+
+        inline Pos operator-(const Pos& pos, std::size_t val)
+        {
+            return { pos.i - val, pos.j - val, pos.k - val };
+        }
+
+        struct Header {
+            Dims odims{};
+            Dims udims{};
+            std::size_t offset{0};
+            bool is_submatrix{ false };
+        };
+
         template <typename T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::allocators::Allocator Internal_allocator = Matrix_allocator>
-        class BMatrix {
+        class Matrix {
         public:
-            BMatrix() = default;
+            Matrix() = default;
 
-            BMatrix(BMatrix<T, Internal_buffer, Internal_allocator>&& other) = default;
-            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(BMatrix<T, Internal_buffer, Internal_allocator>&& other)
+            Matrix(Matrix<T, Internal_buffer, Internal_allocator>&& other)
+                : hdr_{ other.hdr_ }, buffsp_{ other.buffsp_ }
             {
-                COMPUTOC_THROW_IF_FALSE(!is_submatrix_, std::runtime_error, "copy assignemnt to submatrix");
-
-                if (this == &other) {
-                    return *this;
-                }
-
-                odims_ = other.odims_;
-                udims_ = other.udims_;
-                offset_ = other.offset_;
-                buffsp_ = other.buffsp_;
-                is_submatrix_ = other.is_submatrix_;
-
-                other.odims_ = Dims{};
-                other.udims_ = Dims{};
-                other.offset_ = 0;
-                other.buffsp_ = nullptr;
-                other.is_submatrix_ = false;
+                other.hdr_ = Header{};
+                other.buffsp_.reset();
             }
-
-            BMatrix(const BMatrix<T, Internal_buffer, Internal_allocator>& other) = default;
-            BMatrix<T, Internal_buffer, Internal_allocator>& operator=(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
+            Matrix<T, Internal_buffer, Internal_allocator>& operator=(Matrix<T, Internal_buffer, Internal_allocator>&& other)
             {
-                COMPUTOC_THROW_IF_FALSE(!is_submatrix_, std::runtime_error, "copy assignemnt to submatrix");
+                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "move assignment to submatrix is undefined");
 
                 if (this == &other) {
                     return *this;
                 }
 
-                odims_ = other.odims_;
-                udims_ = other.udims_;
-                offset_ = other.offset_;
+                hdr_ = other.hdr_;
                 buffsp_ = other.buffsp_;
-                is_submatrix_ = other.is_submatrix_;
 
-                //if (!is_fake_ref_) {
-
-
-                //    if (!other.buffsp_) {
-                //        buffsp_ = nullptr;
-                //        return *this;
-                //    }
-
-                //    if (!buffsp_ || odims_.n != other.odims_.n || odims_.m != other.odims_.m || odims_.d != other.odims_.d) {
-                //        buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(other.odims_.n * other.odims_.m * other.odims_.d);
-                //    }
-                //    *buffsp_ = *(other.buffsp_);
-                //    return *this;
-                //}
-
-                //if (!buffsp_ && !other.buffsp_) {
-                //    return *this;
-                //}
-
-                //COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
-
-                //for (std::size_t k = 0; k < udims_.d; ++k) {
-                //    for (std::size_t i = 0; i < udims_.n; ++i) {
-                //        for (std::size_t j = 0; j < udims_.m; ++j) {
-                //            (*this)(i, j, k) = other(i, j, k);
-                //        }
-                //    }
-                //}
+                other.hdr_ = Header{};
+                other.buffsp_.reset();
 
                 return *this;
             }
 
-            virtual ~BMatrix() = default;
-
-            BMatrix(Dims dims, const T* data = nullptr)
-                : odims_{ dims }, udims_{ dims }, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.d, data))
+            Matrix(const Matrix<T, Internal_buffer, Internal_allocator>& other) = default;
+            Matrix<T, Internal_buffer, Internal_allocator>& operator=(const Matrix<T, Internal_buffer, Internal_allocator>& other)
             {
-                COMPUTOC_THROW_IF_FALSE(odims_.n * odims_.m * odims_.d != 0, std::invalid_argument, "non-positive dimensions (n = %d, m = %d, d = %d)", odims_.n, odims_.m, odims_.d);
+                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "copy assignemnt to submatrix is undefined");
+
+                if (this == &other) {
+                    return *this;
+                }
+
+                hdr_ = other.hdr_;
+                buffsp_ = other.buffsp_;
+
+                return *this;
+            }
+
+            virtual ~Matrix() = default;
+
+            Matrix(Dims dims, const T* data = nullptr)
+                : hdr_{dims, dims}, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.d, data))
+            {
+                COMPUTOC_THROW_IF_FALSE(hdr_.odims, std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
             }
 
-            BMatrix(Dims dims, const T& value)
-                : odims_{ dims }, udims_{ dims }, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.d))
+            Matrix(Dims dims, const T& value)
+                : hdr_{ dims, dims }, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.d))
             {
-                COMPUTOC_THROW_IF_FALSE(odims_.n* odims_.m* odims_.d != 0, std::invalid_argument, "non-positive dimensions (n = %d, m = %d, d = %d)", odims_.n, odims_.m, odims_.d);
+                COMPUTOC_THROW_IF_FALSE(hdr_.odims, std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
 
                 for (std::size_t i = 0; i < buffsp_->data().s; ++i) {
@@ -176,46 +192,44 @@ namespace computoc::types {
 
             Dims dims() const
             {
-                return udims_;
+                return hdr_.udims;
             }
 
-            const T& operator()(std::size_t i, std::size_t j, std::size_t k = 0) const
+            const T& operator()(const Pos& pos) const
             {
-                COMPUTOC_THROW_IF_FALSE(i < udims_.n&& j < udims_.m && k < udims_.d, std::out_of_range, "out of range indices (i = %d, j = %d, k = %d)", i, j, k);
-                return buffsp_->data().p[offset_ + k * (odims_.n * odims_.m) + i * odims_.m + j];
+                COMPUTOC_THROW_IF_FALSE(is_inside(pos, hdr_.udims), std::out_of_range, "out of range indices");
+                return buffsp_->data().p[to_index(pos, hdr_.odims, hdr_.offset)];
             }
 
-            T& operator()(std::size_t i, std::size_t j, std::size_t k = 0)
+            T& operator()(const Pos& pos)
             {
-                COMPUTOC_THROW_IF_FALSE(i < udims_.n&& j < udims_.m&& k < udims_.d, std::out_of_range, "out of range indices (i = %d, j = %d, k = %d)", i, j, k);
-                return buffsp_->data().p[offset_ + k * (odims_.n * odims_.m) + i * odims_.m + j];
+                COMPUTOC_THROW_IF_FALSE(is_inside(pos, hdr_.udims), std::out_of_range, "out of range indices");
+                return buffsp_->data().p[to_index(pos, hdr_.odims, hdr_.offset)];
             }
 
             template <typename T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o, memoc::allocators::Allocator Internal_allocator_o>
-            friend bool operator==(const BMatrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const BMatrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
+            friend bool operator==(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
 
-            BMatrix<T, Internal_buffer, Internal_allocator> operator()(Dims dims, std::size_t si, std::size_t sj, std::size_t sk = 0)
+            Matrix<T, Internal_buffer, Internal_allocator> operator()(const Pos& pos, const Dims& dims)
             {
-                COMPUTOC_THROW_IF_FALSE(si + dims.n <= udims_.n && sj + dims.m <= udims_.m && sk + dims.d <= udims_.d, std::out_of_range, "out of range indices (si = %d, sj = %d, sk = %d, dims.n = %d, dims.m = %d, dims.d = %d)", si, sj, sk, dims.n, dims.m, dims.d);
+                COMPUTOC_THROW_IF_FALSE(dims, std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(is_inside(pos + dims - 1, hdr_.udims), std::out_of_range, "out of range submatrix");
 
-                BMatrix<T, Internal_buffer, Internal_allocator> slice{};
+                Matrix<T, Internal_buffer, Internal_allocator> slice{};
+                slice.hdr_ = { hdr_.odims, dims, to_index(pos, hdr_.odims, hdr_.offset), true };
                 slice.buffsp_ = buffsp_;
-                slice.odims_ = odims_;
-                slice.udims_ = dims;
-                slice.offset_ = offset_ + sk * (odims_.n * odims_.m) + si * odims_.m + sj;
-                slice.is_submatrix_ = true;
 
                 return slice;
             }
 
-            BMatrix<T, Internal_buffer, Internal_allocator>& copy_from(const BMatrix<T, Internal_buffer, Internal_allocator>& other)
+            Matrix<T, Internal_buffer, Internal_allocator>& copy_from(const Matrix<T, Internal_buffer, Internal_allocator>& other)
             {
-                COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
+                COMPUTOC_THROW_IF_FALSE(hdr_.udims == other.hdr_.udims, std::invalid_argument, "non-equal dimensions");
 
-                for (std::size_t k = 0; k < udims_.d; ++k) {
-                    for (std::size_t i = 0; i < udims_.n; ++i) {
-                        for (std::size_t j = 0; j < udims_.m; ++j) {
-                            (*this)(i, j, k) = other(i, j, k);
+                for (std::size_t k = 0; k < hdr_.udims.d; ++k) {
+                    for (std::size_t i = 0; i < hdr_.udims.n; ++i) {
+                        for (std::size_t j = 0; j < hdr_.udims.m; ++j) {
+                            (*this)({ i, j, k }) = other({ i, j, k });
                         }
                     }
                 }
@@ -223,21 +237,17 @@ namespace computoc::types {
                 return *this;
             }
 
-            BMatrix<T, Internal_buffer, Internal_allocator>& copy_to(BMatrix<T, Internal_buffer, Internal_allocator>& other)
+            Matrix<T, Internal_buffer, Internal_allocator>& copy_to(Matrix<T, Internal_buffer, Internal_allocator>& other)
             {
-                //COMPUTOC_THROW_IF_FALSE(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d, std::invalid_argument, "non-equal dimensions (n = %d, m = %d, d = %d, o.n = %d, o.m = %d, o.d = %d)", udims_.n, udims_.m, udims_.d, other.udims_.n, other.udims_.m, other.udims_.d);
-
-                if (!(udims_.n == other.udims_.n && udims_.m == other.udims_.m && udims_.d == other.udims_.d)) {
-                    other.odims_ = other.udims_ = udims_;
-                    other.offset_ = 0;
-                    other.is_submatrix_ = false;
-                    other.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(udims_.n * udims_.m * udims_.d);
+                if (hdr_.udims != other.hdr_.udims) {
+                    other.hdr_ = { hdr_.udims, hdr_.udims, 0, false };
+                    other.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.d);
                 }
 
-                for (std::size_t k = 0; k < udims_.d; ++k) {
-                    for (std::size_t i = 0; i < udims_.n; ++i) {
-                        for (std::size_t j = 0; j < udims_.m; ++j) {
-                            other(i, j, k) = (*this)(i, j, k);
+                for (std::size_t k = 0; k < hdr_.udims.d; ++k) {
+                    for (std::size_t i = 0; i < hdr_.udims.n; ++i) {
+                        for (std::size_t j = 0; j < hdr_.udims.m; ++j) {
+                            other({ i, j, k }) = (*this)({ i, j, k });
                         }
                     }
                 }
@@ -245,18 +255,16 @@ namespace computoc::types {
                 return *this;
             }
 
-            BMatrix<T, Internal_buffer, Internal_allocator> copy()
+            Matrix<T, Internal_buffer, Internal_allocator> copy()
             {
-                BMatrix<T, Internal_buffer, Internal_allocator> clone{};
-                clone.odims_ = clone.udims_ = udims_;
-                clone.offset_ = 0;
-                clone.is_submatrix_ = false;
+                Matrix<T, Internal_buffer, Internal_allocator> clone{};
+                clone.hdr_ = { hdr_.udims, hdr_.udims, 0, false };
                 if (buffsp_) {
-                    clone.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(udims_.n * udims_.m * udims_.d);
-                    for (std::size_t k = 0; k < udims_.d; ++k) {
-                        for (std::size_t i = 0; i < udims_.n; ++i) {
-                            for (std::size_t j = 0; j < udims_.m; ++j) {
-                                clone(i, j, k) = (*this)(i, j, k);
+                    clone.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.d);
+                    for (std::size_t k = 0; k < hdr_.udims.d; ++k) {
+                        for (std::size_t i = 0; i < hdr_.udims.n; ++i) {
+                            for (std::size_t j = 0; j < hdr_.udims.m; ++j) {
+                                clone({ i, j, k }) = (*this)({ i, j, k });
                             }
                         }
                     }
@@ -264,39 +272,40 @@ namespace computoc::types {
                 return clone;
             }
 
-            BMatrix<T, Internal_buffer, Internal_allocator> reshape(Dims new_dims)
+            Matrix<T, Internal_buffer, Internal_allocator> reshape(Dims new_dims)
             {
+                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
                 COMPUTOC_THROW_IF_FALSE(buffsp_, std::runtime_error, "matrix should not be empty");
-                COMPUTOC_THROW_IF_FALSE(new_dims.n * new_dims.m * new_dims.d == udims_.n * udims_.m * udims_.d, std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
+                COMPUTOC_THROW_IF_FALSE(to_count(new_dims) == to_count(hdr_.udims), std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
 
-                udims_ = new_dims;
-                odims_ = new_dims;
+                hdr_.udims = new_dims;
+                hdr_.odims = new_dims;
 
                 return *this;
             }
 
-            BMatrix<T, Internal_buffer, Internal_allocator>& resize(Dims new_dims)
+            Matrix<T, Internal_buffer, Internal_allocator>& resize(Dims new_dims)
             {
-                COMPUTOC_THROW_IF_FALSE(!is_submatrix_, std::runtime_error, "resize for sub matrix is undefined");
+                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix_, std::runtime_error, "resize for sub matrix is undefined");
 
                 if (!buffsp_) {
-                    BMatrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
+                    Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
                     *this = resized;
                     return *this;
                 }
 
-                if (new_dims.n * new_dims.m * new_dims.d == udims_.n * udims_.m * udims_.d) {
+                if (to_count(new_dims) == to_count(hdr_.udims)) {
                     *this = reshape(new_dims);
                     return *this;
                 }
 
-                if (new_dims.n * new_dims.m * new_dims.d < udims_.n * udims_.m * udims_.d) {
-                    BMatrix<T, Internal_buffer, Internal_allocator> resized{ new_dims, buffsp_->data().p };
+                if (to_count(new_dims) < to_count(hdr_.udims)) {
+                    Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims, buffsp_->data().p };
                     *this = resized;
                     return *this;
                 }
 
-                BMatrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
+                Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
                 for (int i = 0; i < buffsp_->size(); ++i) {
                     resized.buffsp_->data().p[i] = buffsp_->data().p[i];
                 }
@@ -305,24 +314,21 @@ namespace computoc::types {
             }
 
         private:
-            std::size_t offset_{ 0 };
-            Dims odims_{}; // original
-            Dims udims_{}; // used
-            bool is_submatrix_ = false;
+            Header hdr_{};
             memoc::pointers::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
         };
 
         template <typename T, memoc::buffers::Buffer<T> Internal_buffer, memoc::allocators::Allocator Internal_allocator>
-        inline bool operator==(const BMatrix<T, Internal_buffer, Internal_allocator>& lhs, const BMatrix<T, Internal_buffer, Internal_allocator>& rhs)
+        inline bool operator==(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
-            if (lhs.udims_.n != rhs.udims_.n || lhs.udims_.m != rhs.udims_.m || lhs.udims_.d != rhs.udims_.d) {
+            if (lhs.hdr_.udims != rhs.hdr_.udims) {
                 return false;
             }
 
-            for (std::size_t k = 0; k < lhs.udims_.d; ++k) {
-                for (std::size_t i = 0; i < lhs.udims_.n; ++i) {
-                    for (std::size_t j = 0; j < lhs.udims_.m; ++j) {
-                        if (!algorithms::is_equal(lhs(i, j, k), rhs(i, j, k))) {
+            for (std::size_t k = 0; k < lhs.hdr_.udims.d; ++k) {
+                for (std::size_t i = 0; i < lhs.hdr_.udims.n; ++i) {
+                    for (std::size_t j = 0; j < lhs.hdr_.udims.m; ++j) {
+                        if (!algorithms::is_equal(lhs({ i, j, k }), rhs({ i, j, k }))) {
                             return false;
                         }
                     }
@@ -332,7 +338,7 @@ namespace computoc::types {
             return true;
         }
 
-        struct Dimensions {
+        /*struct Dimensions {
             std::size_t n{ 0 };
             std::size_t m{ 0 };
         };
@@ -810,24 +816,26 @@ namespace computoc::types {
         //        std::cout << "\n";
         //    }
         //    return os;
-        //}
+        //}*/
     }
 
-    using details::Dims;
-    using details::BMatrix;
 
-    using details::Dimensions;
+
+    /*using details::Dimensions;
+    using details::Matrix;*/
+
+    using details::Dims;
+    using details::Pos;
     using details::Matrix;
 }
 
-namespace computoc {
+/*namespace computoc {
     using types::details::determinant;
     using types::details::inverse;
     using types::details::merge_horizontal;
     using types::details::merge_vertical;
     using types::details::reduced_row_echelon_form;
     //using types::details::row_echelon_form;
-}
+}*/
 
 #endif // COMPUTOC_TYPE_MATRIX_H
-

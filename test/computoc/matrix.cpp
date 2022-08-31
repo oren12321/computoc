@@ -2,136 +2,282 @@
 
 #include <computoc/matrix.h>
 
-TEST(BMatrix_test, can_be_initialized_with_valid_size_and_data)
+TEST(Matrix_test, can_be_initialized_with_valid_size_and_data)
 {
-    using Integer_matrix = computoc::types::BMatrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
-    const int data[] = { 0 };
+    const int data[] = { 0, 0, 0 };
     EXPECT_NO_THROW((Integer_matrix{ {1, 1}, data }));
+    EXPECT_NO_THROW((Integer_matrix{ {1, 3}, data }));
+    EXPECT_NO_THROW((Integer_matrix{ {3, 1}, data }));
+    EXPECT_NO_THROW((Integer_matrix{ {1, 1, 3}, data }));
+    EXPECT_NO_THROW((Integer_matrix{ {1, 1, 3}, data }));
 
     EXPECT_THROW((Integer_matrix{ {0, 0}, data }), std::invalid_argument);
     EXPECT_THROW((Integer_matrix{ {1, 0}, data }), std::invalid_argument);
     EXPECT_THROW((Integer_matrix{ {0, 1}, data }), std::invalid_argument);
 
-    //const int* null_data = nullptr;
-    //EXPECT_THROW((Integer_matrix{ {1, 1}, null_data }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {0, 0, 1}, data }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {1, 0, 1}, data }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {0, 1, 1}, data }), std::invalid_argument);
+
+    EXPECT_THROW((Integer_matrix{ {0, 0, 0}, data }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {1, 0, 0}, data }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {0, 1, 0}, data }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {1, 1, 0}, data }), std::invalid_argument);
 }
 
-TEST(BMatrix_test, can_be_initialized_with_valid_size_and_value)
+TEST(Matrix_test, can_be_initialized_with_valid_size_and_value)
 {
-    using Integer_matrix = computoc::types::BMatrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int value{ 0 };
     EXPECT_NO_THROW((Integer_matrix{ {1, 1}, value }));
+    EXPECT_NO_THROW((Integer_matrix{ {1, 3}, value }));
+    EXPECT_NO_THROW((Integer_matrix{ {3, 1}, value }));
+    EXPECT_NO_THROW((Integer_matrix{ {1, 1, 3}, value }));
+    EXPECT_NO_THROW((Integer_matrix{ {1, 1, 3}, value }));
 
     EXPECT_THROW((Integer_matrix{ {0, 0}, value }), std::invalid_argument);
     EXPECT_THROW((Integer_matrix{ {1, 0}, value }), std::invalid_argument);
     EXPECT_THROW((Integer_matrix{ {0, 1}, value }), std::invalid_argument);
+
+    EXPECT_THROW((Integer_matrix{ {0, 0, 1}, value }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {1, 0, 1}, value }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {0, 1, 1}, value }), std::invalid_argument);
+
+    EXPECT_THROW((Integer_matrix{ {0, 0, 0}, value }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {1, 0, 0}, value }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {0, 1, 0}, value }), std::invalid_argument);
+    EXPECT_THROW((Integer_matrix{ {1, 1, 0}, value }), std::invalid_argument);
 }
 
-TEST(BMatrix_test, can_return_its_size)
+TEST(Matrix_test, can_return_its_size)
 {
-    using Integer_matrix = computoc::types::BMatrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int value{ 0 };
-    const std::size_t n = 1;
-    const std::size_t m = 2;
-    Integer_matrix mat{ {n, m}, value };
+    const computoc::types::Dims dims = { 1, 2, 3 };
+    Integer_matrix mat{ dims, value };
 
     computoc::types::Dims d{ mat.dims() };
-    EXPECT_EQ(n, d.n);
-    EXPECT_EQ(m, d.m);
+    EXPECT_EQ(dims, mat.dims());
 }
 
-TEST(BMatrix_test, have_read_write_access_to_its_cells)
+TEST(Matrix_test, have_read_write_access_to_its_cells)
 {
-    using Integer_matrix = computoc::types::BMatrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
-        1, 2, 3,
-        4, 5, 6 };
-    const std::size_t n = 2;
-    const std::size_t m = 3;
-    Integer_matrix mat{ {n, m}, data };
+        1, 2, 
+        3, 4,
+        5, 6 };
 
-    for (std::size_t i = 0; i < n; ++i) {
-        for (std::size_t j = 0; j < m; ++j) {
-            EXPECT_EQ(mat(i, j), data[i * m + j]);
+    computoc::types::Dims dims1d{ 6, 1 };
+    Integer_matrix mat1d{ dims1d, data };
+    for (std::size_t i = 0; i < dims1d.n; ++i) {
+        EXPECT_EQ(mat1d({ i }), data[i]);
+    }
+    for (std::size_t i = 0; i < dims1d.n; ++i) {
+        mat1d({ i }) = 0;
+        EXPECT_EQ(mat1d({ i }), 0);
+    }
+
+    EXPECT_THROW(mat1d({ dims1d.n, 0, 0 }), std::out_of_range);
+    EXPECT_THROW(mat1d({ 0, dims1d.m, 0 }), std::out_of_range);
+    EXPECT_THROW(mat1d({ 0, 0, 1 }), std::out_of_range);
+
+    computoc::types::Dims dims2d{ 3, 2 };
+    Integer_matrix mat2d{ dims2d, data };
+    for (std::size_t i = 0; i < dims2d.n; ++i) {
+        for (std::size_t j = 0; j < dims2d.m; ++j) {
+            EXPECT_EQ(mat2d({ i, j }), data[i * dims2d.m + j]);
+        }
+    }
+    for (std::size_t i = 0; i < dims2d.n; ++i) {
+        for (std::size_t j = 0; j < dims2d.m; ++j) {
+            mat2d({ i, j }) = 0;
+            EXPECT_EQ(mat2d({ i, j }), 0);
         }
     }
 
-    for (std::size_t i = 0; i < n; ++i) {
-        for (std::size_t j = 0; j < m; ++j) {
-            mat(i, j) = 0;
-            EXPECT_EQ(mat(i, j), 0);
+    EXPECT_THROW(mat2d({ dims2d.n, 0, 0 }), std::out_of_range);
+    EXPECT_THROW(mat2d({ 0, dims2d.m, 0 }), std::out_of_range);
+    EXPECT_THROW(mat2d({ 0, 0, 1 }), std::out_of_range);
+
+    computoc::types::Dims dims3d{ 1, 2, 3 };
+    Integer_matrix mat3d{ dims3d, data };
+    for (std::size_t k = 0; k < dims3d.d; ++k) {
+        for (std::size_t i = 0; i < dims3d.n; ++i) {
+            for (std::size_t j = 0; j < dims3d.m; ++j) {
+                EXPECT_EQ(mat3d({ i, j, k }), data[k * (dims3d.n * dims3d.m) + i * dims3d.m + j]);
+            }
+        }
+    }
+    for (std::size_t k = 0; k < dims3d.d; ++k) {
+        for (std::size_t i = 0; i < dims3d.n; ++i) {
+            for (std::size_t j = 0; j < dims3d.m; ++j) {
+                mat3d({ i, j, k }) = 0;
+                EXPECT_EQ(mat3d({ i, j, k }), 0);
+            }
         }
     }
 
-    EXPECT_THROW(mat(n, 0), std::out_of_range);
-    EXPECT_THROW(mat(0, m), std::out_of_range);
-    EXPECT_THROW(mat(n, m), std::out_of_range);
+    EXPECT_THROW(mat3d({ dims3d.n, 0, 0 }), std::out_of_range);
+    EXPECT_THROW(mat3d({ 0, dims3d.m, 0 }), std::out_of_range);
+    EXPECT_THROW(mat3d({ 0, 0, dims3d.d }), std::out_of_range);
 }
 
-TEST(BMatrix_test, can_be_compared_with_another_matrix)
+TEST(Matrix_test, can_be_compared_with_another_matrix)
 {
-    using Integer_matrix = computoc::types::BMatrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data1[] = {
-        1, 2, 3,
-        4, 5, 6 };
-    const std::size_t n1 = 2;
-    const std::size_t m1 = 3;
-    Integer_matrix mat1{ {n1, m1}, data1 };
-    Integer_matrix mat2{ {n1, m1}, data1 };
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims1{ 1, 2, 3 };
+    Integer_matrix mat1{ dims1, data1 };
+    Integer_matrix mat2{ dims1, data1 };
 
     EXPECT_EQ(mat1, mat2);
 
-    const int data2[] = {
-        1, 2, 3,
-        4, 5, 5 };
-    Integer_matrix mat3{ {m1, n1}, data1 };
-    Integer_matrix mat4{ {n1, m1}, data2 };
+    computoc::types::Dims dims2{ 3, 2 };
+    Integer_matrix mat3{ dims2, data1 };
 
     EXPECT_NE(mat1, mat3);
+
+    const int data2[] = {
+        1, 2,
+        3, 4,
+        5, 5 };
+    Integer_matrix mat4{ dims1, data2 };
+    Integer_matrix mat5{ dims2, data2 };
+
     EXPECT_NE(mat1, mat4);
+    EXPECT_NE(mat1, mat5);
 }
 
-TEST(BMatrix_test, can_return_slice)
+TEST(Matrix_test, can_return_slice)
 {
-    using Integer_matrix = computoc::types::BMatrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
-    1, 2, 3,
-    4, 5, 6 };
-    const std::size_t n = 2;
-    const std::size_t m = 3;
-    Integer_matrix mat{ {n, m}, data };
+    1, 2,
+    3, 4,
+    5, 6 };
+
+    computoc::types::Dims dims1{6, 1};
+    Integer_matrix mat1{ dims1, data };
 
     const int sdata1[] = { 1, 2, 3 };
-    const std::size_t sn1 = 1;
-    const std::size_t sm1 = 3;
-    Integer_matrix smat1{ {sn1, sm1}, sdata1 };
-    EXPECT_EQ(mat(smat1.dims(), 0, 0), smat1);
+    computoc::types::Dims sdims1{ 3, 1 };
+    Integer_matrix smat1{ sdims1, sdata1 };
+    EXPECT_EQ(mat1({ 0, 0 }, smat1.dims()), smat1);
+
+    EXPECT_THROW(mat1({ 0, 0 }, { 0, dims1.m }), std::invalid_argument);
+    EXPECT_THROW(mat1({ 0, 0 }, { dims1.n, 0 }), std::invalid_argument);
+    EXPECT_THROW(mat1({ 0, 0 }, { 1, dims1.m + 1 }), std::out_of_range);
+    EXPECT_THROW(mat1({ 0, 0 }, { dims1.n + 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat1({ dims1.n, 0 }, { 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat1({ 0, dims1.m }, { 1, 1 }), std::out_of_range);
+
+    computoc::types::Dims dims2{ 3, 2 };
+    Integer_matrix mat2{ dims2, data };
 
     const int sdata2[] = {
-        2,
-        5 };
-    const std::size_t sn2 = 2;
-    const std::size_t sm2 = 1;
-    Integer_matrix smat2{ {sn2, sm2}, sdata2 };
-    EXPECT_EQ(mat(smat2.dims(), 0, 1), smat2);
+        1, 2,
+        3, 4 };
+    computoc::types::Dims sdims2{ 2, 2 };
+    Integer_matrix smat2{ sdims2, sdata2 };
+    EXPECT_EQ(mat2({ 0, 0 }, smat2.dims()), smat2);
 
-    //EXPECT_THROW(mat.get_slice(n, 0, { 1, 1 }), std::out_of_range);
-    //EXPECT_THROW(mat.get_slice(0, m, { 1, 1 }), std::out_of_range);
-    //EXPECT_THROW(mat.get_slice(n, m, { 1, 1 }), std::out_of_range);
-    //EXPECT_THROW(mat.get_slice(0, 0, { n + 1, 1 }), std::out_of_range);
-    //EXPECT_THROW(mat.get_slice(0, 0, { 1, m + 1 }), std::out_of_range);
-    //EXPECT_THROW(mat.get_slice(0, 0, { n + 1, m + 1 }), std::out_of_range);
+    EXPECT_THROW(mat2({ 0, 0 }, { 0, dims2.m }), std::invalid_argument);
+    EXPECT_THROW(mat2({ 0, 0 }, { dims2.n, 0 }), std::invalid_argument);
+    EXPECT_THROW(mat2({ 0, 0 }, { 1, dims2.m + 1 }), std::out_of_range);
+    EXPECT_THROW(mat2({ 0, 0 }, { dims2.n + 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat2({ dims2.n, 0 }, { 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat2({ 0, dims2.m }, { 1, 1 }), std::out_of_range);
+
+    computoc::types::Dims dims3{ 1, 2, 3 };
+    Integer_matrix mat3{ dims3, data };
+
+    const int sdata3[] = {
+        1, 2,
+        3, 4 };
+    computoc::types::Dims sdims3{ 1, 2, 2 };
+    Integer_matrix smat3{ sdims3, sdata3 };
+    EXPECT_EQ(mat3({ 0, 0 }, smat3.dims()), smat3);
+
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { 0, dims3.m, dims3.d }), std::invalid_argument);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n, 0, dims3.d }), std::invalid_argument);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n, dims3.m, 0 }), std::invalid_argument);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { 1, dims3.m + 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n + 1, 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { 1, 1, dims3.d + 1 }), std::out_of_range);
+    EXPECT_THROW(mat3({ dims3.n, 0, 0 }, { 1, 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat3({ 0, dims3.m, 0 }, { 1, 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat3({ 0, 0, dims3.d }, { 1, 1, 1 }), std::out_of_range);
 }
 
-TEST(BMatrix_test, can_write_into_slice)
+TEST(Matrix_test, copy_by_reference)
 {
-    using Integer_matrix = computoc::types::BMatrix<int>;
+    using Integer_matrix = computoc::types::Matrix<int>;
+
+    const int data[] = {
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims{ 1, 2, 3 };
+    Integer_matrix mat{ dims, data };
+
+    Integer_matrix cmat1{ mat };
+    cmat1({ 0, 0, 2 }) = 0;
+    const int rdata1[] = {
+        1, 2,
+        3, 4,
+        0, 6 };
+    Integer_matrix rmat1{ dims, rdata1 };
+    EXPECT_EQ(rmat1, cmat1);
+
+    Integer_matrix cmat2{};
+    cmat2 = cmat1;
+    cmat1({ 0, 0, 0 }) = 0;
+    const int rdata2[] = {
+        0, 2,
+        3, 4,
+        0, 6 };
+    Integer_matrix rmat2{ dims, rdata2 };
+    EXPECT_EQ(rmat2, cmat2);
+    EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = cmat1, std::runtime_error);
+}
+
+TEST(Matrix_test, move_by_reference)
+{
+    using Integer_matrix = computoc::types::Matrix<int>;
+
+    const int data[] = {
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims{ 1, 2, 3 };
+    Integer_matrix smat{ dims, data };
+
+    Integer_matrix mat{ dims, data };
+    Integer_matrix cmat1{ std::move(mat) };
+    EXPECT_EQ(smat, cmat1);
+    EXPECT_TRUE(!mat.dims());
+
+    Integer_matrix cmat2{};
+    cmat2 = std::move(cmat1);
+    EXPECT_EQ(smat, cmat2);
+    EXPECT_TRUE(!cmat1.dims());
+    EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = std::move(smat), std::runtime_error);
+}
+
+TEST(Matrix_test, can_write_into_slice)
+{
+    using Integer_matrix = computoc::types::Matrix<int>;
 
     const int data[] = {
     1, 2, 3,
@@ -149,7 +295,7 @@ TEST(BMatrix_test, can_write_into_slice)
     const std::size_t sm = 1;
     Integer_matrix smat{ {sn, sm}, sdata };
     Integer_matrix cmat2{};
-    mat(smat.dims(), 0, 1).copy_from(smat).copy_to(cmat2);
+    mat({ 0, 1 }, smat.dims()).copy_from(smat).copy_to(cmat2);
     EXPECT_EQ(smat, cmat2);
 
     const int rdata[] = {
@@ -173,6 +319,7 @@ TEST(BMatrix_test, can_write_into_slice)
     //EXPECT_THROW(smat.set_slice(0, 0, mat), std::out_of_range);
 }
 
+/*
 TEST(Matrix_test, can_be_initialized_with_valid_size_and_data)
 {
     using Integer_matrix = computoc::types::Matrix<int>;
@@ -722,3 +869,4 @@ TEST(Matrix_test, have_reduced_row_echelon_form)
 
     EXPECT_EQ(rmat2, computoc::reduced_row_echelon_form(mat2));
 }
+*/
