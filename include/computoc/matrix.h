@@ -240,6 +240,7 @@ namespace computoc::types {
             Matrix<T, Internal_buffer, Internal_allocator>& copy_to(Matrix<T, Internal_buffer, Internal_allocator>& other)
             {
                 if (hdr_.udims != other.hdr_.udims) {
+                    COMPUTOC_THROW_IF_FALSE(!other.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
                     other.hdr_ = { hdr_.udims, hdr_.udims, 0, false };
                     other.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.d);
                 }
@@ -253,6 +254,10 @@ namespace computoc::types {
                 }
 
                 return *this;
+            }
+            Matrix<T, Internal_buffer, Internal_allocator>& copy_to(Matrix<T, Internal_buffer, Internal_allocator>&& other)
+            {
+                return copy_to(other);
             }
 
             Matrix<T, Internal_buffer, Internal_allocator> copy()
@@ -272,7 +277,7 @@ namespace computoc::types {
                 return clone;
             }
 
-            Matrix<T, Internal_buffer, Internal_allocator> reshape(Dims new_dims)
+            Matrix<T, Internal_buffer, Internal_allocator>& reshape(Dims new_dims)
             {
                 COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
                 COMPUTOC_THROW_IF_FALSE(buffsp_, std::runtime_error, "matrix should not be empty");
@@ -286,7 +291,7 @@ namespace computoc::types {
 
             Matrix<T, Internal_buffer, Internal_allocator>& resize(Dims new_dims)
             {
-                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix_, std::runtime_error, "resize for sub matrix is undefined");
+                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "resize for sub matrix is undefined");
 
                 if (!buffsp_) {
                     Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
@@ -306,7 +311,7 @@ namespace computoc::types {
                 }
 
                 Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
-                for (int i = 0; i < buffsp_->size(); ++i) {
+                for (int i = 0; i < buffsp_->data().s; ++i) {
                     resized.buffsp_->data().p[i] = buffsp_->data().p[i];
                 }
                 *this = resized;

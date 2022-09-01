@@ -275,48 +275,168 @@ TEST(Matrix_test, move_by_reference)
     EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = std::move(smat), std::runtime_error);
 }
 
-TEST(Matrix_test, can_write_into_slice)
+TEST(Matrix_test, copy_matrix)
 {
     using Integer_matrix = computoc::types::Matrix<int>;
 
+    Integer_matrix empty_mat{};
+    Integer_matrix cempty_mat{ empty_mat.copy() };
+    EXPECT_EQ(empty_mat, cempty_mat);
+
     const int data[] = {
-    1, 2, 3,
-    4, 5, 6 };
-    const std::size_t n = 2;
-    const std::size_t m = 3;
-    Integer_matrix mat{ {n, m}, data };
-    Integer_matrix cmat1 = mat.copy();
-    EXPECT_EQ(mat, cmat1);
-
-    const int sdata[] = {
-        0,
-        0 };
-    const std::size_t sn = 2;
-    const std::size_t sm = 1;
-    Integer_matrix smat{ {sn, sm}, sdata };
-    Integer_matrix cmat2{};
-    mat({ 0, 1 }, smat.dims()).copy_from(smat).copy_to(cmat2);
-    EXPECT_EQ(smat, cmat2);
-
-    const int rdata[] = {
-        1, 0, 3,
-        4, 0, 6 };
-    const std::size_t rn = 2;
-    const std::size_t rm = 3;
-    Integer_matrix rmat{ {rn, rm}, rdata };
-
-    EXPECT_EQ(mat, rmat);
-
-    const int reshaped_data[] = {
-        1, 0,
+        1, 2,
         3, 4,
-        0, 6,
-    };
-    const computoc::types::Dims reshaped_dims = { 1, 2, 3 };
-    Integer_matrix reshaped_mat{ reshaped_dims, reshaped_data };
-    EXPECT_EQ(reshaped_mat, rmat.reshape(reshaped_dims));
+        5, 6 };
+    computoc::types::Dims dims{ 1, 2, 3 };
+    Integer_matrix smat{ dims, data };
 
-    //EXPECT_THROW(smat.set_slice(0, 0, mat), std::out_of_range);
+    Integer_matrix cmat{ smat.copy() };
+    EXPECT_EQ(cmat, smat);
+    cmat({ 0, 0 }) = 0;
+    EXPECT_NE(cmat, smat);
+
+    Integer_matrix csubmat{ smat({0, 0, 0}, {1, 1, 1}).copy() };
+    EXPECT_EQ(smat({ 0, 0, 0 }, { 1, 1, 1 }), csubmat);
+    csubmat({ 0, 0 }) = 5;
+    EXPECT_NE(smat({ 0, 0, 0 }, { 1, 1, 1 }), csubmat);
+}
+
+TEST(Matrix_test, copy_from)
+{
+    using Integer_matrix = computoc::types::Matrix<int>;
+
+    Integer_matrix empty_mat{};
+    Integer_matrix cempty_mat{};
+    cempty_mat.copy_from(Integer_matrix{});
+    EXPECT_EQ(empty_mat, cempty_mat);
+
+    const int data1[] = {
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims1{ 1, 2, 3 };
+    Integer_matrix mat1{ dims1, data1 };
+
+    const int data2[] = {
+        2, 4,
+        6, 8,
+        10, 12 };
+    computoc::types::Dims dims2{ 1, 2, 3 };
+    Integer_matrix mat2{ dims2, data2 };
+    EXPECT_NE(mat1, mat2);
+    mat1.copy_from(mat2);
+    EXPECT_EQ(mat1, mat2);
+
+    const int data3[] = {
+        10, 12,
+        6, 8,
+        10, 12 };
+    computoc::types::Dims dims3{ 1, 2, 3 };
+    Integer_matrix mat3{ dims3, data3 };
+    mat2({ 0, 0, 0 }, { 1, 2, 1 }).copy_from(mat2({ 0, 0, 2 }, { 1, 2, 1 }));
+    EXPECT_EQ(mat3, mat2);
+
+    EXPECT_THROW(mat2({ 0, 0, 0 }, { 1, 2, 1 }).copy_from(mat2), std::invalid_argument);
+}
+
+TEST(Matrix_test, copy_to)
+{
+    using Integer_matrix = computoc::types::Matrix<int>;
+
+    Integer_matrix empty_mat{};
+    Integer_matrix cempty_mat{};
+    empty_mat.copy_to(cempty_mat);
+    EXPECT_EQ(empty_mat, cempty_mat);
+
+    const int data1[] = {
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims1{ 1, 2, 3 };
+    Integer_matrix mat1{ dims1, data1 };
+
+    const int data2[] = {
+        2, 4,
+        6, 8,
+        10, 12 };
+    computoc::types::Dims dims2{ 1, 2, 3 };
+    Integer_matrix mat2{ dims2, data2 };
+    EXPECT_NE(mat1, mat2);
+    mat2.copy_to(mat1);
+    EXPECT_EQ(mat1, mat2);
+
+    const int data3[] = {
+        10, 12,
+        6, 8,
+        10, 12 };
+    computoc::types::Dims dims3{ 1, 2, 3 };
+    Integer_matrix mat3{ dims3, data3 };
+    mat2({ 0, 0, 2 }, { 1, 2, 1 }).copy_to(mat2({ 0, 0, 0 }, { 1, 2, 1 }));
+    EXPECT_EQ(mat3, mat2);
+    EXPECT_THROW(mat2({ 0, 0, 2 }, { 1, 2, 1 }).copy_to(mat2({ 0, 0, 0 }, { 1, 2, 2 })), std::runtime_error);
+
+    mat3({ 0, 0, 0 }, { 1, 2, 1 }).copy_to(mat2);
+    EXPECT_EQ(mat3({ 0, 0, 0 }, { 1, 2, 1 }), mat2);
+}
+
+TEST(Matrix_test, reshape)
+{
+    using Integer_matrix = computoc::types::Matrix<int>;
+
+    const int data1[] = {
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims1{ 1, 2, 3 };
+    Integer_matrix mat1{ dims1, data1 };
+
+    const int data2[] = {1, 2, 3, 4, 5, 6 };
+    computoc::types::Dims dims2{ 1, 6 };
+    Integer_matrix mat2{ dims2, data2 };
+    
+    Integer_matrix rmat1{ mat1.reshape({1, 6}) };
+    EXPECT_EQ(mat2, rmat1);
+    
+    EXPECT_THROW(mat2({ 0, 0 }, { 1, 2 }).reshape({}), std::runtime_error);
+    EXPECT_THROW(Integer_matrix{}.reshape({}), std::runtime_error);
+    EXPECT_THROW(mat2.reshape({ 1, 1 }), std::invalid_argument);
+}
+
+TEST(Matrix_test, resize)
+{
+    using Integer_matrix = computoc::types::Matrix<int>;
+
+    const int data1[] = { 1, 2, 3, 4, 5, 6 };
+    computoc::types::Dims dims1{ 1, 6 };
+    Integer_matrix mat1{ dims1, data1 };
+
+    const int data2[] = {
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims2{ 1, 2, 3 };
+    Integer_matrix mat2{ dims2, data2 };
+
+    mat1.resize({ 1, 2, 3 });
+    EXPECT_EQ(mat2, mat1);
+
+    const int data3[] = { 1, 2 };
+    computoc::types::Dims dims3{ 1, 2 };
+    Integer_matrix mat3{ dims3, data3 };
+
+    mat1.resize({ 1, 2 });
+    EXPECT_EQ(mat3, mat1);
+
+    const int data4[] = { 1, 2, 3, 4 };
+    computoc::types::Dims dims4{ 1, 4 };
+    Integer_matrix mat4{ dims4, data4 };
+
+    mat1.resize({ 1, 4 });
+    EXPECT_NE(mat4, mat1);
+    EXPECT_EQ(mat4({ 0, 0 }), mat1({ 0, 0 }));
+    EXPECT_EQ(mat4({ 0, 1 }), mat1({ 0, 1 }));
+
+    EXPECT_THROW(mat1({ 0, 0, 0 }, { 1, 1, 1 }).reshape({}), std::runtime_error);
 }
 
 /*
