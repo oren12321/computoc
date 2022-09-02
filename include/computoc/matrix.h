@@ -233,6 +233,11 @@ namespace computoc::types {
 
                 return *this;
             }
+            Matrix<T, Internal_buffer, Internal_allocator> reshaped(Dims new_dims)
+            {
+                Matrix<T, Internal_buffer, Internal_allocator> mat{ *this };
+                return mat.reshape(new_dims);
+            }
 
             Matrix<T, Internal_buffer, Internal_allocator>& resize(Dims new_dims)
             {
@@ -261,6 +266,11 @@ namespace computoc::types {
                 }
                 *this = resized;
                 return *this;
+            }
+            Matrix<T, Internal_buffer, Internal_allocator> resized(Dims new_dims)
+            {
+                Matrix<T, Internal_buffer, Internal_allocator> mat{ *this };
+                return mat.resize(new_dims);
             }
 
         private:

@@ -395,6 +395,17 @@ TEST(Matrix_test, reshape)
     
     Integer_matrix rmat1{ mat1.reshape({1, 6}) };
     EXPECT_EQ(mat2, rmat1);
+
+    const int data3[] = {
+        1, 2,
+        3, 4,
+        5, 6 };
+    computoc::types::Dims dims3{ 1, 2, 3 };
+    Integer_matrix mat3{ dims3, data3 };
+
+    Integer_matrix rmat2{ mat1.reshaped({1, 2, 3}) };
+    EXPECT_NE((computoc::types::Dims{ 1, 2, 3 }), mat1.dims());
+    EXPECT_EQ(mat3, rmat2);
     
     EXPECT_THROW(mat2({ 0, 0 }, { 1, 2 }).reshape({}), std::runtime_error);
     EXPECT_THROW(Integer_matrix{}.reshape({}), std::runtime_error);
@@ -435,7 +446,11 @@ TEST(Matrix_test, resize)
     EXPECT_EQ(mat4({ 0, 0 }), mat1({ 0, 0 }));
     EXPECT_EQ(mat4({ 0, 1 }), mat1({ 0, 1 }));
 
-    EXPECT_THROW(mat1({ 0, 0, 0 }, { 1, 1, 1 }).reshape({}), std::runtime_error);
+    Integer_matrix mat5{ mat1.resized({1, 2}) };
+    EXPECT_NE(mat1.dims(), mat5.dims());
+    EXPECT_EQ(mat3, mat5);
+
+    EXPECT_THROW(mat1({ 0, 0, 0 }, { 1, 1, 1 }).resize({}), std::runtime_error);
 }
 
 /*
