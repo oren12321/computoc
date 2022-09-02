@@ -106,14 +106,14 @@ TEST(Matrix_test, have_read_write_access_to_its_cells)
 
     computoc::types::Dims dims3d{ 1, 2, 3 };
     Integer_matrix mat3d{ dims3d, data };
-    for (std::size_t k = 0; k < dims3d.d; ++k) {
+    for (std::size_t k = 0; k < dims3d.p; ++k) {
         for (std::size_t i = 0; i < dims3d.n; ++i) {
             for (std::size_t j = 0; j < dims3d.m; ++j) {
                 EXPECT_EQ(mat3d({ i, j, k }), data[k * (dims3d.n * dims3d.m) + i * dims3d.m + j]);
             }
         }
     }
-    for (std::size_t k = 0; k < dims3d.d; ++k) {
+    for (std::size_t k = 0; k < dims3d.p; ++k) {
         for (std::size_t i = 0; i < dims3d.n; ++i) {
             for (std::size_t j = 0; j < dims3d.m; ++j) {
                 mat3d({ i, j, k }) = 0;
@@ -124,7 +124,7 @@ TEST(Matrix_test, have_read_write_access_to_its_cells)
 
     EXPECT_THROW(mat3d({ dims3d.n, 0, 0 }), std::out_of_range);
     EXPECT_THROW(mat3d({ 0, dims3d.m, 0 }), std::out_of_range);
-    EXPECT_THROW(mat3d({ 0, 0, dims3d.d }), std::out_of_range);
+    EXPECT_THROW(mat3d({ 0, 0, dims3d.p }), std::out_of_range);
 }
 
 TEST(Matrix_test, can_be_compared_with_another_matrix)
@@ -208,15 +208,15 @@ TEST(Matrix_test, can_return_slice)
     Integer_matrix smat3{ sdims3, sdata3 };
     EXPECT_EQ(mat3({ 0, 0 }, smat3.dims()), smat3);
 
-    EXPECT_THROW(mat3({ 0, 0, 0 }, { 0, dims3.m, dims3.d }), std::invalid_argument);
-    EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n, 0, dims3.d }), std::invalid_argument);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { 0, dims3.m, dims3.p }), std::invalid_argument);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n, 0, dims3.p }), std::invalid_argument);
     EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n, dims3.m, 0 }), std::invalid_argument);
     EXPECT_THROW(mat3({ 0, 0, 0 }, { 1, dims3.m + 1, 1 }), std::out_of_range);
     EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n + 1, 1, 1 }), std::out_of_range);
-    EXPECT_THROW(mat3({ 0, 0, 0 }, { 1, 1, dims3.d + 1 }), std::out_of_range);
+    EXPECT_THROW(mat3({ 0, 0, 0 }, { 1, 1, dims3.p + 1 }), std::out_of_range);
     EXPECT_THROW(mat3({ dims3.n, 0, 0 }, { 1, 1, 1 }), std::out_of_range);
     EXPECT_THROW(mat3({ 0, dims3.m, 0 }, { 1, 1, 1 }), std::out_of_range);
-    EXPECT_THROW(mat3({ 0, 0, dims3.d }, { 1, 1, 1 }), std::out_of_range);
+    EXPECT_THROW(mat3({ 0, 0, dims3.p }, { 1, 1, 1 }), std::out_of_range);
 }
 
 TEST(Matrix_test, copy_by_reference)
