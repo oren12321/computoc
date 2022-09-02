@@ -69,14 +69,6 @@ namespace computoc::types {
     */
 
     namespace details {
-        // Every matrix with size less or equal to 9 will be allocated on stack
-        using Matrix_allocator = memoc::allocators::Malloc_allocator;
-
-        template <typename T>
-        using Matrix_buffer = memoc::buffers::Typed_buffer<T, memoc::buffers::Fallback_buffer<
-            memoc::buffers::Stack_buffer<9 * sizeof(T)>,
-            memoc::buffers::Allocated_buffer<Matrix_allocator, true>>>;
-
         struct Dims {
             std::size_t n{ 0 }, m{ 0 }, d{ 1 };
         };
@@ -126,6 +118,14 @@ namespace computoc::types {
             std::size_t offset{0};
             bool is_submatrix{ false };
         };
+
+        // Every matrix with size less or equal to 9 will be allocated on stack
+        using Matrix_allocator = memoc::allocators::Malloc_allocator;
+
+        template <typename T>
+        using Matrix_buffer = memoc::buffers::Typed_buffer<T, memoc::buffers::Fallback_buffer<
+            memoc::buffers::Stack_buffer<9 * sizeof(T)>,
+            memoc::buffers::Allocated_buffer<Matrix_allocator, true>>>;
 
         template <typename T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::allocators::Allocator Internal_allocator = Matrix_allocator>
         class Matrix {
@@ -311,7 +311,7 @@ namespace computoc::types {
                 }
 
                 Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
-                for (int i = 0; i < buffsp_->data().s; ++i) {
+                for (std::size_t i = 0; i < buffsp_->data().s; ++i) {
                     resized.buffsp_->data().p[i] = buffsp_->data().p[i];
                 }
                 *this = resized;

@@ -60,7 +60,6 @@ TEST(Matrix_test, can_return_its_size)
     const computoc::types::Dims dims = { 1, 2, 3 };
     Integer_matrix mat{ dims, value };
 
-    computoc::types::Dims d{ mat.dims() };
     EXPECT_EQ(dims, mat.dims());
 }
 
