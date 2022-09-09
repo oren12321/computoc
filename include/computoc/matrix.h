@@ -65,14 +65,14 @@ namespace computoc::types {
 
 
         // Every matrix with size less or equal to 9 will be allocated on stack
-        using Matrix_allocator = memoc::allocators::Malloc_allocator;
+        using Matrix_allocator = memoc::Malloc_allocator;
 
         template <typename T>
         using Matrix_buffer = memoc::buffers::Typed_buffer<T, memoc::buffers::Fallback_buffer<
             memoc::buffers::Stack_buffer<9 * sizeof(T)>,
             memoc::buffers::Allocated_buffer<Matrix_allocator, true>>>;
 
-        template <typename T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::allocators::Allocator Internal_allocator = Matrix_allocator>
+        template <typename T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
         class Matrix {
         public:
             Matrix() = default;
@@ -152,7 +152,7 @@ namespace computoc::types {
                 return buffsp_->data().p[to_buff_index(inds, hdr_.odims, hdr_.offset)];
             }
 
-            template <typename T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o, memoc::allocators::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend bool operator==(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
 
             Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims)
@@ -285,7 +285,7 @@ namespace computoc::types {
             memoc::pointers::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
         };
 
-        template <typename T, memoc::buffers::Buffer<T> Internal_buffer, memoc::allocators::Allocator Internal_allocator>
+        template <typename T, memoc::buffers::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline bool operator==(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             if (lhs.hdr_.udims != rhs.hdr_.udims) {
