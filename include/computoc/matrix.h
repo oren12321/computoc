@@ -118,14 +118,14 @@ namespace computoc::types {
             virtual ~Matrix() = default;
 
             Matrix(Dims dims, const T* data = nullptr)
-                : hdr_{dims, dims}, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p, data))
+                : hdr_{dims, dims}, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p, data))
             {
                 COMPUTOC_THROW_IF_FALSE(hdr_.odims, std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
             }
 
             Matrix(Dims dims, const T& value)
-                : hdr_{ dims, dims }, buffsp_(memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p))
+                : hdr_{ dims, dims }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p))
             {
                 COMPUTOC_THROW_IF_FALSE(hdr_.odims, std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
@@ -187,7 +187,7 @@ namespace computoc::types {
                 if (hdr_.udims != other.hdr_.udims) {
                     COMPUTOC_THROW_IF_FALSE(!other.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
                     other.hdr_ = { hdr_.udims, hdr_.udims, 0, false };
-                    other.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.p);
+                    other.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.p);
                 }
 
                 for (std::size_t k = 0; k < hdr_.udims.p; ++k) {
@@ -210,7 +210,7 @@ namespace computoc::types {
                 Matrix<T, Internal_buffer, Internal_allocator> clone{};
                 clone.hdr_ = { hdr_.udims, hdr_.udims, 0, false };
                 if (buffsp_) {
-                    clone.buffsp_ = memoc::pointers::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.p);
+                    clone.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.p);
                     for (std::size_t k = 0; k < hdr_.udims.p; ++k) {
                         for (std::size_t i = 0; i < hdr_.udims.n; ++i) {
                             for (std::size_t j = 0; j < hdr_.udims.m; ++j) {
@@ -282,7 +282,7 @@ namespace computoc::types {
             };
 
             Header hdr_{};
-            memoc::pointers::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
+            memoc::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
         };
 
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
