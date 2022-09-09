@@ -17,7 +17,7 @@
 
 #include <memoc/pointers.h>
 
-namespace computoc::types {
+namespace computoc {
     namespace details {
         struct Dims {
             std::size_t n{ 0 }, m{ 0 }, p{ 1 };
@@ -797,12 +797,12 @@ namespace computoc::types {
 }
 
 /*namespace computoc {
-    using types::details::determinant;
-    using types::details::inverse;
-    using types::details::merge_horizontal;
-    using types::details::merge_vertical;
-    using types::details::reduced_row_echelon_form;
-    //using types::details::row_echelon_form;
+    using details::determinant;
+    using details::inverse;
+    using details::merge_horizontal;
+    using details::merge_vertical;
+    using details::reduced_row_echelon_form;
+    //using details::row_echelon_form;
 }*/
 
 #endif // COMPUTOC_TYPE_MATRIX_H

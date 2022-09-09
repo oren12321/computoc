@@ -9,7 +9,7 @@
 #include <computoc/algorithms.h>
 #include <computoc/concepts.h>
 
-namespace computoc::types {
+namespace computoc {
     namespace details {
         template <concepts::Decimal F>
         class Complex {
@@ -497,32 +497,29 @@ namespace computoc::types {
     }
 
     using details::Complex;
-}
-
-namespace computoc {
-    using types::details::abs;
-    using types::details::acos;
-    using types::details::acosh;
-    using types::details::arg;
-    using types::details::asin;
-    using types::details::asinh;
-    using types::details::atan;
-    using types::details::atanh;
-    using types::details::conj;
-    using types::details::cos;
-    using types::details::cosh;
-    using types::details::exp;
-    using types::details::log;
-    using types::details::log10;
-    using types::details::norm;
-    using types::details::polar;
-    using types::details::pow;
-    using types::details::proj;
-    using types::details::sin;
-    using types::details::sinh;
-    using types::details::sqrt;
-    using types::details::tan;
-    using types::details::tanh;
+    using details::abs;
+    using details::acos;
+    using details::acosh;
+    using details::arg;
+    using details::asin;
+    using details::asinh;
+    using details::atan;
+    using details::atanh;
+    using details::conj;
+    using details::cos;
+    using details::cosh;
+    using details::exp;
+    using details::log;
+    using details::log10;
+    using details::norm;
+    using details::polar;
+    using details::pow;
+    using details::proj;
+    using details::sin;
+    using details::sinh;
+    using details::sqrt;
+    using details::tan;
+    using details::tanh;
 }
 
 #endif // COMPUTOC_TYPES_COMPLEX_H
