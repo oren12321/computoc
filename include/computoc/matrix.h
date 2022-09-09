@@ -295,7 +295,7 @@ namespace computoc {
             for (std::size_t k = 0; k < lhs.hdr_.udims.p; ++k) {
                 for (std::size_t i = 0; i < lhs.hdr_.udims.n; ++i) {
                     for (std::size_t j = 0; j < lhs.hdr_.udims.m; ++j) {
-                        if (!algorithms::is_equal(lhs({ i, j, k }), rhs({ i, j, k }))) {
+                        if (!is_equal(lhs({ i, j, k }), rhs({ i, j, k }))) {
                             return false;
                         }
                     }
@@ -573,7 +573,7 @@ namespace computoc {
             }
 
             for (std::size_t i = 0; i < lhs.buff_.data().s; ++i) {
-                if (!algorithms::is_equal(lhs.buff_.data().p[i], rhs.buff_.data().p[i])) {
+                if (!is_equal(lhs.buff_.data().p[i], rhs.buff_.data().p[i])) {
                     return false;
                 }
             }
@@ -659,7 +659,7 @@ namespace computoc {
             T d{ 0 };
             for (std::size_t j = 0; j < n; ++j) {
                 T p{ mat.buff_.data().p[j] };
-                if (!algorithms::is_equal(p, T{ 0 })) {
+                if (!is_equal(p, T{ 0 })) {
                     d += sign * p * determinant<T, Internal_buffer>(mat.get_slice(0, j));
                 }
                 sign *= T{ -1 };
@@ -674,7 +674,7 @@ namespace computoc {
             std::size_t n = mat.dims_.n;
 
             T d{ determinant(mat) };
-            COMPUTOC_THROW_IF_FALSE(!algorithms::is_equal(d, T{ 0 }), std::invalid_argument, "zero determinant");
+            COMPUTOC_THROW_IF_FALSE(!is_equal(d, T{ 0 }), std::invalid_argument, "zero determinant");
 
             Matrix<T, Internal_buffer> inv(mat.dims_, T{});
 
@@ -725,14 +725,14 @@ namespace computoc {
         //    std::size_t r = mat.dims_.n > mat.dims_.m ? mat.dims_.m : mat.dims_.n;
 
         //    for (std::size_t k = 0; k < r - 1; ++k) {
-        //        if (algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+        //        if (is_equal(rref_mat(k, k), T{ 0 })) {
         //            for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
-        //                if (!algorithms::is_equal(rref_mat(i, k), T{ 0 })) {
+        //                if (!is_equal(rref_mat(i, k), T{ 0 })) {
         //                    rref_mat.swap_rows(k, i);
         //                }
         //            }
         //        }
-        //        if (!algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+        //        if (!is_equal(rref_mat(k, k), T{ 0 })) {
         //            rref_mat.multiply_row(k, T{ 1 } / rref_mat(k, k));
         //            for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
         //                if (i != k) {
@@ -753,14 +753,14 @@ namespace computoc {
             std::size_t r = mat.dims_.n > mat.dims_.m ? mat.dims_.m : mat.dims_.n;
 
             for (std::size_t k = 0; k < r; ++k) {
-                if (algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+                if (is_equal(rref_mat(k, k), T{ 0 })) {
                     for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
-                        if (!algorithms::is_equal(rref_mat(i, k), T{ 0 })) {
+                        if (!is_equal(rref_mat(i, k), T{ 0 })) {
                             rref_mat.swap_rows(k, i);
                         }
                     }
                 }
-                if (!algorithms::is_equal(rref_mat(k, k), T{ 0 })) {
+                if (!is_equal(rref_mat(k, k), T{ 0 })) {
                     rref_mat.multiply_row(k, T{ 1 } / rref_mat(k, k));
                     for (std::size_t i = 0; i < mat.dims_.n; ++i) {
                         if (i != k) {
