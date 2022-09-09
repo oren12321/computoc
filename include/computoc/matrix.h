@@ -49,6 +49,11 @@ namespace computoc {
             return { dims.m, dims.n * dims.m };
         }
 
+        inline bool operator==(const Step& lhv, const Step& rhv)
+        {
+            return (lhv.right == rhv.right && lhv.in == rhv.in);
+        }
+
 
         struct Inds {
             std::size_t i{ 0 }, j{ 0 }, k{ 0 };
@@ -64,7 +69,12 @@ namespace computoc {
             return (offset + inds.k * step.in + inds.i * step.right + inds.j);
         }
 
+        inline bool operator==(const Inds& lhv, const Inds& rhv)
+        {
+            return (lhv.i == rhv.i && lhv.j == rhv.j && lhv.k == rhv.k);
+        }
 
+        
         // Every matrix with size less or equal to 9 will be allocated on stack
         using Matrix_allocator = memoc::Malloc_allocator;
 

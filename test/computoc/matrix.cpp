@@ -2,6 +2,33 @@
 
 #include <computoc/matrix.h>
 
+TEST(Dims_test, can_be_empty)
+{
+    using namespace computoc;
+
+    EXPECT_TRUE(is_empty(Dims{0, 0, 0}));
+    EXPECT_TRUE(is_empty(Dims{1, 0, 0}));
+    EXPECT_TRUE(is_empty(Dims{0, 1, 0}));
+    EXPECT_TRUE(is_empty(Dims{0, 0, 1}));
+    EXPECT_FALSE(is_empty(Dims{1, 1, 1}));
+}
+
+TEST(Dims_test, is_comparable)
+{
+    using namespace computoc;
+
+    EXPECT_EQ((Dims{ 1, 2, 3 }), (Dims{ 1, 2, 3 }));
+    EXPECT_NE((Dims{ 1, 2, 3 }), (Dims{ 2, 2, 3 }));
+}
+
+TEST(Dims_test, have_product)
+{
+    using namespace computoc;
+
+    EXPECT_EQ(1 * 2 * 3, product(Dims{ 1, 2, 3 }));
+}
+
+
 TEST(Matrix_test, can_be_initialized_with_valid_size_and_data)
 {
     using Integer_matrix = computoc::Matrix<int>;
@@ -52,15 +79,32 @@ TEST(Matrix_test, can_be_initialized_with_valid_size_and_value)
     EXPECT_THROW((Integer_matrix{ {1, 1, 0}, value }), std::invalid_argument);
 }
 
-TEST(Matrix_test, can_return_its_size)
+TEST(Matrix_test, can_return_its_header_and_data)
 {
     using Integer_matrix = computoc::Matrix<int>;
+
+    Integer_matrix emat{};
+    const Integer_matrix::Header& ehdr{ emat.header() };
+
+    EXPECT_EQ(computoc::Dims{}, ehdr.dims);
+    EXPECT_EQ(computoc::Step{}, ehdr.step);
+    EXPECT_EQ(0, ehdr.offset);
+    EXPECT_FALSE(ehdr.is_submatrix);
+    EXPECT_FALSE(emat.data());
 
     const int value{ 0 };
     const computoc::Dims dims = { 1, 2, 3 };
     Integer_matrix mat{ dims, value };
+    const Integer_matrix::Header& hdr{ mat.header() };
 
-    EXPECT_EQ(dims, mat.header().dims);
+    EXPECT_EQ(dims, hdr.dims);
+    EXPECT_EQ((computoc::Step{2, 2}), hdr.step);
+    EXPECT_EQ(0, hdr.offset);
+    EXPECT_FALSE(hdr.is_submatrix);
+    EXPECT_TRUE(mat.data());
+    for (std::size_t i = 0; i < computoc::product(dims); ++i) {
+        EXPECT_EQ(0, mat.data()[i]);
+    }
 }
 
 TEST(Matrix_test, have_read_write_access_to_its_cells)
