@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <concepts>
 
-namespace computoc::concepts {
+namespace computoc {
     template <typename T>
     concept Integer = std::is_integral_v<T> && !std::is_same_v<T, bool> && std::is_signed_v<T>;
 
