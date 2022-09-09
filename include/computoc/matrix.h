@@ -68,11 +68,11 @@ namespace computoc::types {
         using Matrix_allocator = memoc::Malloc_allocator;
 
         template <typename T>
-        using Matrix_buffer = memoc::buffers::Typed_buffer<T, memoc::buffers::Fallback_buffer<
-            memoc::buffers::Stack_buffer<9 * sizeof(T)>,
-            memoc::buffers::Allocated_buffer<Matrix_allocator, true>>>;
+        using Matrix_buffer = memoc::Typed_buffer<T, memoc::Fallback_buffer<
+            memoc::Stack_buffer<9 * sizeof(T)>,
+            memoc::Allocated_buffer<Matrix_allocator, true>>>;
 
-        template <typename T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
+        template <typename T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
         class Matrix {
         public:
             Matrix() = default;
@@ -152,7 +152,7 @@ namespace computoc::types {
                 return buffsp_->data().p[to_buff_index(inds, hdr_.odims, hdr_.offset)];
             }
 
-            template <typename T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend bool operator==(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
 
             Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims)
@@ -285,7 +285,7 @@ namespace computoc::types {
             memoc::pointers::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
         };
 
-        template <typename T, memoc::buffers::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline bool operator==(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             if (lhs.hdr_.udims != rhs.hdr_.udims) {
@@ -310,7 +310,7 @@ namespace computoc::types {
             std::size_t m{ 0 };
         };
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer = Matrix_buffer<T>>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>>
         class Matrix {
         public:
             Matrix(Dimensions dims, const T* data)
@@ -349,7 +349,7 @@ namespace computoc::types {
                 return buff_.data().p[i * dims_.m + j];
             }
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend bool operator==(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
             Matrix<T, Internal_buffer> get_slice(std::size_t si, std::size_t sj, Dimensions dims) const
@@ -425,7 +425,7 @@ namespace computoc::types {
                 return *this;
             }
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> operator+(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
             Matrix<T, Internal_buffer>& operator+=(const Matrix<T, Internal_buffer>& other)
@@ -438,7 +438,7 @@ namespace computoc::types {
                 return *this;
             }
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> operator-(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
             Matrix<T, Internal_buffer>& operator-=(const Matrix<T, Internal_buffer>& other)
@@ -451,10 +451,10 @@ namespace computoc::types {
                 return *this;
             }
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> operator*(const Matrix<T_o, Internal_buffer_o>& lhs, const T_o& rhs);
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> operator*(const T_o& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
             Matrix<T, Internal_buffer>& operator*=(const T& other)
@@ -465,7 +465,7 @@ namespace computoc::types {
                 return *this;
             }
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> operator*(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
             Matrix<T, Internal_buffer>& operator*=(const Matrix<T, Internal_buffer>& other)
@@ -510,16 +510,16 @@ namespace computoc::types {
                 return *this;
             }
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend T_o determinant(const Matrix<T_o, Internal_buffer_o>& mat);
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> inverse(const Matrix<T_o, Internal_buffer_o>& mat);
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> merge_horizontal(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> merge_vertical(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
             Matrix<T, Internal_buffer>& multiply_row(std::size_t i, const T& factor)
@@ -554,10 +554,10 @@ namespace computoc::types {
                 return *this;
             }
 
-            //template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            //template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             //friend Matrix<T_o, Internal_buffer_o> row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
 
-            template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+            template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> reduced_row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
 
         private:
@@ -565,7 +565,7 @@ namespace computoc::types {
             Internal_buffer buff_{};
         };
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline bool operator==(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             if (lhs.dims_.n != rhs.dims_.n || lhs.dims_.m != rhs.dims_.m) {
@@ -580,7 +580,7 @@ namespace computoc::types {
             return true;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> operator+(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             COMPUTOC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n && lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "matrices size mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d, lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.n, rhs.dims_.n, lhs.dims_.m, rhs.dims_.m);
@@ -593,7 +593,7 @@ namespace computoc::types {
             return sum;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> operator-(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             COMPUTOC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n && lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "matrices size mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d, lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.n, rhs.dims_.n, lhs.dims_.m, rhs.dims_.m);
@@ -606,7 +606,7 @@ namespace computoc::types {
             return subtraction;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> operator*(const Matrix<T, Internal_buffer>& lhs, const T& rhs)
         {
             Matrix<T, Internal_buffer> multiplication{ lhs };
@@ -617,13 +617,13 @@ namespace computoc::types {
             return multiplication;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> operator*(const T& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             return operator*(rhs, lhs);
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> operator*(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             COMPUTOC_THROW_IF_FALSE(lhs.dims_.m == rhs.dims_.n, std::invalid_argument, "matrices size mismatch (lhs.dims_.m = %d, rhs.dims_.n = %d)", lhs.dims_.m, rhs.dims_.n);
@@ -640,7 +640,7 @@ namespace computoc::types {
             return multiplication;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline T determinant(const Matrix<T, Internal_buffer>& mat)
         {
             COMPUTOC_THROW_IF_FALSE(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not square matrix");
@@ -667,7 +667,7 @@ namespace computoc::types {
             return d;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> inverse(const Matrix<T, Internal_buffer>& mat)
         {
             COMPUTOC_THROW_IF_FALSE(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not square matrix");
@@ -691,7 +691,7 @@ namespace computoc::types {
             return T{ 1 / d } *inv;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_horizontal(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             COMPUTOC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n, std::invalid_argument, "dimensions mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d)", lhs.dims_.n, rhs.dims_.n);
@@ -704,7 +704,7 @@ namespace computoc::types {
             return merged;
         }
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_vertical(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             COMPUTOC_THROW_IF_FALSE(lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "dimensions mismatch (lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.m, rhs.dims_.m);
@@ -717,7 +717,7 @@ namespace computoc::types {
             return merged;
         }
 
-        //template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        //template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         //inline Matrix<T, Internal_buffer> row_echelon_form(const Matrix<T, Internal_buffer>& mat)
         //{
         //    Matrix<T, Internal_buffer> rref_mat{ mat };
@@ -745,7 +745,7 @@ namespace computoc::types {
         //    return rref_mat;
         //}
 
-        template <concepts::Arithmetic T, memoc::buffers::Buffer<T> Internal_buffer>
+        template <concepts::Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> reduced_row_echelon_form(const Matrix<T, Internal_buffer>& mat)
         {
             Matrix<T, Internal_buffer> rref_mat{ mat };
@@ -773,7 +773,7 @@ namespace computoc::types {
             return rref_mat;
         }
 
-        //template <concepts::Arithmetic T_o, memoc::buffers::Buffer<T_o> Internal_buffer_o>
+        //template <concepts::Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
         //std::ostream& operator<<(std::ostream& os, const Matrix<T_o, Internal_buffer_o>& mat)
         //{
         //    for (std::size_t i = 0; i < mat.dimensions().n; ++i) {
