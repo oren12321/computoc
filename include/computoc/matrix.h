@@ -23,7 +23,7 @@ namespace computoc {
             std::size_t n{ 0 }, m{ 0 }, p{ 1 };
         };
 
-        inline bool operator!(const Dims& dims)
+        inline bool is_empty(const Dims& dims)
         {
             return (dims.n * dims.m * dims.p == 0);
         }
@@ -51,16 +51,6 @@ namespace computoc {
         inline std::size_t to_buff_index(const Inds& inds, const Dims& dims, std::size_t offset = 0)
         {
             return (offset + inds.k * (dims.n * dims.m) + inds.i * dims.m + inds.j);
-        }
-
-        inline Inds operator+(const Inds& inds, const Dims& dims)
-        {
-            return { inds.i + dims.n, inds.j + dims.m, inds.k + dims.p };
-        }
-
-        inline Inds operator-(const Inds& inds, std::size_t val)
-        {
-            return { inds.i - val, inds.j - val, inds.k - val };
         }
 
 
@@ -120,14 +110,14 @@ namespace computoc {
             Matrix(Dims dims, const T* data = nullptr)
                 : hdr_{dims, dims}, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p, data))
             {
-                COMPUTOC_THROW_IF_FALSE(hdr_.odims, std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.odims), std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
             }
 
             Matrix(Dims dims, const T& value)
                 : hdr_{ dims, dims }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p))
             {
-                COMPUTOC_THROW_IF_FALSE(hdr_.odims, std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.odims), std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
 
                 for (std::size_t i = 0; i < buffsp_->data().s; ++i) {
@@ -157,8 +147,10 @@ namespace computoc {
 
             Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims)
             {
-                COMPUTOC_THROW_IF_FALSE(dims, std::invalid_argument, "zero matrix dimensions");
-                COMPUTOC_THROW_IF_FALSE(is_inside(inds + dims - 1, hdr_.udims), std::out_of_range, "out of range submatrix");
+                COMPUTOC_THROW_IF_FALSE(!is_empty(dims), std::invalid_argument, "zero matrix dimensions");
+
+                Inds max_inds{ inds.i + dims.n - 1, inds.j + dims.m - 1, inds.k + dims.p - 1 };
+                COMPUTOC_THROW_IF_FALSE(is_inside(max_inds, hdr_.udims), std::out_of_range, "out of range submatrix");
 
                 Matrix<T, Internal_buffer, Internal_allocator> slice{};
                 slice.hdr_ = { hdr_.odims, dims, to_buff_index(inds, hdr_.odims, hdr_.offset), true };
@@ -792,7 +784,13 @@ namespace computoc {
     using details::Matrix;*/
 
     using details::Dims;
+    using details::is_empty;
+    using details::product;
+
     using details::Inds;
+    using details::is_inside;
+    using details::to_buff_index;
+
     using details::Matrix;
 }
 

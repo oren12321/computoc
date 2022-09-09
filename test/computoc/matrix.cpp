@@ -265,12 +265,12 @@ TEST(Matrix_test, move_by_reference)
     Integer_matrix mat{ dims, data };
     Integer_matrix cmat1{ std::move(mat) };
     EXPECT_EQ(smat, cmat1);
-    EXPECT_TRUE(!mat.dims());
+    EXPECT_TRUE(is_empty(mat.dims()));
 
     Integer_matrix cmat2{};
     cmat2 = std::move(cmat1);
     EXPECT_EQ(smat, cmat2);
-    EXPECT_TRUE(!cmat1.dims());
+    EXPECT_TRUE(is_empty(cmat1.dims()));
     EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = std::move(smat), std::runtime_error);
 }
 
