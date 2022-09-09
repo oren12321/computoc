@@ -39,6 +39,17 @@ namespace computoc {
         }
 
         
+        struct Step {
+            std::size_t right{ 0 };
+            std::size_t in{ 0 };
+        };
+
+        inline Step to_step(const Dims& dims)
+        {
+            return { dims.m, dims.n * dims.m };
+        }
+
+
         struct Inds {
             std::size_t i{ 0 }, j{ 0 }, k{ 0 };
         };
@@ -48,9 +59,9 @@ namespace computoc {
             return (inds.i < dims.n&& inds.j < dims.m&& inds.k < dims.p);
         }
 
-        inline std::size_t to_buff_index(const Inds& inds, const Dims& dims, std::size_t offset = 0)
+        inline std::size_t to_buff_index(const Inds& inds, const Step& step, std::size_t offset = 0)
         {
-            return (offset + inds.k * (dims.n * dims.m) + inds.i * dims.m + inds.j);
+            return (offset + inds.k * step.in + inds.i * step.right + inds.j);
         }
 
 
@@ -65,6 +76,13 @@ namespace computoc {
         template <typename T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
         class Matrix {
         public:
+            struct Header {
+                Dims dims{};
+                Step step{};
+                std::size_t offset{ 0 };
+                bool is_submatrix{ false };
+            };
+
             Matrix() = default;
 
             Matrix(Matrix<T, Internal_buffer, Internal_allocator>&& other)
@@ -107,17 +125,17 @@ namespace computoc {
 
             virtual ~Matrix() = default;
 
-            Matrix(Dims dims, const T* data = nullptr)
-                : hdr_{dims, dims}, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p, data))
+            Matrix(const Dims& dims, const T* data = nullptr)
+                : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims), data))
             {
-                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.odims), std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
             }
 
-            Matrix(Dims dims, const T& value)
-                : hdr_{ dims, dims }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(dims.n* dims.m* dims.p))
+            Matrix(const Dims& dims, const T& value)
+                : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims)))
             {
-                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.odims), std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
 
                 for (std::size_t i = 0; i < buffsp_->data().s; ++i) {
@@ -125,21 +143,26 @@ namespace computoc {
                 }
             }
 
-            Dims dims() const
+            const Header& header() const
             {
-                return hdr_.udims;
+                return hdr_;
+            }
+
+            T* data() const
+            {
+                return (buffsp_ ? buffsp_->data().p : nullptr);
             }
 
             const T& operator()(const Inds& inds) const
             {
-                COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.udims), std::out_of_range, "out of range indices");
-                return buffsp_->data().p[to_buff_index(inds, hdr_.odims, hdr_.offset)];
+                COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
+                return buffsp_->data().p[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
             T& operator()(const Inds& inds)
             {
-                COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.udims), std::out_of_range, "out of range indices");
-                return buffsp_->data().p[to_buff_index(inds, hdr_.odims, hdr_.offset)];
+                COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
+                return buffsp_->data().p[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
@@ -150,10 +173,10 @@ namespace computoc {
                 COMPUTOC_THROW_IF_FALSE(!is_empty(dims), std::invalid_argument, "zero matrix dimensions");
 
                 Inds max_inds{ inds.i + dims.n - 1, inds.j + dims.m - 1, inds.k + dims.p - 1 };
-                COMPUTOC_THROW_IF_FALSE(is_inside(max_inds, hdr_.udims), std::out_of_range, "out of range submatrix");
+                COMPUTOC_THROW_IF_FALSE(is_inside(max_inds, hdr_.dims), std::out_of_range, "out of range submatrix");
 
                 Matrix<T, Internal_buffer, Internal_allocator> slice{};
-                slice.hdr_ = { hdr_.odims, dims, to_buff_index(inds, hdr_.odims, hdr_.offset), true };
+                slice.hdr_ = { dims, hdr_.step, to_buff_index(inds, hdr_.step, hdr_.offset), true };
                 slice.buffsp_ = buffsp_;
 
                 return slice;
@@ -161,11 +184,11 @@ namespace computoc {
 
             Matrix<T, Internal_buffer, Internal_allocator>& copy_from(const Matrix<T, Internal_buffer, Internal_allocator>& other)
             {
-                COMPUTOC_THROW_IF_FALSE(hdr_.udims == other.hdr_.udims, std::invalid_argument, "non-equal dimensions");
+                COMPUTOC_THROW_IF_FALSE(hdr_.dims == other.hdr_.dims, std::invalid_argument, "non-equal dimensions");
 
-                for (std::size_t k = 0; k < hdr_.udims.p; ++k) {
-                    for (std::size_t i = 0; i < hdr_.udims.n; ++i) {
-                        for (std::size_t j = 0; j < hdr_.udims.m; ++j) {
+                for (std::size_t k = 0; k < hdr_.dims.p; ++k) {
+                    for (std::size_t i = 0; i < hdr_.dims.n; ++i) {
+                        for (std::size_t j = 0; j < hdr_.dims.m; ++j) {
                             (*this)({ i, j, k }) = other({ i, j, k });
                         }
                     }
@@ -176,15 +199,15 @@ namespace computoc {
 
             Matrix<T, Internal_buffer, Internal_allocator>& copy_to(Matrix<T, Internal_buffer, Internal_allocator>& other)
             {
-                if (hdr_.udims != other.hdr_.udims) {
+                if (hdr_.dims != other.hdr_.dims) {
                     COMPUTOC_THROW_IF_FALSE(!other.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
-                    other.hdr_ = { hdr_.udims, hdr_.udims, 0, false };
-                    other.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.p);
+                    other.hdr_ = { hdr_.dims, hdr_.step, 0, false };
+                    other.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(product(hdr_.dims));
                 }
 
-                for (std::size_t k = 0; k < hdr_.udims.p; ++k) {
-                    for (std::size_t i = 0; i < hdr_.udims.n; ++i) {
-                        for (std::size_t j = 0; j < hdr_.udims.m; ++j) {
+                for (std::size_t k = 0; k < hdr_.dims.p; ++k) {
+                    for (std::size_t i = 0; i < hdr_.dims.n; ++i) {
+                        for (std::size_t j = 0; j < hdr_.dims.m; ++j) {
                             other({ i, j, k }) = (*this)({ i, j, k });
                         }
                     }
@@ -200,12 +223,12 @@ namespace computoc {
             Matrix<T, Internal_buffer, Internal_allocator> copy()
             {
                 Matrix<T, Internal_buffer, Internal_allocator> clone{};
-                clone.hdr_ = { hdr_.udims, hdr_.udims, 0, false };
+                clone.hdr_ = { hdr_.dims, hdr_.step, 0, false };
                 if (buffsp_) {
-                    clone.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(hdr_.udims.n * hdr_.udims.m * hdr_.udims.p);
-                    for (std::size_t k = 0; k < hdr_.udims.p; ++k) {
-                        for (std::size_t i = 0; i < hdr_.udims.n; ++i) {
-                            for (std::size_t j = 0; j < hdr_.udims.m; ++j) {
+                    clone.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(product(hdr_.dims));
+                    for (std::size_t k = 0; k < hdr_.dims.p; ++k) {
+                        for (std::size_t i = 0; i < hdr_.dims.n; ++i) {
+                            for (std::size_t j = 0; j < hdr_.dims.m; ++j) {
                                 clone({ i, j, k }) = (*this)({ i, j, k });
                             }
                         }
@@ -214,24 +237,24 @@ namespace computoc {
                 return clone;
             }
 
-            Matrix<T, Internal_buffer, Internal_allocator>& reshape(Dims new_dims)
+            Matrix<T, Internal_buffer, Internal_allocator>& reshape(const Dims& new_dims)
             {
                 COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
                 COMPUTOC_THROW_IF_FALSE(buffsp_, std::runtime_error, "matrix should not be empty");
-                COMPUTOC_THROW_IF_FALSE(product(new_dims) == product(hdr_.udims), std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
+                COMPUTOC_THROW_IF_FALSE(product(new_dims) == product(hdr_.dims), std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
 
-                hdr_.udims = new_dims;
-                hdr_.odims = new_dims;
+                hdr_.dims = new_dims;
+                hdr_.step = to_step(new_dims);
 
                 return *this;
             }
-            Matrix<T, Internal_buffer, Internal_allocator> reshaped(Dims new_dims)
+            Matrix<T, Internal_buffer, Internal_allocator> reshaped(const Dims& new_dims)
             {
                 Matrix<T, Internal_buffer, Internal_allocator> mat{ *this };
                 return mat.reshape(new_dims);
             }
 
-            Matrix<T, Internal_buffer, Internal_allocator>& resize(Dims new_dims)
+            Matrix<T, Internal_buffer, Internal_allocator>& resize(const Dims& new_dims)
             {
                 COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "resize for sub matrix is undefined");
 
@@ -241,12 +264,12 @@ namespace computoc {
                     return *this;
                 }
 
-                if (product(new_dims) == product(hdr_.udims)) {
+                if (product(new_dims) == product(hdr_.dims)) {
                     *this = reshape(new_dims);
                     return *this;
                 }
 
-                if (product(new_dims) < product(hdr_.udims)) {
+                if (product(new_dims) < product(hdr_.dims)) {
                     Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims, buffsp_->data().p };
                     *this = resized;
                     return *this;
@@ -259,20 +282,13 @@ namespace computoc {
                 *this = resized;
                 return *this;
             }
-            Matrix<T, Internal_buffer, Internal_allocator> resized(Dims new_dims)
+            Matrix<T, Internal_buffer, Internal_allocator> resized(const Dims& new_dims)
             {
                 Matrix<T, Internal_buffer, Internal_allocator> mat{ *this };
                 return mat.resize(new_dims);
             }
 
         private:
-            struct Header {
-                Dims odims{};
-                Dims udims{};
-                std::size_t offset{ 0 };
-                bool is_submatrix{ false };
-            };
-
             Header hdr_{};
             memoc::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
         };
@@ -280,13 +296,13 @@ namespace computoc {
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline bool operator==(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
-            if (lhs.hdr_.udims != rhs.hdr_.udims) {
+            if (lhs.hdr_.dims != rhs.hdr_.dims) {
                 return false;
             }
 
-            for (std::size_t k = 0; k < lhs.hdr_.udims.p; ++k) {
-                for (std::size_t i = 0; i < lhs.hdr_.udims.n; ++i) {
-                    for (std::size_t j = 0; j < lhs.hdr_.udims.m; ++j) {
+            for (std::size_t k = 0; k < lhs.hdr_.dims.p; ++k) {
+                for (std::size_t i = 0; i < lhs.hdr_.dims.n; ++i) {
+                    for (std::size_t j = 0; j < lhs.hdr_.dims.m; ++j) {
                         if (!is_equal(lhs({ i, j, k }), rhs({ i, j, k }))) {
                             return false;
                         }
@@ -786,6 +802,9 @@ namespace computoc {
     using details::Dims;
     using details::is_empty;
     using details::product;
+
+    using details::Step;
+    using details::to_step;
 
     using details::Inds;
     using details::is_inside;

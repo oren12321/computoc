@@ -60,7 +60,7 @@ TEST(Matrix_test, can_return_its_size)
     const computoc::Dims dims = { 1, 2, 3 };
     Integer_matrix mat{ dims, value };
 
-    EXPECT_EQ(dims, mat.dims());
+    EXPECT_EQ(dims, mat.header().dims);
 }
 
 TEST(Matrix_test, have_read_write_access_to_its_cells)
@@ -172,7 +172,7 @@ TEST(Matrix_test, can_return_slice)
     const int sdata1[] = { 1, 2, 3 };
     computoc::Dims sdims1{ 3, 1 };
     Integer_matrix smat1{ sdims1, sdata1 };
-    EXPECT_EQ(mat1({ 0, 0 }, smat1.dims()), smat1);
+    EXPECT_EQ(mat1({ 0, 0 }, smat1.header().dims), smat1);
 
     EXPECT_THROW(mat1({ 0, 0 }, { 0, dims1.m }), std::invalid_argument);
     EXPECT_THROW(mat1({ 0, 0 }, { dims1.n, 0 }), std::invalid_argument);
@@ -189,7 +189,7 @@ TEST(Matrix_test, can_return_slice)
         3, 4 };
     computoc::Dims sdims2{ 2, 2 };
     Integer_matrix smat2{ sdims2, sdata2 };
-    EXPECT_EQ(mat2({ 0, 0 }, smat2.dims()), smat2);
+    EXPECT_EQ(mat2({ 0, 0 }, smat2.header().dims), smat2);
 
     EXPECT_THROW(mat2({ 0, 0 }, { 0, dims2.m }), std::invalid_argument);
     EXPECT_THROW(mat2({ 0, 0 }, { dims2.n, 0 }), std::invalid_argument);
@@ -206,7 +206,7 @@ TEST(Matrix_test, can_return_slice)
         3, 4 };
     computoc::Dims sdims3{ 1, 2, 2 };
     Integer_matrix smat3{ sdims3, sdata3 };
-    EXPECT_EQ(mat3({ 0, 0 }, smat3.dims()), smat3);
+    EXPECT_EQ(mat3({ 0, 0 }, smat3.header().dims), smat3);
 
     EXPECT_THROW(mat3({ 0, 0, 0 }, { 0, dims3.m, dims3.p }), std::invalid_argument);
     EXPECT_THROW(mat3({ 0, 0, 0 }, { dims3.n, 0, dims3.p }), std::invalid_argument);
@@ -265,12 +265,12 @@ TEST(Matrix_test, move_by_reference)
     Integer_matrix mat{ dims, data };
     Integer_matrix cmat1{ std::move(mat) };
     EXPECT_EQ(smat, cmat1);
-    EXPECT_TRUE(is_empty(mat.dims()));
+    EXPECT_TRUE(is_empty(mat.header().dims));
 
     Integer_matrix cmat2{};
     cmat2 = std::move(cmat1);
     EXPECT_EQ(smat, cmat2);
-    EXPECT_TRUE(is_empty(cmat1.dims()));
+    EXPECT_TRUE(is_empty(cmat1.header().dims));
     EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = std::move(smat), std::runtime_error);
 }
 
@@ -404,7 +404,7 @@ TEST(Matrix_test, reshape)
     Integer_matrix mat3{ dims3, data3 };
 
     Integer_matrix rmat2{ mat1.reshaped({1, 2, 3}) };
-    EXPECT_NE((computoc::Dims{ 1, 2, 3 }), mat1.dims());
+    EXPECT_NE((computoc::Dims{ 1, 2, 3 }), mat1.header().dims);
     EXPECT_EQ(mat3, rmat2);
     
     EXPECT_THROW(mat2({ 0, 0 }, { 1, 2 }).reshape({}), std::runtime_error);
@@ -447,7 +447,7 @@ TEST(Matrix_test, resize)
     EXPECT_EQ(mat4({ 0, 1 }), mat1({ 0, 1 }));
 
     Integer_matrix mat5{ mat1.resized({1, 2}) };
-    EXPECT_NE(mat1.dims(), mat5.dims());
+    EXPECT_NE(mat1.header().dims, mat5.header().dims);
     EXPECT_EQ(mat3, mat5);
 
     EXPECT_THROW(mat1({ 0, 0, 0 }, { 1, 1, 1 }).resize({}), std::runtime_error);
