@@ -8,5 +8,6 @@
 #include <computoc/math.h>
 #include <computoc/matrix.h>
 #include <computoc/concepts.h>
+#include <computoc/linear_algebra.h>
 
 #endif // COMPUTOC_COMPUTOC_H

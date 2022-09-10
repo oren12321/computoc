@@ -12,6 +12,9 @@ namespace computoc {
     concept Decimal = std::is_floating_point_v<T>;
 
     template <typename T>
+    concept Number = Integer<T> || Decimal<T>;
+
+    template <typename T>
     concept Arithmetic = requires(T a, T b)
     {
         {a + b};

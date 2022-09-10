@@ -3,6 +3,7 @@ add_executable(computoc_test
     fraction.cpp
     complex.cpp
     algorithms.cpp
+    linear_algebra.cpp
     computoc.cpp
     main.cpp)
 target_link_libraries(computoc_test GTest::gtest GTest::gtest_main computoc)

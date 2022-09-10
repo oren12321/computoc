@@ -2,7 +2,7 @@
 
 #include <computoc/computoc.h>
 
-TEST(Memoc_test, use_all_namespaces)
+TEST(Computoc_test, use_all_namespaces)
 {
     using namespace computoc;
     SUCCEED();

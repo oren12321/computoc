@@ -13,7 +13,6 @@
 #include <memoc/buffers.h>
 #include <computoc/errors.h>
 #include <computoc/algorithms.h>
-#include <computoc/concepts.h>
 
 #include <memoc/pointers.h>
 
@@ -178,7 +177,7 @@ namespace computoc {
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend bool operator==(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
 
-            Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims)
+            Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims) const
             {
                 COMPUTOC_THROW_IF_FALSE(!is_empty(dims), std::invalid_argument, "zero matrix dimensions");
 
