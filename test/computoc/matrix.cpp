@@ -17,8 +17,10 @@ TEST(Dims_test, is_comparable)
 {
     using namespace computoc;
 
-    EXPECT_EQ((Dims{ 1, 2, 3 }), (Dims{ 1, 2, 3 }));
-    EXPECT_NE((Dims{ 1, 2, 3 }), (Dims{ 2, 2, 3 }));
+    EXPECT_EQ((Dims{ 1, 1, 1 }), (Dims{ 1, 1, 1 }));
+    EXPECT_NE((Dims{ 1, 1, 1 }), (Dims{ 0, 1, 1 }));
+    EXPECT_NE((Dims{ 1, 1, 1 }), (Dims{ 1, 0, 1 }));
+    EXPECT_NE((Dims{ 1, 1, 1 }), (Dims{ 1, 1, 0 }));
 }
 
 TEST(Dims_test, have_product)
@@ -26,6 +28,47 @@ TEST(Dims_test, have_product)
     using namespace computoc;
 
     EXPECT_EQ(1 * 2 * 3, product(Dims{ 1, 2, 3 }));
+}
+
+
+TEST(Step_test, is_comparable)
+{
+    using namespace computoc;
+
+    EXPECT_EQ((Step{ 1, 1 }), (Step{ 1, 1 }));
+    EXPECT_NE((Step{ 1, 1 }), (Step{ 0, 1 }));
+    EXPECT_NE((Step{ 1, 1 }), (Step{ 1, 0 }));
+}
+
+
+TEST(Inds_test, is_comparable)
+{
+    using namespace computoc;
+
+    EXPECT_EQ((Inds{ 1, 1, 1 }), (Inds{ 1, 1, 1 }));
+    EXPECT_NE((Inds{ 1, 1, 1 }), (Inds{ 0, 1, 1 }));
+    EXPECT_NE((Inds{ 1, 1, 1 }), (Inds{ 1, 0, 1 }));
+    EXPECT_NE((Inds{ 1, 1, 1 }), (Inds{ 1, 1, 0 }));
+}
+
+TEST(Inds_test, can_be_converted_to_buff_index)
+{
+    using namespace computoc;
+
+    EXPECT_EQ(6 + 3 * 5 + 1 * 4 + 2, to_buff_index(Inds{ 1, 2, 3 }, Step{ 4, 5 }, 6));
+}
+
+TEST(Inds_test, can_check_if_inside_dimensions)
+{
+    using namespace computoc;
+
+    Dims dims{ 1, 2, 3 };
+
+    EXPECT_TRUE(is_inside(Inds{}, dims));
+    EXPECT_TRUE(is_inside(Inds{ 0, 1, 2 }, dims));
+    EXPECT_FALSE(is_inside(Inds{ 1, 1, 2 }, dims));
+    EXPECT_FALSE(is_inside(Inds{ 1, 3, 3 }, dims));
+    EXPECT_FALSE(is_inside(Inds{ 1, 2, 4 }, dims));
 }
 
 
