@@ -475,11 +475,11 @@ TEST(Matrix_test, reshape)
     computoc::Dims dims1{ 1, 2, 3 };
     Integer_matrix mat1{ dims1, data1 };
 
-    const int data2[] = {1, 2, 3, 4, 5, 6 };
+    const int data2[] = { 1, 2, 3, 4, 5, 6 };
     computoc::Dims dims2{ 1, 6 };
     Integer_matrix mat2{ dims2, data2 };
-    
-    Integer_matrix rmat1{ mat1.reshape({1, 6}) };
+
+    Integer_matrix rmat1{ computoc::reshaped(mat1, {1, 6}) };
     EXPECT_EQ(mat2, rmat1);
 
     const int data3[] = {
@@ -489,13 +489,12 @@ TEST(Matrix_test, reshape)
     computoc::Dims dims3{ 1, 2, 3 };
     Integer_matrix mat3{ dims3, data3 };
 
-    Integer_matrix rmat2{ mat1.reshaped({1, 2, 3}) };
-    EXPECT_NE((computoc::Dims{ 1, 2, 3 }), mat1.header().dims);
+    Integer_matrix rmat2{ computoc::reshaped(mat1, {1, 2, 3}) };
     EXPECT_EQ(mat3, rmat2);
-    
-    EXPECT_THROW(mat2({ 0, 0 }, { 1, 2 }).reshape({}), std::runtime_error);
-    EXPECT_THROW(Integer_matrix{}.reshape({}), std::runtime_error);
-    EXPECT_THROW(mat2.reshape({ 1, 1 }), std::invalid_argument);
+
+    EXPECT_THROW(computoc::reshaped(mat2({ 0, 0 }, { 1, 2 }), {}), std::runtime_error);
+    EXPECT_THROW(computoc::reshaped(Integer_matrix{}, {}), std::runtime_error);
+    EXPECT_THROW(computoc::reshaped(mat2, { 1, 1 }), std::invalid_argument);
 }
 
 TEST(Matrix_test, resize)
@@ -513,30 +512,30 @@ TEST(Matrix_test, resize)
     computoc::Dims dims2{ 1, 2, 3 };
     Integer_matrix mat2{ dims2, data2 };
 
-    mat1.resize({ 1, 2, 3 });
+    mat1 = computoc::resized(mat1, { 1, 2, 3 });
     EXPECT_EQ(mat2, mat1);
 
     const int data3[] = { 1, 2 };
     computoc::Dims dims3{ 1, 2 };
     Integer_matrix mat3{ dims3, data3 };
 
-    mat1.resize({ 1, 2 });
+    mat1 = computoc::resized(mat1, { 1, 2 });
     EXPECT_EQ(mat3, mat1);
 
     const int data4[] = { 1, 2, 3, 4 };
     computoc::Dims dims4{ 1, 4 };
     Integer_matrix mat4{ dims4, data4 };
 
-    mat1.resize({ 1, 4 });
+    mat1 = computoc::resized(mat1, { 1, 4 });
     EXPECT_NE(mat4, mat1);
     EXPECT_EQ(mat4({ 0, 0 }), mat1({ 0, 0 }));
     EXPECT_EQ(mat4({ 0, 1 }), mat1({ 0, 1 }));
 
-    Integer_matrix mat5{ mat1.resized({1, 2}) };
+    Integer_matrix mat5{ computoc::resized(mat1, {1, 2}) };
     EXPECT_NE(mat1.header().dims, mat5.header().dims);
     EXPECT_EQ(mat3, mat5);
 
-    EXPECT_THROW(mat1({ 0, 0, 0 }, { 1, 1, 1 }).resize({}), std::runtime_error);
+    EXPECT_THROW(computoc::resized(mat1({ 0, 0, 0 }, { 1, 1, 1 }), {}), std::runtime_error);
 }
 
 /*

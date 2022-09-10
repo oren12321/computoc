@@ -200,56 +200,11 @@ namespace computoc {
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_of(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat);
 
-            Matrix<T, Internal_buffer, Internal_allocator>& reshape(const Dims& new_dims)
-            {
-                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
-                COMPUTOC_THROW_IF_FALSE(buffsp_, std::runtime_error, "matrix should not be empty");
-                COMPUTOC_THROW_IF_FALSE(product(new_dims) == product(hdr_.dims), std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
+            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> reshaped(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat, const Dims& new_dims);
 
-                hdr_.dims = new_dims;
-                hdr_.step = to_step(new_dims);
-
-                return *this;
-            }
-            Matrix<T, Internal_buffer, Internal_allocator> reshaped(const Dims& new_dims)
-            {
-                Matrix<T, Internal_buffer, Internal_allocator> mat{ *this };
-                return mat.reshape(new_dims);
-            }
-
-            Matrix<T, Internal_buffer, Internal_allocator>& resize(const Dims& new_dims)
-            {
-                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "resize for sub matrix is undefined");
-
-                if (!buffsp_) {
-                    Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
-                    *this = resized;
-                    return *this;
-                }
-
-                if (product(new_dims) == product(hdr_.dims)) {
-                    *this = reshape(new_dims);
-                    return *this;
-                }
-
-                if (product(new_dims) < product(hdr_.dims)) {
-                    Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims, buffsp_->data().p };
-                    *this = resized;
-                    return *this;
-                }
-
-                Matrix<T, Internal_buffer, Internal_allocator> resized{ new_dims };
-                for (std::size_t i = 0; i < buffsp_->data().s; ++i) {
-                    resized.buffsp_->data().p[i] = buffsp_->data().p[i];
-                }
-                *this = resized;
-                return *this;
-            }
-            Matrix<T, Internal_buffer, Internal_allocator> resized(const Dims& new_dims)
-            {
-                Matrix<T, Internal_buffer, Internal_allocator> mat{ *this };
-                return mat.resize(new_dims);
-            }
+            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> resized(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat, const Dims& new_dims);
 
         private:
             Header hdr_{};
@@ -317,6 +272,49 @@ namespace computoc {
                 }
             }
             return clone;
+        }
+
+        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> reshaped(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Dims& new_dims)
+        {
+            COMPUTOC_THROW_IF_FALSE(!mat.hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
+            COMPUTOC_THROW_IF_FALSE(mat.buffsp_, std::runtime_error, "matrix should not be empty");
+            COMPUTOC_THROW_IF_FALSE(product(new_dims) == product(mat.hdr_.dims), std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
+
+            Matrix<T, Internal_buffer, Internal_allocator> rmat{ mat };
+
+            rmat.hdr_.dims = new_dims;
+            rmat.hdr_.step = to_step(new_dims);
+
+            return rmat;
+        }
+
+        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> resized(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Dims& new_dims)
+        {
+            COMPUTOC_THROW_IF_FALSE(!mat.hdr_.is_submatrix, std::runtime_error, "resize for sub matrix is undefined");
+
+            if (mat.hdr_.dims == new_dims) {
+                return mat;
+            }
+
+            if (!mat.buffsp_) {
+                return mat;
+            }
+
+            if (product(new_dims) == product(mat.hdr_.dims)) {
+                return reshaped(mat, new_dims);
+            }
+
+            if (product(new_dims) < product(mat.hdr_.dims)) {
+                return Matrix<T, Internal_buffer, Internal_allocator>{ new_dims, mat.buffsp_->data().p };
+            }
+
+            Matrix<T, Internal_buffer, Internal_allocator> rmat{ new_dims };
+            for (std::size_t i = 0; i < mat.buffsp_->data().s; ++i) {
+                rmat.buffsp_->data().p[i] = mat.buffsp_->data().p[i];
+            }
+            return rmat;
         }
 
         /*struct Dimensions {
@@ -819,6 +817,8 @@ namespace computoc {
     using details::Matrix;
     using details::copy_of;
     using details::copy_to;
+    using details::reshaped;
+    using details::resized;
 }
 
 /*namespace computoc {
