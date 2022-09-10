@@ -361,12 +361,12 @@ TEST(Matrix_test, move_by_reference)
     EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = std::move(smat), std::runtime_error);
 }
 
-TEST(Matrix_test, copy_matrix)
+TEST(Matrix_test, copy_of)
 {
     using Integer_matrix = computoc::Matrix<int>;
 
     Integer_matrix empty_mat{};
-    Integer_matrix cempty_mat{ empty_mat.copy() };
+    Integer_matrix cempty_mat{ computoc::copy_of(empty_mat) };
     EXPECT_EQ(empty_mat, cempty_mat);
 
     const int data[] = {
@@ -376,93 +376,92 @@ TEST(Matrix_test, copy_matrix)
     computoc::Dims dims{ 1, 2, 3 };
     Integer_matrix smat{ dims, data };
 
-    Integer_matrix cmat{ smat.copy() };
+    Integer_matrix cmat{ computoc::copy_of(smat) };
     EXPECT_EQ(cmat, smat);
     cmat({ 0, 0 }) = 0;
     EXPECT_NE(cmat, smat);
 
-    Integer_matrix csubmat{ smat({0, 0, 0}, {1, 1, 1}).copy() };
+    Integer_matrix csubmat{ computoc::copy_of(smat({0, 0, 0}, {1, 1, 1})) };
     EXPECT_EQ(smat({ 0, 0, 0 }, { 1, 1, 1 }), csubmat);
     csubmat({ 0, 0 }) = 5;
     EXPECT_NE(smat({ 0, 0, 0 }, { 1, 1, 1 }), csubmat);
-}
-
-TEST(Matrix_test, copy_from)
-{
-    using Integer_matrix = computoc::Matrix<int>;
-
-    Integer_matrix empty_mat{};
-    Integer_matrix cempty_mat{};
-    cempty_mat.copy_from(Integer_matrix{});
-    EXPECT_EQ(empty_mat, cempty_mat);
-
-    const int data1[] = {
-        1, 2,
-        3, 4,
-        5, 6 };
-    computoc::Dims dims1{ 1, 2, 3 };
-    Integer_matrix mat1{ dims1, data1 };
-
-    const int data2[] = {
-        2, 4,
-        6, 8,
-        10, 12 };
-    computoc::Dims dims2{ 1, 2, 3 };
-    Integer_matrix mat2{ dims2, data2 };
-    EXPECT_NE(mat1, mat2);
-    mat1.copy_from(mat2);
-    EXPECT_EQ(mat1, mat2);
-
-    const int data3[] = {
-        10, 12,
-        6, 8,
-        10, 12 };
-    computoc::Dims dims3{ 1, 2, 3 };
-    Integer_matrix mat3{ dims3, data3 };
-    mat2({ 0, 0, 0 }, { 1, 2, 1 }).copy_from(mat2({ 0, 0, 2 }, { 1, 2, 1 }));
-    EXPECT_EQ(mat3, mat2);
-
-    EXPECT_THROW(mat2({ 0, 0, 0 }, { 1, 2, 1 }).copy_from(mat2), std::invalid_argument);
 }
 
 TEST(Matrix_test, copy_to)
 {
     using Integer_matrix = computoc::Matrix<int>;
 
-    Integer_matrix empty_mat{};
-    Integer_matrix cempty_mat{};
-    empty_mat.copy_to(cempty_mat);
-    EXPECT_EQ(empty_mat, cempty_mat);
+    { // backward cases - copy from other matrix to created matrix
+        Integer_matrix empty_mat{};
+        Integer_matrix cempty_mat{};
+        computoc::copy_to(Integer_matrix{}, cempty_mat);
+        EXPECT_EQ(empty_mat, cempty_mat);
 
-    const int data1[] = {
-        1, 2,
-        3, 4,
-        5, 6 };
-    computoc::Dims dims1{ 1, 2, 3 };
-    Integer_matrix mat1{ dims1, data1 };
+        const int data1[] = {
+            1, 2,
+            3, 4,
+            5, 6 };
+        computoc::Dims dims1{ 1, 2, 3 };
+        Integer_matrix mat1{ dims1, data1 };
 
-    const int data2[] = {
-        2, 4,
-        6, 8,
-        10, 12 };
-    computoc::Dims dims2{ 1, 2, 3 };
-    Integer_matrix mat2{ dims2, data2 };
-    EXPECT_NE(mat1, mat2);
-    mat2.copy_to(mat1);
-    EXPECT_EQ(mat1, mat2);
+        const int data2[] = {
+            2, 4,
+            6, 8,
+            10, 12 };
+        computoc::Dims dims2{ 1, 2, 3 };
+        Integer_matrix mat2{ dims2, data2 };
+        EXPECT_NE(mat1, mat2);
+        computoc::copy_to(mat2, mat1);
+        EXPECT_EQ(mat1, mat2);
 
-    const int data3[] = {
-        10, 12,
-        6, 8,
-        10, 12 };
-    computoc::Dims dims3{ 1, 2, 3 };
-    Integer_matrix mat3{ dims3, data3 };
-    mat2({ 0, 0, 2 }, { 1, 2, 1 }).copy_to(mat2({ 0, 0, 0 }, { 1, 2, 1 }));
-    EXPECT_EQ(mat3, mat2);
-    EXPECT_THROW(mat2({ 0, 0, 2 }, { 1, 2, 1 }).copy_to(mat2({ 0, 0, 0 }, { 1, 2, 2 })), std::runtime_error);
+        const int data3[] = {
+            10, 12,
+            6, 8,
+            10, 12 };
+        computoc::Dims dims3{ 1, 2, 3 };
+        Integer_matrix mat3{ dims3, data3 };
+        computoc::copy_to(mat2({ 0, 0, 2 }, { 1, 2, 1 }), mat2({ 0, 0, 0 }, { 1, 2, 1 }));
+        EXPECT_EQ(mat3, mat2);
 
-    mat3({ 0, 0, 0 }, { 1, 2, 1 }).copy_to(mat2);
-    EXPECT_EQ(mat3({ 0, 0, 0 }, { 1, 2, 1 }), mat2);
+        EXPECT_THROW(computoc::copy_to(mat2, mat2({ 0, 0, 0 }, { 1, 2, 1 })), std::runtime_error);
+    }
+
+    { // forward cases - copy from other matrix to created matrix
+        Integer_matrix empty_mat{};
+        Integer_matrix cempty_mat{};
+        computoc::copy_to(empty_mat, cempty_mat);
+        EXPECT_EQ(empty_mat, cempty_mat);
+
+        const int data1[] = {
+            1, 2,
+            3, 4,
+            5, 6 };
+        computoc::Dims dims1{ 1, 2, 3 };
+        Integer_matrix mat1{ dims1, data1 };
+
+        const int data2[] = {
+            2, 4,
+            6, 8,
+            10, 12 };
+        computoc::Dims dims2{ 1, 2, 3 };
+        Integer_matrix mat2{ dims2, data2 };
+        EXPECT_NE(mat1, mat2);
+        computoc::copy_to(mat2, mat1);
+        EXPECT_EQ(mat1, mat2);
+
+        const int data3[] = {
+            10, 12,
+            6, 8,
+            10, 12 };
+        computoc::Dims dims3{ 1, 2, 3 };
+        Integer_matrix mat3{ dims3, data3 };
+        computoc::copy_to(mat2({ 0, 0, 2 }, { 1, 2, 1 }), mat2({ 0, 0, 0 }, { 1, 2, 1 }));
+        EXPECT_EQ(mat3, mat2);
+        EXPECT_THROW(computoc::copy_to(mat2({ 0, 0, 2 }, { 1, 2, 1 }), mat2({ 0, 0, 0 }, { 1, 2, 2 })), std::runtime_error);
+
+        computoc::copy_to(mat3({ 0, 0, 0 }, { 1, 2, 1 }), mat2);
+        EXPECT_EQ(mat3({ 0, 0, 0 }, { 1, 2, 1 }), mat2);
+    }
 }
 
 TEST(Matrix_test, reshape)

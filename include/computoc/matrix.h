@@ -192,60 +192,13 @@ namespace computoc {
                 return slice;
             }
 
-            Matrix<T, Internal_buffer, Internal_allocator>& copy_from(const Matrix<T, Internal_buffer, Internal_allocator>& other)
-            {
-                COMPUTOC_THROW_IF_FALSE(hdr_.dims == other.hdr_.dims, std::invalid_argument, "non-equal dimensions");
+            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_to(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& dst);
+            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_to(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>&& dst);
 
-                for (std::size_t k = 0; k < hdr_.dims.p; ++k) {
-                    for (std::size_t i = 0; i < hdr_.dims.n; ++i) {
-                        for (std::size_t j = 0; j < hdr_.dims.m; ++j) {
-                            (*this)({ i, j, k }) = other({ i, j, k });
-                        }
-                    }
-                }
-
-                return *this;
-            }
-
-            Matrix<T, Internal_buffer, Internal_allocator>& copy_to(Matrix<T, Internal_buffer, Internal_allocator>& other)
-            {
-                if (hdr_.dims != other.hdr_.dims) {
-                    COMPUTOC_THROW_IF_FALSE(!other.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
-                    other.hdr_ = { hdr_.dims, hdr_.step, 0, false };
-                    other.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(product(hdr_.dims));
-                }
-
-                for (std::size_t k = 0; k < hdr_.dims.p; ++k) {
-                    for (std::size_t i = 0; i < hdr_.dims.n; ++i) {
-                        for (std::size_t j = 0; j < hdr_.dims.m; ++j) {
-                            other({ i, j, k }) = (*this)({ i, j, k });
-                        }
-                    }
-                }
-
-                return *this;
-            }
-            Matrix<T, Internal_buffer, Internal_allocator>& copy_to(Matrix<T, Internal_buffer, Internal_allocator>&& other)
-            {
-                return copy_to(other);
-            }
-
-            Matrix<T, Internal_buffer, Internal_allocator> copy()
-            {
-                Matrix<T, Internal_buffer, Internal_allocator> clone{};
-                clone.hdr_ = { hdr_.dims, hdr_.step, 0, false };
-                if (buffsp_) {
-                    clone.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(product(hdr_.dims));
-                    for (std::size_t k = 0; k < hdr_.dims.p; ++k) {
-                        for (std::size_t i = 0; i < hdr_.dims.n; ++i) {
-                            for (std::size_t j = 0; j < hdr_.dims.m; ++j) {
-                                clone({ i, j, k }) = (*this)({ i, j, k });
-                            }
-                        }
-                    }
-                }
-                return clone;
-            }
+            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_of(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat);
 
             Matrix<T, Internal_buffer, Internal_allocator>& reshape(const Dims& new_dims)
             {
@@ -321,6 +274,49 @@ namespace computoc {
             }
 
             return true;
+        }
+
+        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> copy_to(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>& dst)
+        {
+            if (src.hdr_.dims != dst.hdr_.dims) {
+                COMPUTOC_THROW_IF_FALSE(!dst.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
+                dst.hdr_ = { src.hdr_.dims, src.hdr_.step, 0, false };
+                dst.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(product(src.hdr_.dims));
+            }
+
+            for (std::size_t k = 0; k < src.hdr_.dims.p; ++k) {
+                for (std::size_t i = 0; i < src.hdr_.dims.n; ++i) {
+                    for (std::size_t j = 0; j < src.hdr_.dims.m; ++j) {
+                        dst({ i, j, k }) = src({ i, j, k });
+                    }
+                }
+            }
+
+            return dst;
+        }
+        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> copy_to(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>&& dst)
+        {
+            return copy_to(src, dst);
+        }
+
+        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> copy_of(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        {
+            Matrix<T, Internal_buffer, Internal_allocator> clone{};
+            clone.hdr_ = { mat.hdr_.dims, mat.hdr_.step, 0, false };
+            if (mat.buffsp_) {
+                clone.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(product(mat.hdr_.dims));
+                for (std::size_t k = 0; k < mat.hdr_.dims.p; ++k) {
+                    for (std::size_t i = 0; i < mat.hdr_.dims.n; ++i) {
+                        for (std::size_t j = 0; j < mat.hdr_.dims.m; ++j) {
+                            clone({ i, j, k }) = mat({ i, j, k });
+                        }
+                    }
+                }
+            }
+            return clone;
         }
 
         /*struct Dimensions {
@@ -821,6 +817,8 @@ namespace computoc {
     using details::to_buff_index;
 
     using details::Matrix;
+    using details::copy_of;
+    using details::copy_to;
 }
 
 /*namespace computoc {
