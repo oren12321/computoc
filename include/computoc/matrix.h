@@ -27,9 +27,9 @@ namespace computoc {
             return (dims.n * dims.m * dims.p == 0);
         }
 
-        inline bool operator==(const Dims& lhv, const Dims& rhv)
+        inline bool operator==(const Dims& lhs, const Dims& rhs)
         {
-            return (lhv.n == rhv.n && lhv.m == rhv.m && lhv.p == rhv.p);
+            return (lhs.n == rhs.n && lhs.m == rhs.m && lhs.p == rhs.p);
         }
 
         inline std::size_t product(const Dims& dims)
@@ -48,9 +48,9 @@ namespace computoc {
             return { dims.m, dims.n * dims.m };
         }
 
-        inline bool operator==(const Step& lhv, const Step& rhv)
+        inline bool operator==(const Step& lhs, const Step& rhs)
         {
-            return (lhv.right == rhv.right && lhv.in == rhv.in);
+            return (lhs.right == rhs.right && lhs.in == rhs.in);
         }
 
 
@@ -68,9 +68,9 @@ namespace computoc {
             return (offset + inds.k * step.in + inds.i * step.right + inds.j);
         }
 
-        inline bool operator==(const Inds& lhv, const Inds& rhv)
+        inline bool operator==(const Inds& lhs, const Inds& rhs)
         {
-            return (lhv.i == rhv.i && lhv.j == rhv.j && lhv.k == rhv.k);
+            return (lhs.i == rhs.i && lhs.j == rhs.j && lhs.k == rhs.k);
         }
 
         
@@ -316,152 +316,16 @@ namespace computoc {
             return rmat;
         }
 
-        /*struct Dimensions {
-            std::size_t n{ 0 };
-            std::size_t m{ 0 };
-        };
+        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline bool is_empty(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        {
+            return (!mat.data() || is_empty(mat.header().dims));
+        }
 
+        /*
         template <Arithmetic T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>>
         class Matrix {
         public:
-            Matrix(Dimensions dims, const T* data)
-                : dims_{ dims }, buff_(dims.n* dims.m, data)
-            {
-                COMPUTOC_THROW_IF_FALSE(dims_.n* dims_.m != 0, std::invalid_argument, "non-positive dimensions (n_ = %d, m_ = %d)", dims_.n, dims_.m);
-                COMPUTOC_THROW_IF_FALSE(data, std::invalid_argument, "data is null");
-                COMPUTOC_THROW_IF_FALSE(buff_.usable(), std::runtime_error, "internal buffer failed");
-            }
-
-            Matrix(Dimensions dims, const T& value)
-                : dims_{ dims }, buff_(dims.n* dims.m)
-            {
-                COMPUTOC_THROW_IF_FALSE(dims_.n* dims_.m != 0, std::invalid_argument, "non-positive dimensions (n_ = %d, m_ = %d)", dims_.n, dims_.m);
-                COMPUTOC_THROW_IF_FALSE(buff_.usable(), std::runtime_error, "internal buffer failed");
-
-                for (std::size_t i = 0; i < buff_.data().s; ++i) {
-                    buff_.data().p[i] = value;
-                }
-            }
-
-            Dimensions dimensions() const
-            {
-                return dims_;
-            }
-
-            const T& operator()(std::size_t i, std::size_t j) const
-            {
-                COMPUTOC_THROW_IF_FALSE(i < dims_.n&& j < dims_.m, std::out_of_range, "out of range indices (i = %d, j = %d)", i, j);
-                return buff_.data().p[i * dims_.m + j];
-            }
-
-            T& operator()(std::size_t i, std::size_t j)
-            {
-                COMPUTOC_THROW_IF_FALSE(i < dims_.n&& j < dims_.m, std::out_of_range, "out of range indices (i = %d, j = %d)", i, j);
-                return buff_.data().p[i * dims_.m + j];
-            }
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend bool operator==(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
-
-            Matrix<T, Internal_buffer> get_slice(std::size_t si, std::size_t sj, Dimensions dims) const
-            {
-                COMPUTOC_THROW_IF_FALSE(si + dims.n <= dims_.n && sj + dims.m <= dims_.m, std::out_of_range, "out of range indices (si = %d, sj = %d, dims.n = %d, dims.m = %d)", si, sj, dims.n, dims.m);
-
-                Matrix<T, Internal_buffer> slice{ dims, T{} };
-
-                for (std::size_t i = 0; i < dims.n; ++i) {
-                    for (std::size_t j = 0; j < dims.m; ++j) {
-                        slice.buff_.data().p[i * dims.m + j] = buff_.data().p[(si + i) * dims_.m + sj + j];
-                    }
-                }
-                return slice;
-            }
-
-            Matrix<T, Internal_buffer> get_slice(std::size_t pi, std::size_t pj) const
-            {
-                COMPUTOC_THROW_IF_FALSE(pi < dims_.n&& pj < dims_.m, std::out_of_range, "out of range indices (pi = %d, pj = %d)", pi, pj);
-
-                Matrix<T, Internal_buffer> slice{ {dims_.n - 1, dims_.m - 1}, T{} };
-
-                for (std::size_t i = 0; i < pi; ++i) {
-                    for (std::size_t j = 0; j < pj; ++j) {
-                        slice.buff_.data().p[i * slice.dims_.m + j] = buff_.data().p[i * dims_.m + j];
-                    }
-                }
-
-                for (std::size_t i = 0; i < pi; ++i) {
-                    for (std::size_t j = pj + 1; j < dims_.m; ++j) {
-                        slice.buff_.data().p[i * slice.dims_.m + (j - 1)] = buff_.data().p[i * dims_.m + j];
-                    }
-                }
-
-                for (std::size_t i = pi + 1; i < dims_.n; ++i) {
-                    for (std::size_t j = 0; j < pj; ++j) {
-                        slice.buff_.data().p[(i - 1) * slice.dims_.m + j] = buff_.data().p[i * dims_.m + j];
-                    }
-                }
-
-                for (std::size_t i = pi + 1; i < dims_.n; ++i) {
-                    for (std::size_t j = pj + 1; j < dims_.m; ++j) {
-                        slice.buff_.data().p[(i - 1) * slice.dims_.m + (j - 1)] = buff_.data().p[i * dims_.m + j];
-                    }
-                }
-
-                return slice;
-            }
-
-            Matrix<T, Internal_buffer>& set_slice(std::size_t si, std::size_t sj, const Matrix<T, Internal_buffer>& mat)
-            {
-                COMPUTOC_THROW_IF_FALSE(si + mat.dims_.n <= dims_.n && sj + mat.dims_.m <= dims_.m, std::out_of_range, "out of range indices (si = %d, sj = %d, mat.dims_.n = %d, mat.dims_.m = %d)", si, sj, mat.dims_.n, mat.dims_.m);
-
-                for (std::size_t i = 0; i < mat.dims_.n; ++i) {
-                    for (std::size_t j = 0; j < mat.dims_.m; ++j) {
-                        buff_.data().p[(si + i) * dims_.m + sj + j] = mat.buff_.data().p[i * mat.dims_.m + j];
-                    }
-                }
-                return *this;
-            }
-
-            Matrix<T, Internal_buffer> operator-()
-            {
-                Matrix<T, Internal_buffer> neg{ { dims_.n, dims_.m }, T{} };
-                for (std::size_t i = 0; i < buff_.data().s; ++i) {
-                    neg.buff_.data().p[i] = -buff_.data().p[i];
-                }
-                return neg;
-            }
-
-            Matrix<T, Internal_buffer> operator+()
-            {
-                return *this;
-            }
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend Matrix<T_o, Internal_buffer_o> operator+(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
-
-            Matrix<T, Internal_buffer>& operator+=(const Matrix<T, Internal_buffer>& other)
-            {
-                COMPUTOC_THROW_IF_FALSE(dims_.n == other.dims_.n && dims_.m == other.dims_.m, std::invalid_argument, "matrices size mismatch (dims_.n = %d, other.dims_.n = %d, dims_.m = %d, other.dims_.m = %d)", dims_.n, other.dims_.n, dims_.m, other.dims_.m);
-
-                for (std::size_t i = 0; i < buff_.data().s; ++i) {
-                    buff_.data().p[i] += other.buff_.data().p[i];
-                }
-                return *this;
-            }
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend Matrix<T_o, Internal_buffer_o> operator-(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
-
-            Matrix<T, Internal_buffer>& operator-=(const Matrix<T, Internal_buffer>& other)
-            {
-                COMPUTOC_THROW_IF_FALSE(dims_.n == other.dims_.n && dims_.m == other.dims_.m, std::invalid_argument, "matrices size mismatch (dims_.n = %d, other.dims_.n = %d, dims_.m = %d, other.dims_.m = %d)", dims_.n, other.dims_.n, dims_.m, other.dims_.m);
-
-                for (std::size_t i = 0; i < buff_.data().s; ++i) {
-                    buff_.data().p[i] -= other.buff_.data().p[i];
-                }
-                return *this;
-            }
-
             template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> operator*(const Matrix<T_o, Internal_buffer_o>& lhs, const T_o& rhs);
 
@@ -575,47 +439,6 @@ namespace computoc {
             Dimensions dims_{};
             Internal_buffer buff_{};
         };
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline bool operator==(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
-        {
-            if (lhs.dims_.n != rhs.dims_.n || lhs.dims_.m != rhs.dims_.m) {
-                return false;
-            }
-
-            for (std::size_t i = 0; i < lhs.buff_.data().s; ++i) {
-                if (!is_equal(lhs.buff_.data().p[i], rhs.buff_.data().p[i])) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline Matrix<T, Internal_buffer> operator+(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
-        {
-            COMPUTOC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n && lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "matrices size mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d, lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.n, rhs.dims_.n, lhs.dims_.m, rhs.dims_.m);
-
-            Matrix<T, Internal_buffer> sum{ lhs };
-
-            for (std::size_t i = 0; i < sum.buff_.data().s; ++i) {
-                sum.buff_.data().p[i] += rhs.buff_.data().p[i];
-            }
-            return sum;
-        }
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline Matrix<T, Internal_buffer> operator-(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
-        {
-            COMPUTOC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n && lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "matrices size mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d, lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.n, rhs.dims_.n, lhs.dims_.m, rhs.dims_.m);
-
-            Matrix<T, Internal_buffer> subtraction{ lhs };
-
-            for (std::size_t i = 0; i < subtraction.buff_.data().s; ++i) {
-                subtraction.buff_.data().p[i] -= rhs.buff_.data().p[i];
-            }
-            return subtraction;
-        }
 
         template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> operator*(const Matrix<T, Internal_buffer>& lhs, const T& rhs)
