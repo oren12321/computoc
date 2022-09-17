@@ -146,6 +146,64 @@ namespace computoc {
 
             return subtraction;
         }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator>& operator*=(Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
+        {
+            COMPUTOC_THROW_IF_FALSE(lhs.header().dims.m == rhs.header().dims.n && lhs.header().dims.p == rhs.header().dims.p, std::invalid_argument, "matrices dimensions are invalid for multiplication");
+
+            Matrix<T, Internal_buffer> multiplication{ {lhs.header().dims.n, rhs.header().dims.m, rhs.header().dims.p}, T{} };
+
+            for (std::size_t t = 0; t < lhs.header().dims.p; ++t) {
+
+                for (std::size_t i = 0; i < multiplication.header().dims.n; ++i) {
+                    for (std::size_t k = 0; k < lhs.header().dims.m; ++k) {
+                        for (std::size_t j = 0; j < multiplication.header().dims.m; ++j) {
+                            multiplication({ i, j, t }) += lhs({ i, k, t }) * rhs({ k, j, t });
+                        }
+                    }
+                }
+
+            }
+
+            lhs = std::move(multiplication);
+            return lhs;
+        }
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
+        {
+            Matrix<T, Internal_buffer, Internal_allocator> multiplication{ copy_of(lhs) };
+            multiplication *= rhs;
+
+            return multiplication;
+        }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator>& operator*=(Matrix<T, Internal_buffer, Internal_allocator>& lhs, const T& rhs)
+        {
+            for (std::size_t k = 0; k < lhs.header().dims.p; ++k) {
+                for (std::size_t i = 0; i < lhs.header().dims.n; ++i) {
+                    for (std::size_t j = 0; j < lhs.header().dims.m; ++j) {
+                        lhs({ i, j, k }) *= rhs;
+                    }
+                }
+            }
+
+            return lhs;
+        }
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const T& rhs)
+        {
+            Matrix<T, Internal_buffer, Internal_allocator> multiplication{ copy_of(lhs) };
+            multiplication *= rhs;
+
+            return multiplication;
+        }
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const T& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
+        {
+            return rhs * lhs;
+        }
     }
 
     using details::excluded;

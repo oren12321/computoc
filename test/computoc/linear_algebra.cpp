@@ -186,3 +186,58 @@ TEST(LA_test, matrix_can_be_subtracted_from_another_matrix)
     EXPECT_THROW((mat - Integer_matrix{ {1, 1}, 0 }), std::invalid_argument);
 }
 
+TEST(LA_test, matrix_can_be_multiplied_by_a_constant)
+{
+    using Integer_matrix = computoc::Matrix<int>;
+
+    const int data[] = {
+        1, 2, 3,
+        4, 5, 6 };
+    Integer_matrix mat{ {1, 3, 2}, data };
+
+    const int rdata[] = {
+        2, 4, 6,
+        8, 10, 12 };
+    Integer_matrix rmat{ {1, 3, 2}, rdata };
+
+    EXPECT_EQ(mat * 2, rmat);
+    EXPECT_EQ(2 * mat, rmat);
+
+    mat *= 2;
+    EXPECT_EQ(mat, rmat);
+}
+
+TEST(LA_test, matrix_can_be_multiplied_by_another_matrix)
+{
+    using Integer_matrix = computoc::Matrix<int>;
+
+    const int data1[] = {
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9,
+        10, 11, 12};
+    Integer_matrix mat1{ {2, 3, 2}, data1 };
+
+    const int data2[] = {
+        1, 4,
+        2, 5,
+        3, 6,
+        7, 10,
+        8, 11,
+        9, 12};
+    Integer_matrix mat2{ {3, 2, 2}, data2 };
+
+    const int rdata[] = {
+        14, 32,
+        32, 77,
+        194, 266,
+        266, 365};
+    Integer_matrix rmat{ {2, 2, 2}, rdata };
+
+    EXPECT_EQ(mat1 * mat2, rmat);
+
+    mat1 *= mat2;
+    EXPECT_EQ(mat1, rmat);
+
+    EXPECT_THROW(mat2 * mat2, std::invalid_argument);
+}

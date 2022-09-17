@@ -326,40 +326,6 @@ namespace computoc {
         template <Arithmetic T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>>
         class Matrix {
         public:
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend Matrix<T_o, Internal_buffer_o> operator*(const Matrix<T_o, Internal_buffer_o>& lhs, const T_o& rhs);
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend Matrix<T_o, Internal_buffer_o> operator*(const T_o& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
-
-            Matrix<T, Internal_buffer>& operator*=(const T& other)
-            {
-                for (std::size_t i = 0; i < buff_.data().s; ++i) {
-                    buff_.data().p[i] *= other;
-                }
-                return *this;
-            }
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend Matrix<T_o, Internal_buffer_o> operator*(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
-
-            Matrix<T, Internal_buffer>& operator*=(const Matrix<T, Internal_buffer>& other)
-            {
-                COMPUTOC_THROW_IF_FALSE(dims_.m == other.dims_.n, std::invalid_argument, "matrices size mismatch (dims_.m = %d, other.dims_.n = %d)", dims_.m, other.dims_.n);
-
-                Matrix<T, Internal_buffer> multiplication{ {dims_.n, other.dims_.m}, T{} };
-
-                for (std::size_t i = 0; i < multiplication.dims_.n; ++i) {
-                    for (std::size_t k = 0; k < dims_.m; ++k) {
-                        for (std::size_t j = 0; j < multiplication.dims_.m; ++j) {
-                            multiplication.buff_.data().p[i * multiplication.dims_.m + j] += buff_.data().p[i * dims_.m + k] * other.buff_.data().p[k * other.dims_.m + j];
-                        }
-                    }
-                }
-                *this = std::move(multiplication);
-                return *this;
-            }
-
             Matrix<T, Internal_buffer> transposed() const
             {
                 Matrix<T, Internal_buffer> tmat{ {dims_.m, dims_.n}, T{} };
@@ -439,40 +405,6 @@ namespace computoc {
             Dimensions dims_{};
             Internal_buffer buff_{};
         };
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline Matrix<T, Internal_buffer> operator*(const Matrix<T, Internal_buffer>& lhs, const T& rhs)
-        {
-            Matrix<T, Internal_buffer> multiplication{ lhs };
-
-            for (std::size_t i = 0; i < multiplication.buff_.data().s; ++i) {
-                multiplication.buff_.data().p[i] *= rhs;
-            }
-            return multiplication;
-        }
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline Matrix<T, Internal_buffer> operator*(const T& lhs, const Matrix<T, Internal_buffer>& rhs)
-        {
-            return operator*(rhs, lhs);
-        }
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline Matrix<T, Internal_buffer> operator*(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
-        {
-            COMPUTOC_THROW_IF_FALSE(lhs.dims_.m == rhs.dims_.n, std::invalid_argument, "matrices size mismatch (lhs.dims_.m = %d, rhs.dims_.n = %d)", lhs.dims_.m, rhs.dims_.n);
-
-            Matrix<T, Internal_buffer> multiplication{ {lhs.dims_.n, rhs.dims_.m}, T{} };
-
-            for (std::size_t i = 0; i < multiplication.dims_.n; ++i) {
-                for (std::size_t k = 0; k < lhs.dims_.m; ++k) {
-                    for (std::size_t j = 0; j < multiplication.dims_.m; ++j) {
-                        multiplication.buff_.data().p[i * multiplication.dims_.m + j] += lhs.buff_.data().p[i * lhs.dims_.m + k] * rhs.buff_.data().p[k * rhs.dims_.m + j];
-                    }
-                }
-            }
-            return multiplication;
-        }
 
         template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline T determinant(const Matrix<T, Internal_buffer>& mat)

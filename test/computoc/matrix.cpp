@@ -539,63 +539,6 @@ TEST(Matrix_test, resize)
 }
 
 /*
-TEST(Matrix_test, can_be_multiplied_by_a_constant)
-{
-    using Integer_matrix = computoc::Matrix<int>;
-
-    const int data[] = {
-        1, 2, 3,
-        4, 5, 6 };
-    const std::size_t n = 2;
-    const std::size_t m = 3;
-    Integer_matrix mat{ {n, m}, data };
-
-    const int rdata[] = {
-        2, 4, 6,
-        8, 10, 12 };
-    Integer_matrix rmat{ {n, m}, rdata };
-
-    EXPECT_EQ(mat * 2, rmat);
-    EXPECT_EQ(2 * mat, rmat);
-
-    mat *= 2;
-    EXPECT_EQ(mat, rmat);
-}
-
-TEST(Matrix_test, can_be_multiplied_by_another_matrix)
-{
-    using Integer_matrix = computoc::Matrix<int>;
-
-    const int data1[] = {
-        1, 2, 3,
-        4, 5, 6 };
-    const std::size_t n1 = 2;
-    const std::size_t m1 = 3;
-    Integer_matrix mat1{ {n1, m1}, data1 };
-
-    const int data2[] = {
-        1, 4,
-        2, 5,
-        3, 6 };
-    const std::size_t n2 = 3;
-    const std::size_t m2 = 2;
-    Integer_matrix mat2{ {n2, m2}, data2 };
-
-    const int rdata[] = {
-        14, 32,
-        32, 77};
-    const std::size_t rn = 2;
-    const std::size_t rm = 2;
-    Integer_matrix rmat{ {rn, rm}, rdata };
-
-    EXPECT_EQ(mat1 * mat2, rmat);
-    
-    mat1 *= mat2;
-    EXPECT_EQ(mat1, rmat);
-
-    EXPECT_THROW(mat2 * mat2, std::invalid_argument);
-}
-
 TEST(Matrix_test, can_be_transposed)
 {
     using Integer_matrix = computoc::Matrix<int>;
