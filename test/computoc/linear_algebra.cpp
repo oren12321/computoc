@@ -241,3 +241,24 @@ TEST(LA_test, matrix_can_be_multiplied_by_another_matrix)
 
     EXPECT_THROW(mat2 * mat2, std::invalid_argument);
 }
+
+TEST(LA_test, matrix_can_be_transposed)
+{
+    using Integer_matrix = computoc::Matrix<int>;
+
+    const int data[] = {
+    1, 2, 3,
+    4, 5, 6 };
+    Integer_matrix mat{ {1, 3, 2}, data };
+
+    const int rdata[] = {
+        1,
+        2,
+        3,
+        4,
+        5,
+        6 };
+    Integer_matrix rmat{ {3, 1, 2}, rdata };
+
+    EXPECT_EQ(transposed(mat), rmat);
+}

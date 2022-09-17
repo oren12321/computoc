@@ -539,31 +539,6 @@ TEST(Matrix_test, resize)
 }
 
 /*
-TEST(Matrix_test, can_be_transposed)
-{
-    using Integer_matrix = computoc::Matrix<int>;
-
-    const int data[] = {
-    1, 2, 3,
-    4, 5, 6 };
-    const std::size_t n = 2;
-    const std::size_t m = 3;
-    Integer_matrix mat{ {n, m}, data };
-
-    const int rdata[] = {
-        1, 4,
-        2, 5,
-        3, 6 };
-    const std::size_t rn = 3;
-    const std::size_t rm = 2;
-    Integer_matrix rmat{ {rn, rm}, rdata };
-
-    EXPECT_EQ(mat.transposed(), rmat);
-
-    mat.transpose();
-    EXPECT_EQ(mat, rmat);
-}
-
 TEST(Matrix_test, have_determinant_if_squared)
 {
     using Integer_matrix = computoc::Matrix<int>;

@@ -204,9 +204,27 @@ namespace computoc {
         {
             return rhs * lhs;
         }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> transposed(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        {
+            Matrix<T, Internal_buffer, Internal_allocator> tmat{ reshaped(mat, {mat.header().dims.m, mat.header().dims.n, mat.header().dims.p}) };
+
+            for (std::size_t k = 0; k < tmat.header().dims.p; ++k) {
+                for (std::size_t i = 0; i < tmat.header().dims.n; ++i) {
+                    for (std::size_t j = 0; j < tmat.header().dims.m; ++j) {
+                        tmat({ i, j, k }) = mat({ j, i, k });
+                    }
+                }
+            }
+
+            return tmat;
+        }
+
     }
 
     using details::excluded;
+    using details::transposed;
 }
 
 #endif // COMPUTOC_LINEAR_ALGEBRA_H
