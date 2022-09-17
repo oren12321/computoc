@@ -221,10 +221,49 @@ namespace computoc {
             return tmat;
         }
 
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline T determinant2d_recursive(const Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t k)
+        {
+            std::size_t n = mat.header().dims.n;
+
+            if (n == 1) {
+                return mat({ 0, 0, k });
+            }
+
+            if (n == 2) {
+                return mat({ 0, 0, k }) * mat({ 1, 1, k }) - mat({ 0, 1, k }) * mat({ 1, 0, k });
+            }
+
+            int sign = T{ 1 };
+            T d{ 0 };
+            for (std::size_t j = 0; j < n; ++j) {
+                T p{ mat({0, j, k}) };
+                if (!is_equal(p, T{ 0 })) {
+                    d += sign * p * determinant2d_recursive<T, Internal_buffer, Internal_allocator>(excluded(mat, { 0, j }), k);
+                }
+                sign *= T{ -1 };
+            }
+            return d;
+        }
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> determinant(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        {
+            COMPUTOC_THROW_IF_FALSE(!is_empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
+            COMPUTOC_THROW_IF_FALSE(mat.header().dims.m == mat.header().dims.n, std::invalid_argument, "not squared matrix");
+
+            Matrix<T, Internal_buffer, Internal_allocator> det{ {1, 1, mat.header().dims.p} };
+
+            for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
+                det({ 0, 0, k }) = determinant2d_recursive(mat, k);
+            }
+
+            return det;
+        }
     }
 
     using details::excluded;
     using details::transposed;
+    using details::determinant;
 }
 
 #endif // COMPUTOC_LINEAR_ALGEBRA_H

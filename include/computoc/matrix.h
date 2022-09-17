@@ -326,34 +326,6 @@ namespace computoc {
         template <Arithmetic T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>>
         class Matrix {
         public:
-            Matrix<T, Internal_buffer> transposed() const
-            {
-                Matrix<T, Internal_buffer> tmat{ {dims_.m, dims_.n}, T{} };
-
-                for (std::size_t i = 0; i < tmat.dims_.n; ++i) {
-                    for (std::size_t j = 0; j < tmat.dims_.m; ++j) {
-                        tmat.buff_.data().p[i * tmat.dims_.m + j] = buff_.data().p[j * dims_.m + i];
-                    }
-                }
-                return tmat;
-            }
-
-            Matrix<T, Internal_buffer>& transpose()
-            {
-                Matrix<T, Internal_buffer> tmat{ {dims_.m, dims_.n}, T{} };
-
-                for (std::size_t i = 0; i < tmat.dims_.n; ++i) {
-                    for (std::size_t j = 0; j < tmat.dims_.m; ++j) {
-                        tmat.buff_.data().p[i * tmat.dims_.m + j] = buff_.data().p[j * dims_.m + i];
-                    }
-                }
-                *this = std::move(tmat);
-                return *this;
-            }
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend T_o determinant(const Matrix<T_o, Internal_buffer_o>& mat);
-
             template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> inverse(const Matrix<T_o, Internal_buffer_o>& mat);
 
@@ -405,33 +377,6 @@ namespace computoc {
             Dimensions dims_{};
             Internal_buffer buff_{};
         };
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline T determinant(const Matrix<T, Internal_buffer>& mat)
-        {
-            COMPUTOC_THROW_IF_FALSE(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not square matrix");
-
-            std::size_t n = mat.dims_.n;
-
-            if (n == 1) {
-                return mat.buff_.data().p[0];
-            }
-
-            if (n == 2) {
-                return mat.buff_.data().p[0] * mat.buff_.data().p[3] - mat.buff_.data().p[1] * mat.buff_.data().p[2];
-            }
-
-            int sign = T{ 1 };
-            T d{ 0 };
-            for (std::size_t j = 0; j < n; ++j) {
-                T p{ mat.buff_.data().p[j] };
-                if (!is_equal(p, T{ 0 })) {
-                    d += sign * p * determinant<T, Internal_buffer>(mat.get_slice(0, j));
-                }
-                sign *= T{ -1 };
-            }
-            return d;
-        }
 
         template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> inverse(const Matrix<T, Internal_buffer>& mat)

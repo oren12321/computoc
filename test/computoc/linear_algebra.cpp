@@ -262,3 +262,43 @@ TEST(LA_test, matrix_can_be_transposed)
 
     EXPECT_EQ(transposed(mat), rmat);
 }
+
+TEST(LA_test, matrix_have_determinant_if_squared)
+{
+    using Integer_matrix = computoc::Matrix<int>;
+
+    const int data[] = {
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16,
+        17, 18, 19, 20,
+        21, 22, 23, 24,
+        25, 26, 27, 28,
+        29, 30, 31, 32 };
+    const std::size_t n = 4;
+    Integer_matrix mat{ {4, 4, 2}, data };
+
+    const int rdata1[] = {
+        1,
+        17 };
+    Integer_matrix rmat1{ {1, 1, 2}, rdata1 };
+    EXPECT_EQ(rmat1, computoc::determinant(mat({ 0, 0, 0 }, {1, 1, 2})));
+
+    const int rdata2[] = {
+        -4,
+        -4 };
+    Integer_matrix rmat2{ {1, 1, 2}, rdata2 };
+    EXPECT_EQ(rmat2, computoc::determinant(mat({ 0, 0, 0 }, { 2, 2, 2 })));
+
+    const int rdata3[] = {
+        0,
+        0};
+    Integer_matrix rmat3{ {1, 1, 2}, rdata3 };
+    EXPECT_EQ(rmat3, computoc::determinant(mat));
+
+    EXPECT_THROW(computoc::determinant(Integer_matrix{}), std::invalid_argument);
+
+    EXPECT_THROW(computoc::determinant(Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::determinant(Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
+}

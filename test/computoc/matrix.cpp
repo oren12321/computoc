@@ -539,27 +539,6 @@ TEST(Matrix_test, resize)
 }
 
 /*
-TEST(Matrix_test, have_determinant_if_squared)
-{
-    using Integer_matrix = computoc::Matrix<int>;
-
-    const int data[] = {
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        9, 10, 11, 12,
-        13, 14, 15, 16 };
-    const std::size_t n = 4;
-    Integer_matrix mat{ {n, n}, data };
-
-    EXPECT_EQ(1, computoc::determinant(mat.get_slice(0, 0, { 1, 1 })));
-    EXPECT_EQ(-4, computoc::determinant(mat.get_slice(0, 0, { 2, 2 })));
-    EXPECT_EQ(0, computoc::determinant(mat.get_slice(0, 0, { 3, 3 })));
-    EXPECT_EQ(0, computoc::determinant(mat));
-
-    EXPECT_THROW(computoc::determinant(Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
-    EXPECT_THROW(computoc::determinant(Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
-}
-
 TEST(Matrix_test, have_inverse_if_squared_and_zero_determinant)
 {
     using Double_matrix = computoc::Matrix<double>;
