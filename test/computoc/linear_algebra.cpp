@@ -248,17 +248,19 @@ TEST(LA_test, matrix_can_be_transposed)
 
     const int data[] = {
     1, 2, 3,
-    4, 5, 6 };
-    Integer_matrix mat{ {1, 3, 2}, data };
+    4, 5, 6,
+    7, 8, 9,
+    10, 11, 12};
+    Integer_matrix mat{ {2, 3, 2}, data };
 
     const int rdata[] = {
-        1,
-        2,
-        3,
-        4,
-        5,
-        6 };
-    Integer_matrix rmat{ {3, 1, 2}, rdata };
+        1, 4,
+        2, 5,
+        3, 6,
+        7, 10,
+        8, 11,
+        9, 12 };
+    Integer_matrix rmat{ {3, 2, 2}, rdata };
 
     EXPECT_EQ(transposed(mat), rmat);
 }
@@ -276,7 +278,6 @@ TEST(LA_test, matrix_have_determinant_if_squared)
         21, 22, 23, 24,
         25, 26, 27, 28,
         29, 30, 31, 32 };
-    const std::size_t n = 4;
     Integer_matrix mat{ {4, 4, 2}, data };
 
     const int rdata1[] = {
@@ -301,4 +302,35 @@ TEST(LA_test, matrix_have_determinant_if_squared)
 
     EXPECT_THROW(computoc::determinant(Integer_matrix{ {1, 2}, 0 }), std::invalid_argument);
     EXPECT_THROW(computoc::determinant(Integer_matrix{ {2, 1}, 0 }), std::invalid_argument);
+}
+
+TEST(LA_test, matrix_have_inverse_if_squared_and_no_zero_determinant)
+{
+    using Double_matrix = computoc::Matrix<double>;
+
+    const double data[] = {
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16 };
+    const std::size_t n = 4;
+    Double_matrix mat{ {n, n}, data };
+
+    const double inv_data1[] = {
+        -1.5, 0.5,
+        1.25, -0.25 };
+    const std::size_t in1 = 2;
+    Double_matrix inv_mat1{ {in1, in1}, inv_data1 };
+    EXPECT_EQ(inv_mat1, computoc::inversed(mat({ 0, 0 }, { 2, 2 })));
+
+    const double unit_data2[] = {
+    1, 0,
+    0, 1 };
+    const std::size_t un1 = 2;
+    Double_matrix unit_mat2{ {un1, un1}, unit_data2 };
+    EXPECT_EQ(unit_mat2, inv_mat1 * mat({ 0, 0 }, { 2, 2 }));
+
+    EXPECT_THROW(computoc::inversed(Double_matrix{ {1, 2}, 0.0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::inversed(Double_matrix{ {2, 1}, 0.0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::inversed(mat), std::invalid_argument);
 }

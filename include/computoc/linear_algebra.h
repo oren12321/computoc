@@ -112,7 +112,7 @@ namespace computoc {
         }
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator+(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
-        {        
+        {
             COMPUTOC_THROW_IF_FALSE(lhs.header().dims == rhs.header().dims, std::invalid_argument, "matrix should have same dimensions");
 
             Matrix<T, Internal_buffer, Internal_allocator> addition{ copy_of(lhs) };
@@ -208,7 +208,7 @@ namespace computoc {
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> transposed(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
-            Matrix<T, Internal_buffer, Internal_allocator> tmat{ reshaped(mat, {mat.header().dims.m, mat.header().dims.n, mat.header().dims.p}) };
+            Matrix<T, Internal_buffer, Internal_allocator> tmat{ {mat.header().dims.m, mat.header().dims.n, mat.header().dims.p} };
 
             for (std::size_t k = 0; k < tmat.header().dims.p; ++k) {
                 for (std::size_t i = 0; i < tmat.header().dims.n; ++i) {
@@ -259,11 +259,42 @@ namespace computoc {
 
             return det;
         }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> inversed(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        {
+            COMPUTOC_THROW_IF_FALSE(!is_empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
+            COMPUTOC_THROW_IF_FALSE(mat.header().dims.m == mat.header().dims.n, std::invalid_argument, "not squared matrix");
+
+            std::size_t n = mat.header().dims.n;
+
+            Matrix<T, Internal_buffer, Internal_allocator> d{ determinant(mat) };
+            for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
+                COMPUTOC_THROW_IF_FALSE(!is_equal(d({ 0, 0, k }), T{ 0 }), std::invalid_argument, "zero determinant");
+            }
+
+            Matrix<T, Internal_buffer, Internal_allocator> inv{ mat.header().dims };
+
+            for (std::size_t i = 0; i < n; ++i) {
+                T sign = (i + 1) % 2 == 0 ? T{ -1 } : T{ 1 };
+                for (std::size_t j = 0; j < n; ++j) {
+                    copy_to(sign * determinant(excluded(mat, { i, j })), inv({ i, j, 0 }, { 1, 1, mat.header().dims.p }));
+                    sign *= T{ -1 };
+                }
+            }
+
+            for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
+                (Matrix<T, Internal_buffer, Internal_allocator>&)(inv({ 0, 0, k }, {inv.header().dims.n, inv.header().dims.m, 1})) *= T{ 1 / d({0, 0, k}) };
+            }
+
+            return transposed(inv);
+        }
     }
 
     using details::excluded;
     using details::transposed;
     using details::determinant;
+    using details::inversed;
 }
 
 #endif // COMPUTOC_LINEAR_ALGEBRA_H
