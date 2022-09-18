@@ -327,9 +327,6 @@ namespace computoc {
         class Matrix {
         public:
             template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend Matrix<T_o, Internal_buffer_o> inverse(const Matrix<T_o, Internal_buffer_o>& mat);
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> merge_horizontal(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
             template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
@@ -377,30 +374,6 @@ namespace computoc {
             Dimensions dims_{};
             Internal_buffer buff_{};
         };
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline Matrix<T, Internal_buffer> inverse(const Matrix<T, Internal_buffer>& mat)
-        {
-            COMPUTOC_THROW_IF_FALSE(mat.dims_.n == mat.dims_.m, std::invalid_argument, "not square matrix");
-            std::size_t n = mat.dims_.n;
-
-            T d{ determinant(mat) };
-            COMPUTOC_THROW_IF_FALSE(!is_equal(d, T{ 0 }), std::invalid_argument, "zero determinant");
-
-            Matrix<T, Internal_buffer> inv(mat.dims_, T{});
-
-            for (std::size_t i = 0; i < n; ++i) {
-                T sign = (i + 1) % 2 == 0 ? T{ -1 } : T{ 1 };
-                for (std::size_t j = 0; j < n; ++j) {
-                    inv.buff_.data().p[i * n + j] = sign * determinant(mat.get_slice(i, j));
-                    sign *= T{ -1 };
-                }
-            }
-
-            inv.transpose();
-
-            return T{ 1 / d } *inv;
-        }
 
         template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_horizontal(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)

@@ -309,28 +309,36 @@ TEST(LA_test, matrix_have_inverse_if_squared_and_no_zero_determinant)
     using Double_matrix = computoc::Matrix<double>;
 
     const double data[] = {
+        1, 2,
+        5, 6,
+        9, 10,
+        13, 14 };
+    Double_matrix mat{ {2, 2, 2}, data };
+
+    const double inv_data1[] = {
+        -1.5, 0.5,
+        1.25, -0.25,
+        -3.5, 2.5,
+        3.25, -2.25 };
+    Double_matrix inv_mat1{ {2, 2, 2}, inv_data1 };
+    EXPECT_EQ(inv_mat1, computoc::inversed(mat));
+
+    const double unit_data2[] = {
+        1, 0,
+        0, 1,
+        1, 0,
+        0, 1 };
+    Double_matrix unit_mat2{ {2, 2, 2}, unit_data2 };
+    EXPECT_EQ(unit_mat2, inv_mat1 * mat);
+
+    EXPECT_THROW(computoc::inversed(Double_matrix{ {1, 2}, 0.0 }), std::invalid_argument);
+    EXPECT_THROW(computoc::inversed(Double_matrix{ {2, 1}, 0.0 }), std::invalid_argument);
+
+    const double data2[] = {
         1, 2, 3, 4,
         5, 6, 7, 8,
         9, 10, 11, 12,
         13, 14, 15, 16 };
-    const std::size_t n = 4;
-    Double_matrix mat{ {n, n}, data };
-
-    const double inv_data1[] = {
-        -1.5, 0.5,
-        1.25, -0.25 };
-    const std::size_t in1 = 2;
-    Double_matrix inv_mat1{ {in1, in1}, inv_data1 };
-    EXPECT_EQ(inv_mat1, computoc::inversed(mat({ 0, 0 }, { 2, 2 })));
-
-    const double unit_data2[] = {
-    1, 0,
-    0, 1 };
-    const std::size_t un1 = 2;
-    Double_matrix unit_mat2{ {un1, un1}, unit_data2 };
-    EXPECT_EQ(unit_mat2, inv_mat1 * mat({ 0, 0 }, { 2, 2 }));
-
-    EXPECT_THROW(computoc::inversed(Double_matrix{ {1, 2}, 0.0 }), std::invalid_argument);
-    EXPECT_THROW(computoc::inversed(Double_matrix{ {2, 1}, 0.0 }), std::invalid_argument);
-    EXPECT_THROW(computoc::inversed(mat), std::invalid_argument);
+    Double_matrix mat2{ {4, 4}, data2 };
+    EXPECT_THROW(computoc::inversed(mat2), std::invalid_argument);
 }
