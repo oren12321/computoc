@@ -289,12 +289,107 @@ namespace computoc {
 
             return transposed(inv);
         }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> swap_rows(Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t ri1, std::size_t ri2)
+        {
+            COMPUTOC_THROW_IF_FALSE(ri1 < mat.header().dims.n && ri2 < mat.header().dims.n, std::out_of_range, "out of range indices");
+
+            for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
+                for (std::size_t j = 0; j < mat.header().dims.m; ++j) {
+                    T tmp{ mat({ri1, j, k}) };
+                    mat({ ri1, j, k }) = mat({ ri2, j, k });
+                    mat({ ri2, j, k }) = tmp;
+                }
+            }
+
+            return mat;
+        }
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> swap_rows(Matrix<T, Internal_buffer, Internal_allocator>&& mat, std::size_t ri1, std::size_t ri2)
+        {
+            return swap_rows<T, Internal_buffer, Internal_allocator>(std::ref(mat), ri1, ri2);
+        }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> add_to_row(Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t sri, std::size_t dri, const T& factor = T{1})
+        {
+            COMPUTOC_THROW_IF_FALSE(sri < mat.header().dims.n&& dri < mat.header().dims.n, std::out_of_range, "out of range indices");
+
+            for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
+                for (std::size_t j = 0; j < mat.header().dims.m; ++j) {
+                    mat({ dri, j, k }) += (factor * mat({ sri, j, k }));
+                }
+            }
+
+            return mat;
+        }
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> add_to_row(Matrix<T, Internal_buffer, Internal_allocator>&& mat, std::size_t sri, std::size_t dri, const T& factor = T{ 1 })
+        {
+            return add_to_row<T, Internal_buffer, Internal_allocator>(std::ref(mat), sri, dri, factor);
+        }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> multiply_row(Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t ri, const T& factor)
+        {
+            COMPUTOC_THROW_IF_FALSE(ri < mat.header().dims.n, std::out_of_range, "out of range indices");
+
+            for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
+                for (std::size_t j = 0; j < mat.header().dims.m; ++j) {
+                    mat({ ri, j, k }) *= factor;
+                }
+            }
+
+            return mat;
+        }
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> multiply_row(Matrix<T, Internal_buffer, Internal_allocator>&& mat, std::size_t ri, const T& factor)
+        {
+            return multiply_row<T, Internal_buffer, Internal_allocator>(std::ref(mat), ri, factor);
+        }
+
+        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        inline Matrix<T, Internal_buffer, Internal_allocator> reduced_row_echelon_form(Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        {
+            Matrix<T, Internal_buffer, Internal_allocator> rref_mat{ mat };
+
+            std::size_t r = mat.header().dims.n > mat.header().dims.m ? mat.header().dims.m : mat.header().dims.n;
+
+            for (std::size_t t = 0; t < mat.header().dims.p; ++t) {
+
+                for (std::size_t k = 0; k < r; ++k) {
+                    if (is_equal(rref_mat({ k, k, t }), T{ 0 })) {
+                        for (std::size_t i = k + 1; i < mat.header().dims.n; ++i) {
+                            if (!is_equal(rref_mat({ i, k, t }), T{ 0 })) {
+                                swap_rows(rref_mat({ 0, 0, t }, { mat.header().dims.n, mat.header().dims.m, 1 }), k, i);
+                            }
+                        }
+                    }
+                    if (!is_equal(rref_mat({ k, k, t }), T{ 0 })) {
+                        multiply_row(rref_mat({ 0, 0, t }, { mat.header().dims.n, mat.header().dims.m, 1 }), k, T{ 1 } / rref_mat({ k, k, t }));
+                        for (std::size_t i = 0; i < mat.header().dims.n; ++i) {
+                            if (i != k) {
+                                add_to_row(rref_mat({ 0, 0, t }, { mat.header().dims.n, mat.header().dims.m, 1 }), k, i, -rref_mat({ i, k, t }));
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            return rref_mat;
+        }
     }
 
     using details::excluded;
     using details::transposed;
     using details::determinant;
     using details::inversed;
+    using details::swap_rows;
+    using details::add_to_row;
+    using details::multiply_row;
+    using details::reduced_row_echelon_form;
 }
 
 #endif // COMPUTOC_LINEAR_ALGEBRA_H

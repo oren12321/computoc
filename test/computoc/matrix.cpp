@@ -648,44 +648,4 @@ TEST(Matrix_test, can_add_multiply_and_swap_rows)
 //    EXPECT_EQ(rmat, computoc::row_echelon_form(mat));
 //}
 
-TEST(Matrix_test, have_reduced_row_echelon_form)
-{
-    using Double_matrix = computoc::Matrix<double>;
-
-    const double data1[] = {
-        0.25, 0.5, 1, 5.75, 
-        1, 1, 1, 7,
-        4, 2, 1, 2 };
-    const std::size_t n1 = 3;
-    const std::size_t m1 = 4;
-    Double_matrix mat1{ {n1, m1}, data1 };
-
-    const double rdata1[] = {
-        1, 0, 0, -5,
-        0, 1, 0, 10,
-        0, 0, 1, 2 };
-    const std::size_t rn1 = 3;
-    const std::size_t rm1 = 4;
-    Double_matrix rmat1{ {rn1, rm1}, rdata1 };
-
-    EXPECT_EQ(rmat1, computoc::reduced_row_echelon_form(mat1));
-
-    const double data2[] = {
-        6, 10, 4, 22,
-        1, 1, 1, 3,
-        2, 4, 1, 8 };
-    const std::size_t n2 = 3;
-    const std::size_t m2 = 4;
-    Double_matrix mat2{ {n2, m2}, data2 };
-
-    const double rdata2[] = {
-        1, 0, 1.5, 2,
-        0, 1, -0.5, 1,
-        0, 0, 0, 0 };
-    const std::size_t rn2 = 3;
-    const std::size_t rm2 = 4;
-    Double_matrix rmat2{ {rn2, rm2}, rdata2 };
-
-    EXPECT_EQ(rmat2, computoc::reduced_row_echelon_form(mat2));
-}
 */

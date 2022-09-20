@@ -342,3 +342,77 @@ TEST(LA_test, matrix_have_inverse_if_squared_and_no_zero_determinant)
     Double_matrix mat2{ {4, 4}, data2 };
     EXPECT_THROW(computoc::inversed(mat2), std::invalid_argument);
 }
+
+TEST(LA_test, can_add_multiply_and_swap_matrix_rows)
+{
+    using Double_matrix = computoc::Matrix<double>;
+
+    const double data[] = {
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16 };
+    Double_matrix mat{ {2, 4, 2}, data };
+
+    computoc::multiply_row(mat, 0, 2.0);
+    const double rdata1[] = {
+        2, 4, 6, 8,
+        5, 6, 7, 8,
+        18, 20, 22, 24,
+        13, 14, 15, 16 };
+    Double_matrix rmat1{ {2, 4, 2}, rdata1 };
+    EXPECT_EQ(rmat1, mat);
+
+    computoc::add_to_row(mat, 0, 1, 0.5);
+    const double rdata2[] = {
+        2, 4, 6, 8,
+        6, 8, 10, 12,
+        18, 20, 22, 24,
+        22, 24, 26, 28 };
+    Double_matrix rmat2{ {2, 4, 2}, rdata2 };
+    EXPECT_EQ(rmat2, mat);
+
+    computoc::swap_rows(mat, 0, 1);
+    const double rdata3[] = {
+        6, 8, 10, 12,
+        2, 4, 6, 8,
+        22, 24, 26, 28,
+        18, 20, 22, 24 };
+    Double_matrix rmat3{ {2, 4, 2}, rdata3 };
+    EXPECT_EQ(rmat3, mat);
+
+    EXPECT_THROW(computoc::multiply_row(mat, 3, 1.0), std::out_of_range);
+
+    EXPECT_THROW(computoc::add_to_row(mat, 3, 0, 1.0), std::out_of_range);
+    EXPECT_THROW(computoc::add_to_row(mat, 0, 3, 1.0), std::out_of_range);
+
+    EXPECT_THROW(computoc::swap_rows(mat, 3, 0), std::out_of_range);
+    EXPECT_THROW(computoc::swap_rows(mat, 0, 3), std::out_of_range);
+}
+
+TEST(LA_test, matrix_have_reduced_row_echelon_form)
+{
+    using Double_matrix = computoc::Matrix<double>;
+
+    const double data[] = {
+        0.25, 0.5, 1, 5.75,
+        1, 1, 1, 7,
+        4, 2, 1, 2,
+    
+        6, 10, 4, 22,
+        1, 1, 1, 3,
+        2, 4, 1, 8 };
+    Double_matrix mat{ {3, 4, 2}, data };
+
+    const double rdata[] = {
+        1, 0, 0, -5,
+        0, 1, 0, 10,
+        0, 0, 1, 2,
+    
+        1, 0, 1.5, 2,
+        0, 1, -0.5, 1,
+        0, 0, 0, 0 };
+    Double_matrix rmat{ {3, 4 ,2}, rdata };
+
+    EXPECT_EQ(rmat, computoc::reduced_row_echelon_form(mat));
+}

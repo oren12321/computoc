@@ -332,43 +332,8 @@ namespace computoc {
             template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> merge_vertical(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
-            Matrix<T, Internal_buffer>& multiply_row(std::size_t i, const T& factor)
-            {
-                COMPUTOC_THROW_IF_FALSE(i < dims_.n, std::out_of_range, "out of range index (i = %d)", i);
-
-                for (std::size_t j = 0; j < dims_.m; ++j) {
-                    buff_.data().p[i * dims_.m + j] *= factor;
-                }
-                return *this;
-            }
-
-            Matrix<T, Internal_buffer>& add_row(std::size_t si, std::size_t di, const T& factor)
-            {
-                COMPUTOC_THROW_IF_FALSE(si < dims_.n&& di < dims_.n, std::out_of_range, "out of range indices (si = %d, di = %d)", si, di);
-
-                for (std::size_t j = 0; j < dims_.m; ++j) {
-                    buff_.data().p[di * dims_.m + j] += factor * buff_.data().p[si * dims_.m + j];
-                }
-                return *this;
-            }
-
-            Matrix<T, Internal_buffer>& swap_rows(std::size_t i1, std::size_t i2)
-            {
-                COMPUTOC_THROW_IF_FALSE(i1 < dims_.n&& i2 < dims_.n, std::out_of_range, "out of range indices (i1 = %d, i2 = %d)", i1, i2);
-
-                for (std::size_t j = 0; j < dims_.m; ++j) {
-                    T temp{ buff_.data().p[i1 * dims_.m + j] };
-                    buff_.data().p[i1 * dims_.m + j] = buff_.data().p[i2 * dims_.m + j];
-                    buff_.data().p[i2 * dims_.m + j] = temp;
-                }
-                return *this;
-            }
-
             //template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
             //friend Matrix<T_o, Internal_buffer_o> row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
-
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
-            friend Matrix<T_o, Internal_buffer_o> reduced_row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
 
         private:
             Dimensions dims_{};
@@ -428,34 +393,6 @@ namespace computoc {
 
         //    return rref_mat;
         //}
-
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
-        inline Matrix<T, Internal_buffer> reduced_row_echelon_form(const Matrix<T, Internal_buffer>& mat)
-        {
-            Matrix<T, Internal_buffer> rref_mat{ mat };
-
-            std::size_t r = mat.dims_.n > mat.dims_.m ? mat.dims_.m : mat.dims_.n;
-
-            for (std::size_t k = 0; k < r; ++k) {
-                if (is_equal(rref_mat(k, k), T{ 0 })) {
-                    for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
-                        if (!is_equal(rref_mat(i, k), T{ 0 })) {
-                            rref_mat.swap_rows(k, i);
-                        }
-                    }
-                }
-                if (!is_equal(rref_mat(k, k), T{ 0 })) {
-                    rref_mat.multiply_row(k, T{ 1 } / rref_mat(k, k));
-                    for (std::size_t i = 0; i < mat.dims_.n; ++i) {
-                        if (i != k) {
-                            rref_mat.add_row(k, i, -rref_mat(i, k));
-                        }
-                    }
-                }
-            }
-
-            return rref_mat;
-        }
 
         //template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
         //std::ostream& operator<<(std::ostream& os, const Matrix<T_o, Internal_buffer_o>& mat)
