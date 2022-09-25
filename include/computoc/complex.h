@@ -6,7 +6,7 @@
 #include <complex>
 
 #include <computoc/errors.h>
-#include <computoc/algorithms.h>
+#include <computoc/utils.h>
 #include <computoc/concepts.h>
 
 namespace computoc {

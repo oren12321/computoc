@@ -12,7 +12,7 @@
 #include <memoc/allocators.h>
 #include <memoc/buffers.h>
 #include <computoc/errors.h>
-#include <computoc/algorithms.h>
+#include <computoc/utils.h>
 
 #include <memoc/pointers.h>
 
