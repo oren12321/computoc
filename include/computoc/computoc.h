@@ -10,6 +10,7 @@
 #include <computoc/linear_algebra.h>
 #include <computoc/utils.h>
 #include <computoc/derivatives.h>
+#include <computoc/ndarray.h>
 
 #endif // COMPUTOC_COMPUTOC_H
 

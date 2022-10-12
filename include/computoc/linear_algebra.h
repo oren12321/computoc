@@ -284,7 +284,8 @@ namespace computoc {
             }
 
             for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
-                (Matrix<T, Internal_buffer, Internal_allocator>&)(inv({ 0, 0, k }, {inv.header().dims.n, inv.header().dims.m, 1})) *= T{ 1 / d({0, 0, k}) };
+                Matrix<T, Internal_buffer, Internal_allocator> slice{ inv({ 0, 0, k }, {inv.header().dims.n, inv.header().dims.m, 1}) };
+                slice *= T{ 1 / d({0, 0, k}) };
             }
 
             return transposed(inv);
