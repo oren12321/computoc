@@ -4,7 +4,6 @@ add_executable(memoc_test
     buffers.cpp
     errors.cpp
     pointers.cpp
-    accessors.cpp
     memoc.cpp
     main.cpp)
 target_link_libraries(memoc_test GTest::gtest GTest::gtest_main memoc)
