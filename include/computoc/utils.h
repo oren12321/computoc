@@ -6,8 +6,8 @@
 
 namespace computoc {
     namespace details {
-        template <Arithmetic T>
-        bool is_equal(const T& a, const T& b, const T& eps = sqrt(epsilon<T>()))
+        template <Arithmetic T1, Arithmetic T2>
+        bool is_equal(const T1& a, const T2& b, const decltype(abs(a - b))& eps = sqrt(epsilon <typename decltype(abs(a - b))>()))
         {
             return abs(a - b) <= eps;
         }
