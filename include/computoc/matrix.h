@@ -147,8 +147,8 @@ namespace computoc {
                 COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
 
-                for (std::size_t i = 0; i < buffsp_->data().s; ++i) {
-                    buffsp_->data().p[i] = value;
+                for (std::size_t i = 0; i < buffsp_->data().s(); ++i) {
+                    buffsp_->data().p()[i] = value;
                 }
             }
 
@@ -159,19 +159,19 @@ namespace computoc {
 
             T* data() const
             {
-                return (buffsp_ ? buffsp_->data().p : nullptr);
+                return (buffsp_ ? buffsp_->data().p() : nullptr);
             }
 
             const T& operator()(const Inds& inds) const
             {
                 COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
-                return buffsp_->data().p[to_buff_index(inds, hdr_.step, hdr_.offset)];
+                return buffsp_->data().p()[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
             T& operator()(const Inds& inds)
             {
                 COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
-                return buffsp_->data().p[to_buff_index(inds, hdr_.step, hdr_.offset)];
+                return buffsp_->data().p()[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
@@ -306,12 +306,12 @@ namespace computoc {
             }
 
             if (product(new_dims) < product(mat.hdr_.dims)) {
-                return Matrix<T, Internal_buffer, Internal_allocator>{ new_dims, mat.buffsp_->data().p };
+                return Matrix<T, Internal_buffer, Internal_allocator>{ new_dims, mat.buffsp_->data().p() };
             }
 
             Matrix<T, Internal_buffer, Internal_allocator> rmat{ new_dims };
-            for (std::size_t i = 0; i < mat.buffsp_->data().s; ++i) {
-                rmat.buffsp_->data().p[i] = mat.buffsp_->data().p[i];
+            for (std::size_t i = 0; i < mat.buffsp_->data().s(); ++i) {
+                rmat.buffsp_->data().p()[i] = mat.buffsp_->data().p()[i];
             }
             return rmat;
         }
