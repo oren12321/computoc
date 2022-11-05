@@ -131,7 +131,7 @@ namespace computoc {
 
             Complex<F>& operator/=(F other)
             {
-                COMPUTOC_THROW_IF_FALSE(!is_equal(other, F{ 0 }), std::overflow_error, "division by zero");
+                COMPUTOC_THROW_IF_FALSE(!equal(other, F{ 0 }), std::overflow_error, "division by zero");
 
                 r_ /= other;
                 i_ /= other;
@@ -221,7 +221,7 @@ namespace computoc {
 
             Complex<F> multiplicative_inverse() const
             {
-                COMPUTOC_THROW_IF_FALSE(!is_equal(r_, F{ 0 }) || !is_equal(i_, F{ 0 }), std::overflow_error, "division by zero");
+                COMPUTOC_THROW_IF_FALSE(!equal(r_, F{ 0 }) || !equal(i_, F{ 0 }), std::overflow_error, "division by zero");
 
                 return { r_ / (r_ * r_ + i_ * i_), -i_ / (r_ * r_ + i_ * i_) };
             }
@@ -233,19 +233,19 @@ namespace computoc {
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
         {
-            return is_equal(lhs.r_, rhs.r_) && is_equal(lhs.i_, rhs.i_);
+            return equal(lhs.r_, rhs.r_) && equal(lhs.i_, rhs.i_);
         }
 
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, F rhs) noexcept
         {
-            return is_equal(lhs.r_, rhs) && is_equal(lhs.i_, F{ 0.0 });
+            return equal(lhs.r_, rhs) && equal(lhs.i_, F{ 0.0 });
         }
 
         template <Decimal F>
         inline bool operator==(F lhs, const Complex<F>& rhs) noexcept
         {
-            return is_equal(lhs, rhs.r_) && is_equal(F{ 0.0 }, rhs.i_);
+            return equal(lhs, rhs.r_) && equal(F{ 0.0 }, rhs.i_);
         }
 
         template <Decimal F>
@@ -311,7 +311,7 @@ namespace computoc {
         template <Decimal F>
         inline Complex<F> operator/(const Complex<F>& lhs, F rhs) noexcept
         {
-            COMPUTOC_THROW_IF_FALSE(!is_equal(rhs, F{ 0 }), std::overflow_error, "division by zero");
+            COMPUTOC_THROW_IF_FALSE(!equal(rhs, F{ 0 }), std::overflow_error, "division by zero");
 
             return { lhs.r_ / rhs, lhs.i_ / rhs };
         }

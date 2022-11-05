@@ -8,19 +8,19 @@ TEST(Algorithms_test, two_numbers_can_be_compared_with_specified_percision)
 
     int a = 0;
     int b = 1;
-    EXPECT_FALSE(is_equal(a, b));
-    EXPECT_TRUE(is_equal(a, b, 1));
+    EXPECT_FALSE(equal(a, b));
+    EXPECT_TRUE(equal(a, b, 1));
 
     double c = 0.0;
     double d = 1.0e-10;
-    EXPECT_TRUE(is_equal(c, d));
-    EXPECT_FALSE(is_equal(c, d, 1.0e-15));
+    EXPECT_TRUE(equal(c, d));
+    EXPECT_FALSE(equal(c, d, 1.0e-15));
 
     int e = 1;
     double f = 1.0;
-    EXPECT_TRUE(is_equal(e, f));
+    EXPECT_TRUE(equal(e, f));
 
     int g = 0;
     double h = 0.1;
-    EXPECT_FALSE(is_equal(g, h));
+    EXPECT_FALSE(equal(g, h));
 }

@@ -238,7 +238,7 @@ namespace computoc {
             T d{ 0 };
             for (std::size_t j = 0; j < n; ++j) {
                 T p{ mat({0, j, k}) };
-                if (!is_equal(p, T{ 0 })) {
+                if (!equal(p, T{ 0 })) {
                     d += sign * p * determinant2d_recursive<T, Internal_buffer, Internal_allocator>(excluded(mat, { 0, j }), k);
                 }
                 sign *= T{ -1 };
@@ -270,7 +270,7 @@ namespace computoc {
 
             Matrix<T, Internal_buffer, Internal_allocator> d{ determinant(mat) };
             for (std::size_t k = 0; k < mat.header().dims.p; ++k) {
-                COMPUTOC_THROW_IF_FALSE(!is_equal(d({ 0, 0, k }), T{ 0 }), std::invalid_argument, "zero determinant");
+                COMPUTOC_THROW_IF_FALSE(!equal(d({ 0, 0, k }), T{ 0 }), std::invalid_argument, "zero determinant");
             }
 
             Matrix<T, Internal_buffer, Internal_allocator> inv{ mat.header().dims };
@@ -360,14 +360,14 @@ namespace computoc {
             for (std::size_t t = 0; t < mat.header().dims.p; ++t) {
 
                 for (std::size_t k = 0; k < r; ++k) {
-                    if (is_equal(rref_mat({ k, k, t }), T{ 0 })) {
+                    if (equal(rref_mat({ k, k, t }), T{ 0 })) {
                         for (std::size_t i = k + 1; i < mat.header().dims.n; ++i) {
-                            if (!is_equal(rref_mat({ i, k, t }), T{ 0 })) {
+                            if (!equal(rref_mat({ i, k, t }), T{ 0 })) {
                                 swap_rows(rref_mat({ 0, 0, t }, { mat.header().dims.n, mat.header().dims.m, 1 }), k, i);
                             }
                         }
                     }
-                    if (!is_equal(rref_mat({ k, k, t }), T{ 0 })) {
+                    if (!equal(rref_mat({ k, k, t }), T{ 0 })) {
                         multiply_row(rref_mat({ 0, 0, t }, { mat.header().dims.n, mat.header().dims.m, 1 }), k, T{ 1 } / rref_mat({ k, k, t }));
                         for (std::size_t i = 0; i < mat.header().dims.n; ++i) {
                             if (i != k) {

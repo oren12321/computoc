@@ -220,7 +220,7 @@ namespace computoc {
             for (std::size_t k = 0; k < lhs.hdr_.dims.p; ++k) {
                 for (std::size_t i = 0; i < lhs.hdr_.dims.n; ++i) {
                     for (std::size_t j = 0; j < lhs.hdr_.dims.m; ++j) {
-                        if (!is_equal(lhs({ i, j, k }), rhs({ i, j, k }))) {
+                        if (!equal(lhs({ i, j, k }), rhs({ i, j, k }))) {
                             return false;
                         }
                     }
@@ -374,14 +374,14 @@ namespace computoc {
         //    std::size_t r = mat.dims_.n > mat.dims_.m ? mat.dims_.m : mat.dims_.n;
 
         //    for (std::size_t k = 0; k < r - 1; ++k) {
-        //        if (is_equal(rref_mat(k, k), T{ 0 })) {
+        //        if (equal(rref_mat(k, k), T{ 0 })) {
         //            for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
-        //                if (!is_equal(rref_mat(i, k), T{ 0 })) {
+        //                if (!equal(rref_mat(i, k), T{ 0 })) {
         //                    rref_mat.swap_rows(k, i);
         //                }
         //            }
         //        }
-        //        if (!is_equal(rref_mat(k, k), T{ 0 })) {
+        //        if (!equal(rref_mat(k, k), T{ 0 })) {
         //            rref_mat.multiply_row(k, T{ 1 } / rref_mat(k, k));
         //            for (std::size_t i = k + 1; i < mat.dims_.n; ++i) {
         //                if (i != k) {
