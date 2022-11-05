@@ -6,11 +6,11 @@ TEST(Dims_test, can_be_empty)
 {
     using namespace computoc;
 
-    EXPECT_TRUE(is_empty(Dims{0, 0, 0}));
-    EXPECT_TRUE(is_empty(Dims{1, 0, 0}));
-    EXPECT_TRUE(is_empty(Dims{0, 1, 0}));
-    EXPECT_TRUE(is_empty(Dims{0, 0, 1}));
-    EXPECT_FALSE(is_empty(Dims{1, 1, 1}));
+    EXPECT_TRUE(empty(Dims{0, 0, 0}));
+    EXPECT_TRUE(empty(Dims{1, 0, 0}));
+    EXPECT_TRUE(empty(Dims{0, 1, 0}));
+    EXPECT_TRUE(empty(Dims{0, 0, 1}));
+    EXPECT_FALSE(empty(Dims{1, 1, 1}));
 }
 
 TEST(Dims_test, is_comparable)
@@ -352,12 +352,12 @@ TEST(Matrix_test, move_by_reference)
     Integer_matrix mat{ dims, data };
     Integer_matrix cmat1{ std::move(mat) };
     EXPECT_EQ(smat, cmat1);
-    EXPECT_TRUE(is_empty(mat.header().dims));
+    EXPECT_TRUE(empty(mat.header().dims));
 
     Integer_matrix cmat2{};
     cmat2 = std::move(cmat1);
     EXPECT_EQ(smat, cmat2);
-    EXPECT_TRUE(is_empty(cmat1.header().dims));
+    EXPECT_TRUE(empty(cmat1.header().dims));
     EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = std::move(smat), std::runtime_error);
 }
 

@@ -22,7 +22,7 @@ namespace computoc {
             std::size_t n{ 0 }, m{ 0 }, p{ 1 };
         };
 
-        inline bool is_empty(const Dims& dims)
+        inline bool empty(const Dims& dims)
         {
             return (dims.n * dims.m * dims.p == 0);
         }
@@ -137,14 +137,14 @@ namespace computoc {
             Matrix(const Dims& dims, const T* data = nullptr)
                 : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims), data))
             {
-                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
             }
 
             Matrix(const Dims& dims, const T& value)
                 : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims)))
             {
-                COMPUTOC_THROW_IF_FALSE(!is_empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
                 COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
 
                 for (std::size_t i = 0; i < buffsp_->data().s(); ++i) {
@@ -179,7 +179,7 @@ namespace computoc {
 
             Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims) const
             {
-                COMPUTOC_THROW_IF_FALSE(!is_empty(dims), std::invalid_argument, "zero matrix dimensions");
+                COMPUTOC_THROW_IF_FALSE(!empty(dims), std::invalid_argument, "zero matrix dimensions");
 
                 Inds max_inds{ inds.i + dims.n - 1, inds.j + dims.m - 1, inds.k + dims.p - 1 };
                 COMPUTOC_THROW_IF_FALSE(is_inside(max_inds, hdr_.dims), std::out_of_range, "out of range submatrix");
@@ -317,9 +317,9 @@ namespace computoc {
         }
 
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
-        inline bool is_empty(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        inline bool empty(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
-            return (!mat.data() || is_empty(mat.header().dims));
+            return (!mat.data() || empty(mat.header().dims));
         }
 
         /*
@@ -413,7 +413,7 @@ namespace computoc {
     using details::Matrix;*/
 
     using details::Dims;
-    using details::is_empty;
+    using details::empty;
     using details::product;
 
     using details::Step;

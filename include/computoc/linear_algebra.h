@@ -16,7 +16,7 @@ namespace computoc {
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> excluded(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Inds& pivot)
         {
-            COMPUTOC_THROW_IF_FALSE(!is_empty(mat), std::invalid_argument, "minor for empty matrix is invalid");
+            COMPUTOC_THROW_IF_FALSE(!empty(mat), std::invalid_argument, "minor for empty matrix is invalid");
             COMPUTOC_THROW_IF_FALSE(is_inside(pivot, mat.header().dims), std::out_of_range, "pivot is not in matrix dimensions");
             COMPUTOC_THROW_IF_FALSE(mat.header().dims.n > 1 && mat.header().dims.m > 1, std::invalid_argument, "operation is undefined for 1x1 matrix");
 
@@ -248,7 +248,7 @@ namespace computoc {
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> determinant(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
-            COMPUTOC_THROW_IF_FALSE(!is_empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
+            COMPUTOC_THROW_IF_FALSE(!empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
             COMPUTOC_THROW_IF_FALSE(mat.header().dims.m == mat.header().dims.n, std::invalid_argument, "not squared matrix");
 
             Matrix<T, Internal_buffer, Internal_allocator> det{ {1, 1, mat.header().dims.p} };
@@ -263,7 +263,7 @@ namespace computoc {
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> inversed(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
-            COMPUTOC_THROW_IF_FALSE(!is_empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
+            COMPUTOC_THROW_IF_FALSE(!empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
             COMPUTOC_THROW_IF_FALSE(mat.header().dims.m == mat.header().dims.n, std::invalid_argument, "not squared matrix");
 
             std::size_t n = mat.header().dims.n;
