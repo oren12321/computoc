@@ -27,15 +27,6 @@ namespace computoc {
                 return i_;
             }
 
-            template <Decimal F_o>
-            friend bool operator==(const Complex<F_o>& lhs, const Complex<F_o>& rhs) noexcept;
-
-            template <Decimal F_o>
-            friend bool operator==(const Complex<F_o>& lhs, F_o rhs) noexcept;
-
-            template <Decimal F_o>
-            friend bool operator==(F_o lhs, const Complex<F_o>& rhs) noexcept;
-
             Complex<F> operator-() const noexcept
             {
                 return { -r_, -i_ };
@@ -45,15 +36,6 @@ namespace computoc {
             {
                 return *this;
             }
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator+(const Complex<F_o>& lhs, const Complex<F_o>& rhs) noexcept;
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator+(const Complex<F_o>& lhs, F_o rhs) noexcept;
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator+(F_o lhs, const Complex<F_o>& rhs) noexcept;
 
             Complex<F>& operator+=(const Complex<F>& other) noexcept
             {
@@ -68,15 +50,6 @@ namespace computoc {
                 return *this;
             }
 
-            template <Decimal F_o>
-            friend Complex<F_o> operator-(const Complex<F_o>& lhs, const Complex<F_o>& rhs) noexcept;
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator-(const Complex<F_o>& lhs, F_o rhs) noexcept;
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator-(F_o lhs, const Complex<F_o>& rhs) noexcept;
-
             Complex<F>& operator-=(const Complex<F>& other) noexcept
             {
                 r_ -= other.r_;
@@ -89,15 +62,6 @@ namespace computoc {
                 r_ -= other;
                 return *this;
             }
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator*(const Complex<F_o>& lhs, const Complex<F_o>& rhs) noexcept;
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator*(const Complex<F_o>& lhs, F_o rhs) noexcept;
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator*(F_o lhs, const Complex<F_o>& rhs) noexcept;
 
             Complex<F>& operator*=(const Complex<F>& other) noexcept
             {
@@ -115,15 +79,6 @@ namespace computoc {
                 return *this;
             }
 
-            template <Decimal F_o>
-            friend Complex<F_o> operator/(const Complex<F_o>& lhs, const Complex<F_o>& rhs);
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator/(const Complex<F_o>& lhs, F_o rhs) noexcept;
-
-            template <Decimal F_o>
-            friend Complex<F_o> operator/(F_o lhs, const Complex<F_o>& rhs) noexcept;
-
             Complex<F>& operator/=(const Complex<F>& other)
             {
                 return operator*=(other.multiplicative_inverse());
@@ -137,81 +92,6 @@ namespace computoc {
                 i_ /= other;
                 return *this;
             }
-
-            template <Decimal F_o>
-            friend F_o abs(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend F_o arg(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend F_o norm(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> conj(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> proj(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> polar(F_o r, F_o theta);
-
-            template <Decimal F_o>
-            friend Complex<F_o> exp(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> log(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> log10(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> pow(const Complex<F_o>& x, F_o y);
-
-            template <Decimal F_o>
-            friend Complex<F_o> pow(F_o x, const Complex<F_o>& y);
-
-            template <Decimal F_o>
-            friend Complex<F_o> pow(const Complex<F_o>& x, const Complex<F_o>& y);
-
-            template <Decimal F_o>
-            friend Complex<F_o> sqrt(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> sin(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> cos(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> tan(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> asin(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> acos(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> atan(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> sinh(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> cosh(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> tanh(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> asinh(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> acosh(const Complex<F_o>& c);
-
-            template <Decimal F_o>
-            friend Complex<F_o> atanh(const Complex<F_o>& c);
 
         private:
             operator std::complex<F>() const noexcept
@@ -233,73 +113,73 @@ namespace computoc {
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
         {
-            return equal(lhs.r_, rhs.r_) && equal(lhs.i_, rhs.i_);
+            return equal(lhs.real(), rhs.real()) && equal(lhs.imag(), rhs.imag());
         }
 
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, F rhs) noexcept
         {
-            return equal(lhs.r_, rhs) && equal(lhs.i_, F{ 0.0 });
+            return equal(lhs.real(), rhs) && equal(lhs.imag(), F{ 0.0 });
         }
 
         template <Decimal F>
         inline bool operator==(F lhs, const Complex<F>& rhs) noexcept
         {
-            return equal(lhs, rhs.r_) && equal(F{ 0.0 }, rhs.i_);
+            return equal(lhs, rhs.real()) && equal(F{ 0.0 }, rhs.imag());
         }
 
         template <Decimal F>
         inline Complex<F> operator+(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
         {
-            return { lhs.r_ + rhs.r_, lhs.i_ + rhs.i_ };
+            return { lhs.real() + rhs.real(), lhs.imag() + rhs.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> operator+(const Complex<F>& lhs, F rhs) noexcept
         {
-            return { lhs.r_ + rhs, lhs.i_ };
+            return { lhs.real() + rhs, lhs.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> operator+(F lhs, const Complex<F>& rhs) noexcept
         {
-            return { lhs + rhs.r_, rhs.i_ };
+            return { lhs + rhs.real(), rhs.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> operator-(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
         {
-            return { lhs.r_ - rhs.r_, lhs.i_ - rhs.i_ };
+            return { lhs.real() - rhs.real(), lhs.imag() - rhs.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> operator-(const Complex<F>& lhs, F rhs) noexcept
         {
-            return { lhs.r_ - rhs, lhs.i_ };
+            return { lhs.real() - rhs, lhs.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> operator-(F lhs, const Complex<F>& rhs) noexcept
         {
-            return { lhs - rhs.r_, -rhs.i_ };
+            return { lhs - rhs.real(), -rhs.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> operator*(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
         {
-            return { lhs.r_ * rhs.r_ - lhs.i_ * rhs.i_, lhs.r_ * rhs.i_ + rhs.r_ * lhs.i_ };
+            return { lhs.real() * rhs.real() - lhs.imag() * rhs.imag(), lhs.real() * rhs.imag() + rhs.real() * lhs.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> operator*(const Complex<F>& lhs, F rhs) noexcept
         {
-            return { lhs.r_ * rhs, lhs.i_ * rhs };
+            return { lhs.real() * rhs, lhs.imag() * rhs };
         }
 
         template <Decimal F>
         inline Complex<F> operator*(F lhs, const Complex<F>& rhs) noexcept
         {
-            return { lhs * rhs.r_, lhs * rhs.i_ };
+            return { lhs * rhs.real(), lhs * rhs.imag() };
         }
 
         template <Decimal F>
@@ -313,13 +193,13 @@ namespace computoc {
         {
             COMPUTOC_THROW_IF_FALSE(!equal(rhs, F{ 0 }), std::overflow_error, "division by zero");
 
-            return { lhs.r_ / rhs, lhs.i_ / rhs };
+            return { lhs.real() / rhs, lhs.imag() / rhs };
         }
 
         template <Decimal F>
         inline Complex<F> operator/(F lhs, const Complex<F>& rhs) noexcept
         {
-            return { lhs / rhs.r_, lhs / rhs.i_ };
+            return { lhs / rhs.real(), lhs / rhs.imag() };
         }
 
         template <Decimal F>
@@ -331,21 +211,21 @@ namespace computoc {
         template <Decimal F>
         inline F arg(const Complex<F>& c)
         {
-            COMPUTOC_THROW_IF_FALSE(c.r_ != 0, std::overflow_error, "division by zero");
+            COMPUTOC_THROW_IF_FALSE(c.real() != 0, std::overflow_error, "division by zero");
 
-            return std::atan(c.i_ / c.r_);
+            return std::atan(c.imag() / c.real());
         }
 
         template <Decimal F>
         inline F norm(const Complex<F>& c)
         {
-            return c.r_ * c.r_ + c.i_ * c.i_;
+            return c.real() * c.real() + c.imag() * c.imag();
         }
 
         template <Decimal F>
         inline Complex<F> conj(const Complex<F>& c)
         {
-            return { c.r_, -c.i_ };
+            return { c.real(), -c.imag() };
         }
 
         template <Decimal F>
@@ -386,21 +266,21 @@ namespace computoc {
         template <Decimal F>
         inline Complex<F> pow(const Complex<F>& x, F y)
         {
-            std::complex<F> c = std::pow<F>(std::complex<F>{x.r_, x.i_}, y);
+            std::complex<F> c = std::pow<F>(std::complex<F>{x.real(), x.imag()}, y);
             return { c.real(), c.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> pow(F x, const Complex<F>& y)
         {
-            std::complex<F> c = std::pow<F>(x, std::complex<F>{y.r_, y.i_});
+            std::complex<F> c = std::pow<F>(x, std::complex<F>{y.real(), y.imag()});
             return { c.real(), c.imag() };
         }
 
         template <Decimal F>
         inline Complex<F> pow(const Complex<F>& x, const Complex<F>& y)
         {
-            std::complex<F> c = std::pow<F>(std::complex<F>{x.r_, x.i_}, std::complex<F>{y.r_, y.i_});
+            std::complex<F> c = std::pow<F>(std::complex<F>{x.real(), x.imag()}, std::complex<F>{y.real(), y.imag()});
             return { c.real(), c.imag() };
         }
 
