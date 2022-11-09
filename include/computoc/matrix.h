@@ -192,9 +192,9 @@ namespace computoc {
             }
 
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
-            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_to(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& dst);
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& dst);
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
-            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_to(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>&& dst);
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>&& dst);
 
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_of(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat);
@@ -231,7 +231,7 @@ namespace computoc {
         }
 
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
-        inline Matrix<T, Internal_buffer, Internal_allocator> copy_to(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>& dst)
+        inline Matrix<T, Internal_buffer, Internal_allocator> copy(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>& dst)
         {
             if (src.hdr_.dims != dst.hdr_.dims) {
                 COMPUTOC_THROW_IF_FALSE(!dst.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
@@ -250,9 +250,9 @@ namespace computoc {
             return dst;
         }
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
-        inline Matrix<T, Internal_buffer, Internal_allocator> copy_to(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>&& dst)
+        inline Matrix<T, Internal_buffer, Internal_allocator> copy(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>&& dst)
         {
-            return copy_to(src, dst);
+            return copy(src, dst);
         }
 
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
@@ -425,7 +425,7 @@ namespace computoc {
 
     using details::Matrix;
     using details::copy_of;
-    using details::copy_to;
+    using details::copy;
     using details::reshaped;
     using details::resized;
 }

@@ -23,53 +23,53 @@ namespace computoc {
             Matrix<T, Internal_buffer, Internal_allocator> mmat{ {mat.header().dims.n - 1, mat.header().dims.m - 1, mat.header().dims.p} };
 
             if (pivot.i == 0 && pivot.j == 0) {
-                copy_to(mat({ 1 ,1, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // BR
+                copy(mat({ 1 ,1, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // BR
                 return mmat;
             }
 
             if (pivot.i == mat.header().dims.n - 1 && pivot.j == mat.header().dims.m - 1) {
-                copy_to(mat({ 0, 0, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // UL
+                copy(mat({ 0, 0, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // UL
                 return mmat;
             }
 
             if (pivot.i == 0 && pivot.j == mat.header().dims.m - 1) {
-                copy_to(mat({ 1, 0, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // BL
+                copy(mat({ 1, 0, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // BL
                 return mmat;
             }
 
             if (pivot.i == mat.header().dims.n - 1 && pivot.j == 0) {
-                copy_to(mat({ 0, 1, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // UR
+                copy(mat({ 0, 1, 0 }, { mmat.header().dims.n, mmat.header().dims.m, mat.header().dims.p }), mmat); // UR
                 return mmat;
             }
 
             if (pivot.i == 0) { // 0 < pivot.j < mat.header().dims.m - 1
-                copy_to(mat({ 1, 0, 0 }, { mmat.header().dims.n, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { mmat.header().dims.n, pivot.j, mat.header().dims.p })); // BL
-                copy_to(mat({ 1 ,pivot.j + 1, 0 }, { mmat.header().dims.n, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ 0, pivot.j, 0 }, { mmat.header().dims.n, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // BR
+                copy(mat({ 1, 0, 0 }, { mmat.header().dims.n, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { mmat.header().dims.n, pivot.j, mat.header().dims.p })); // BL
+                copy(mat({ 1 ,pivot.j + 1, 0 }, { mmat.header().dims.n, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ 0, pivot.j, 0 }, { mmat.header().dims.n, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // BR
                 return mmat;
             }
 
             if (pivot.j == 0) { // 0 < pivot.i < mat.header.dims.n - 1
-                copy_to(mat({ 0, 1, 0 }, { pivot.i, mmat.header().dims.m, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, mmat.header().dims.m, mat.header().dims.p })); // UR
-                copy_to(mat({ pivot.i + 1 , 1, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m, mat.header().dims.p }), mmat({ pivot.i, 0, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m, mat.header().dims.p })); // BR
+                copy(mat({ 0, 1, 0 }, { pivot.i, mmat.header().dims.m, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, mmat.header().dims.m, mat.header().dims.p })); // UR
+                copy(mat({ pivot.i + 1 , 1, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m, mat.header().dims.p }), mmat({ pivot.i, 0, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m, mat.header().dims.p })); // BR
                 return mmat;
             }
 
             if (pivot.i == mat.header().dims.n - 1) { // 0 < pivot.j < mat.header().dims.m - 1
-                copy_to(mat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p })); // UL
-                copy_to(mat({ 0, pivot.j + 1, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ 0, pivot.j, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // UR
+                copy(mat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p })); // UL
+                copy(mat({ 0, pivot.j + 1, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ 0, pivot.j, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // UR
                 return mmat;
             }
 
             if (pivot.j == mat.header().dims.m - 1) { // 0 < pivot.i < mat.header().dims.n - 1
-                copy_to(mat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p })); // UL
-                copy_to(mat({ pivot.i + 1, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p }), mmat({ pivot.i, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p })); // BL
+                copy(mat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p })); // UL
+                copy(mat({ pivot.i + 1, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p }), mmat({ pivot.i, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p })); // BL
                 return mmat;
             }
 
-            copy_to(mat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p })); // UL
-            copy_to(mat({ pivot.i + 1, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p }), mmat({ pivot.i, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p })); // BL
-            copy_to(mat({ 0, pivot.j + 1, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ 0, pivot.j, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // UR
-            copy_to(mat({ pivot.i + 1 ,pivot.j + 1, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ pivot.i, pivot.j, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // BR
+            copy(mat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p }), mmat({ 0, 0, 0 }, { pivot.i, pivot.j, mat.header().dims.p })); // UL
+            copy(mat({ pivot.i + 1, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p }), mmat({ pivot.i, 0, 0 }, { mmat.header().dims.n - pivot.i, pivot.j, mat.header().dims.p })); // BL
+            copy(mat({ 0, pivot.j + 1, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ 0, pivot.j, 0 }, { pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // UR
+            copy(mat({ pivot.i + 1 ,pivot.j + 1, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p }), mmat({ pivot.i, pivot.j, 0 }, { mmat.header().dims.n - pivot.i, mmat.header().dims.m - pivot.j, mat.header().dims.p })); // BR
             return mmat;
         }
 
@@ -278,7 +278,7 @@ namespace computoc {
             for (std::size_t i = 0; i < n; ++i) {
                 T sign = (i + 1) % 2 == 0 ? T{ -1 } : T{ 1 };
                 for (std::size_t j = 0; j < n; ++j) {
-                    copy_to(sign * determinant(excluded(mat, { i, j })), inv({ i, j, 0 }, { 1, 1, mat.header().dims.p }));
+                    copy(sign * determinant(excluded(mat, { i, j })), inv({ i, j, 0 }, { 1, 1, mat.header().dims.p }));
                     sign *= T{ -1 };
                 }
             }
