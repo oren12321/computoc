@@ -76,7 +76,7 @@ namespace computoc {
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator+(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
-            return copy_of(mat);
+            return clone(mat);
         }
 
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
@@ -115,7 +115,7 @@ namespace computoc {
         {
             COMPUTOC_THROW_IF_FALSE(lhs.header().dims == rhs.header().dims, std::invalid_argument, "matrix should have same dimensions");
 
-            Matrix<T, Internal_buffer, Internal_allocator> addition{ copy_of(lhs) };
+            Matrix<T, Internal_buffer, Internal_allocator> addition{ clone(lhs) };
             addition += rhs;
 
             return addition;
@@ -141,7 +141,7 @@ namespace computoc {
         {
             COMPUTOC_THROW_IF_FALSE(lhs.header().dims == rhs.header().dims, std::invalid_argument, "matrix should have same dimensions");
 
-            Matrix<T, Internal_buffer, Internal_allocator> subtraction{ copy_of(lhs) };
+            Matrix<T, Internal_buffer, Internal_allocator> subtraction{ clone(lhs) };
             subtraction += rhs;
 
             return subtraction;
@@ -172,7 +172,7 @@ namespace computoc {
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
-            Matrix<T, Internal_buffer, Internal_allocator> multiplication{ copy_of(lhs) };
+            Matrix<T, Internal_buffer, Internal_allocator> multiplication{ clone(lhs) };
             multiplication *= rhs;
 
             return multiplication;
@@ -194,7 +194,7 @@ namespace computoc {
         template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const T& rhs)
         {
-            Matrix<T, Internal_buffer, Internal_allocator> multiplication{ copy_of(lhs) };
+            Matrix<T, Internal_buffer, Internal_allocator> multiplication{ clone(lhs) };
             multiplication *= rhs;
 
             return multiplication;

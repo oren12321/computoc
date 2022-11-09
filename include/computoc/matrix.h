@@ -197,7 +197,7 @@ namespace computoc {
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>&& dst);
 
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
-            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy_of(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat);
+            friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> clone(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat);
 
             template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> reshaped(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat, const Dims& new_dims);
@@ -256,7 +256,7 @@ namespace computoc {
         }
 
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
-        inline Matrix<T, Internal_buffer, Internal_allocator> copy_of(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
+        inline Matrix<T, Internal_buffer, Internal_allocator> clone(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             Matrix<T, Internal_buffer, Internal_allocator> clone{};
             clone.hdr_ = { mat.hdr_.dims, mat.hdr_.step, 0, false };
@@ -424,7 +424,7 @@ namespace computoc {
     using details::to_buff_index;
 
     using details::Matrix;
-    using details::copy_of;
+    using details::clone;
     using details::copy;
     using details::reshaped;
     using details::resized;

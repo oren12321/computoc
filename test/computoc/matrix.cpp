@@ -361,12 +361,12 @@ TEST(Matrix_test, move_by_reference)
     EXPECT_THROW(cmat2({ 0, 0, 0 }, { 1, 1, 1 }) = std::move(smat), std::runtime_error);
 }
 
-TEST(Matrix_test, copy_of)
+TEST(Matrix_test, clone)
 {
     using Integer_matrix = computoc::Matrix<int>;
 
     Integer_matrix empty_mat{};
-    Integer_matrix cempty_mat{ computoc::copy_of(empty_mat) };
+    Integer_matrix cempty_mat{ computoc::clone(empty_mat) };
     EXPECT_EQ(empty_mat, cempty_mat);
 
     const int data[] = {
@@ -376,12 +376,12 @@ TEST(Matrix_test, copy_of)
     computoc::Dims dims{ 1, 2, 3 };
     Integer_matrix smat{ dims, data };
 
-    Integer_matrix cmat{ computoc::copy_of(smat) };
+    Integer_matrix cmat{ computoc::clone(smat) };
     EXPECT_EQ(cmat, smat);
     cmat({ 0, 0 }) = 0;
     EXPECT_NE(cmat, smat);
 
-    Integer_matrix csubmat{ computoc::copy_of(smat({0, 0, 0}, {1, 1, 1})) };
+    Integer_matrix csubmat{ computoc::clone(smat({0, 0, 0}, {1, 1, 1})) };
     EXPECT_EQ(smat({ 0, 0, 0 }, { 1, 1, 1 }), csubmat);
     csubmat({ 0, 0 }) = 5;
     EXPECT_NE(smat({ 0, 0, 0 }, { 1, 1, 1 }), csubmat);
