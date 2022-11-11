@@ -6,6 +6,9 @@
 
 namespace computoc {
     template <typename T>
+    concept Integral = std::is_integral_v<T>;
+
+    template <typename T>
     concept Integer = std::is_integral_v<T> && !std::is_same_v<T, bool> && std::is_signed_v<T>;
 
     template <typename T>

@@ -93,12 +93,15 @@ namespace computoc {
                 return *this;
             }
 
-        private:
+            template <Decimal F_o>
+            friend Complex<F_o> operator/(const Complex<F_o>& lhs, const Complex<F_o>& rhs);
+
             operator std::complex<F>() const noexcept
             {
                 return std::complex<F>{ r_, i_ };
             }
 
+        private:
             Complex<F> multiplicative_inverse() const
             {
                 COMPUTOC_THROW_IF_FALSE(!equal(r_, F{ 0 }) || !equal(i_, F{ 0 }), std::overflow_error, "division by zero");
