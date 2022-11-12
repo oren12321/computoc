@@ -34,7 +34,17 @@ TEST(Complex_test, can_be_compared_with_other_number)
     EXPECT_EQ(0.0, (Complex{ 0.0 }));
     EXPECT_EQ((Complex{ 1.0, 2.0 }), (Complex{ 1.0, 2.0 }));
     EXPECT_EQ((Complex{ 0.0, 1.0 }), (Complex{ 0.0, 1.0 }));
-    EXPECT_EQ(0.5, (Complex{ 0.5 }));
+    EXPECT_EQ((Complex{ 0.5 }), 0.5);
+
+    EXPECT_TRUE(equal(0.0, Complex{ 0.0 }));
+    EXPECT_TRUE(equal(Complex{ 1.0, 2.0 }, Complex{ 1.0, 2.0 }));
+    EXPECT_TRUE(equal(Complex{ 0.0, 1.0 }, Complex{ 0.0, 1.0 }));
+    EXPECT_TRUE(equal(Complex{ 0.5 }, 0.5));
+
+    EXPECT_TRUE(close(0.0, Complex{ 0.0 }));
+    EXPECT_TRUE(close(Complex{ 1.0, 2.0 }, Complex{ 1.0, 2.0 }));
+    EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, Complex{ 0.0, 1.0 }));
+    EXPECT_TRUE(close(Complex{ 0.5 }, 0.5));
 }
 
 TEST(Complex_test, can_negate)
@@ -160,16 +170,15 @@ TEST(Comlex_test, have_projection)
 TEST(Complex_test, can_be_constructed_from_magnitude_and_phase_angle)
 {
     using namespace computoc;
-    using namespace computoc;
 
-    EXPECT_EQ((Complex{ 0.0, 1.0 }), polar(1.0, std::numbers::pi / 2.0));
+    EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, polar(1.0, std::numbers::pi / 2.0)));
 }
 
 TEST(Complex_test, have_base_e_exponential)
 {
     using namespace computoc;
 
-    EXPECT_EQ((Complex{ -1.0, 0.0 }), exp(Complex{0.0, std::numbers::pi}));
+    EXPECT_TRUE(close(Complex{ -1.0, 0.0 }, exp(Complex{0.0, std::numbers::pi})));
 }
 
 TEST(Complex_test, have_natural_logarithm)
@@ -193,7 +202,7 @@ TEST(Complex_test, have_complex_power)
 {
     using namespace computoc;
 
-    EXPECT_EQ((Complex{ -3.0, 4.0 }), pow(Complex{ 1.0, 2.0 }, 2.0));
+    EXPECT_TRUE(close(Complex{ -3.0, 4.0 }, pow(Complex{ 1.0, 2.0 }, 2.0)));
     EXPECT_EQ(exp(Complex{ -std::numbers::pi / 2.0, 0.0 }), pow(Complex{ 0.0, 1.0 }, Complex{ 0.0, 1.0 }));
 }
 
@@ -233,7 +242,7 @@ TEST(Complex_test, have_asin)
     using namespace computoc;
 
     EXPECT_EQ((Complex{ 1.0, 0.0 }), sin(asin(Complex{ 1.0, 0.0 })));
-    EXPECT_EQ((Complex{ 0.0, 1.0 }), sin(asin(Complex{ 0.0, 1.0 })));
+    EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, sin(asin(Complex{ 0.0, 1.0 }))));
 }
 
 TEST(Complex_test, have_acos)
@@ -241,14 +250,14 @@ TEST(Complex_test, have_acos)
     using namespace computoc;
 
     EXPECT_EQ((Complex{ 1.0, 0.0 }), cos(acos(Complex{ 1.0, 0.0 })));
-    EXPECT_EQ((Complex{ 0.0, 1.0 }), cos(acos(Complex{ 0.0, 1.0 })));
+    EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, cos(acos(Complex{ 0.0, 1.0 }))));
 }
 
 TEST(Complex_test, have_atan)
 {
     using namespace computoc;
 
-    EXPECT_EQ((Complex{ 1.0, 0.0 }), tan(atan(Complex{ 1.0, 0.0 })));
+    EXPECT_TRUE(close(Complex{ 1.0, 0.0 }, tan(atan(Complex{ 1.0, 0.0 }))));
     EXPECT_EQ((Complex{ 0.0, 1.0 }), tan(atan(Complex{ 0.0, 1.0 })));
 }
 
@@ -280,7 +289,7 @@ TEST(Complex_test, have_asinh)
 {
     using namespace computoc;
 
-    EXPECT_EQ((Complex{ 1.0, 0.0 }), sinh(asinh(Complex{ 1.0, 0.0 })));
+    EXPECT_TRUE(close(Complex{ 1.0, 0.0 }, sinh(asinh(Complex{ 1.0, 0.0 }))));
     EXPECT_EQ((Complex{ 0.0, 1.0 }), sinh(asinh(Complex{ 0.0, 1.0 })));
 }
 
@@ -289,7 +298,7 @@ TEST(Complex_test, have_acosh)
     using namespace computoc;
 
     EXPECT_EQ((Complex{ 1.0, 0.0 }), cosh(acosh(Complex{ 1.0, 0.0 })));
-    EXPECT_EQ((Complex{ 0.0, 1.0 }), cosh(acosh(Complex{ 0.0, 1.0 })));
+    EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, cosh(acosh(Complex{ 0.0, 1.0 }))));
 }
 
 TEST(Complex_test, have_atanh)
@@ -297,5 +306,5 @@ TEST(Complex_test, have_atanh)
     using namespace computoc;
 
     EXPECT_EQ((Complex{ 1.0, 0.0 }), tanh(atanh(Complex{ 1.0, 0.0 })));
-    EXPECT_EQ((Complex{ 0.0, 1.0 }), tanh(atanh(Complex{ 0.0, 1.0 })));
+    EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, tanh(atanh(Complex{ 0.0, 1.0 }))));
 }

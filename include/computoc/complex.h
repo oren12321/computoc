@@ -116,19 +116,55 @@ namespace computoc {
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
         {
-            return equal(lhs.real(), rhs.real()) && equal(lhs.imag(), rhs.imag());
+            return equal(lhs, rhs);
         }
 
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, F rhs) noexcept
         {
-            return equal(lhs.real(), rhs) && equal(lhs.imag(), F{ 0.0 });
+            return equal(lhs, rhs);
         }
 
         template <Decimal F>
         inline bool operator==(F lhs, const Complex<F>& rhs) noexcept
         {
+            return equal(lhs, rhs);
+        }
+
+        template <Decimal F>
+        inline bool equal(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
+        {
+            return equal(lhs.real(), rhs.real()) && equal(lhs.imag(), rhs.imag());
+        }
+
+        template <Decimal F>
+        inline bool equal(const Complex<F>& lhs, F rhs) noexcept
+        {
+            return equal(lhs.real(), rhs) && equal(lhs.imag(), F{ 0.0 });
+        }
+
+        template <Decimal F>
+        inline bool equal(F lhs, const Complex<F>& rhs) noexcept
+        {
             return equal(lhs, rhs.real()) && equal(F{ 0.0 }, rhs.imag());
+        }
+
+        template <Decimal F>
+        inline bool close(const Complex<F>& lhs, const Complex<F>& rhs, const F& atol = F{ 1e-8 }, const F& rtol = F{ 1e-5 }) noexcept
+        {
+            return close(lhs.real(), rhs.real(), atol, rtol) && close(lhs.imag(), rhs.imag(), atol, rtol);
+        }
+
+        template <Decimal F>
+        inline bool close(const Complex<F>& lhs, F rhs, const F& atol = F{ 1e-8 }, const F& rtol = F{ 1e-5 }) noexcept
+        {
+            return close(lhs.real(), rhs, atol, rtol) && close(lhs.imag(), F{ 0.0 }, atol, rtol);
+        }
+
+        template <Decimal F>
+        inline bool close(F lhs, const Complex<F>& rhs, const F& atol = F{ 1e-8 }, const F& rtol = F{ 1e-5 }) noexcept
+        {
+            return close(lhs, rhs.real(), atol, rtol) && close(F{ 0.0 }, rhs.imag(), atol, rtol);
         }
 
         template <Decimal F>
@@ -380,6 +416,8 @@ namespace computoc {
     }
 
     using details::Complex;
+    using details::equal;
+    using details::close;
     using details::abs;
     using details::acos;
     using details::acosh;
