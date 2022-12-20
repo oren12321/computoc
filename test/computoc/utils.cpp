@@ -33,4 +33,10 @@ TEST(Algorithms_test, two_numbers_can_be_compared_with_specified_percision)
     EXPECT_FALSE(close(1e-100, 0.0, 0.0));
     EXPECT_FALSE(close(1e-7, 0.0, 0.0));
     EXPECT_FALSE(close(1e-10, 1e-20, 0.0));
+
+    EXPECT_EQ(0, modulo(0, 5));
+    EXPECT_EQ(1, modulo(1, 5));
+    EXPECT_EQ(1, modulo(26, 5));
+    EXPECT_EQ(4, modulo(-1, 5));
+    EXPECT_EQ(4, modulo(-26, 5));
 }

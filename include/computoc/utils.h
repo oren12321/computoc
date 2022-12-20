@@ -29,12 +29,20 @@ namespace computoc {
             const decltype(a - b) reps{ rtol * (abs(a) > abs(b) ? abs(a) : abs(b)) };
             return abs(a - b) <= (atol > reps ? atol : reps);
         }
+
+        template <Integral T1, Integral T2>
+        auto modulo(const T1& value, const T2& modulus) -> decltype((value% modulus) + modulus)
+        {
+            return ((value % modulus) + modulus) % modulus;
+        }
     }
 
     using details::Params;
 
     using details::equal;
     using details::close;
+
+    using details::modulo;
 }
 
 #endif
