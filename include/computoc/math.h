@@ -3,13 +3,44 @@
 
 #include <cmath>
 #include <limits>
+#include <computoc/concepts.h>
 
 namespace computoc {
     namespace details {
         template <typename T>
-        T epsilon() noexcept
+        T default_atol() noexcept
         {
-            return std::numeric_limits<T>::epsilon();
+            return T{};
+        }
+
+        template <Integral T>
+        T default_atol() noexcept
+        {
+            return T{ 0 };
+        }
+
+        template <Decimal T>
+        T default_atol() noexcept
+        {
+            return T{ 1e-8 };
+        }
+
+        template <typename T>
+        T default_rtol() noexcept
+        {
+            return T{};
+        }
+
+        template <Integral T>
+        T default_rtol() noexcept
+        {
+            return T{ 0 };
+        }
+
+        template <Decimal T>
+        T default_rtol() noexcept
+        {
+            return T{ 1e-5 };
         }
 
         using std::abs;
@@ -32,6 +63,9 @@ namespace computoc {
         using std::tanh;
     }
 
+    using details::default_atol;
+    using details::default_rtol;
+
     using details::abs;
     using details::acos;
     using details::acosh;
@@ -50,8 +84,6 @@ namespace computoc {
     using details::sqrt;
     using details::tan;
     using details::tanh;
-
-    using details::epsilon;
 }
 
 #endif // COMPUTOC_MATH_H
