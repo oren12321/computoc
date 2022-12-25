@@ -86,7 +86,7 @@ namespace computoc {
 
             Complex<F>& operator/=(F other)
             {
-                COMPUTOC_THROW_IF_FALSE(!equal(other, F{ 0 }), std::overflow_error, "division by zero");
+                COMPUTOC_THROW_IF_FALSE(other != F{ 0 }, std::overflow_error, "division by zero");
 
                 r_ /= other;
                 i_ /= other;
@@ -104,7 +104,7 @@ namespace computoc {
         private:
             Complex<F> multiplicative_inverse() const
             {
-                COMPUTOC_THROW_IF_FALSE(!equal(r_, F{ 0 }) || !equal(i_, F{ 0 }), std::overflow_error, "division by zero");
+                COMPUTOC_THROW_IF_FALSE(r_ != F{ 0 } || i_ != F{ 0 }, std::overflow_error, "division by zero");
 
                 return { r_ / (r_ * r_ + i_ * i_), -i_ / (r_ * r_ + i_ * i_) };
             }
@@ -116,37 +116,19 @@ namespace computoc {
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
         {
-            return equal(lhs, rhs);
+            return lhs.real() == rhs.real() && lhs.imag() == rhs.imag();
         }
 
         template <Decimal F>
         inline bool operator==(const Complex<F>& lhs, F rhs) noexcept
         {
-            return equal(lhs, rhs);
+            return lhs.real() == rhs && lhs.imag() == F{ 0.0 };
         }
 
         template <Decimal F>
         inline bool operator==(F lhs, const Complex<F>& rhs) noexcept
         {
-            return equal(lhs, rhs);
-        }
-
-        template <Decimal F>
-        inline bool equal(const Complex<F>& lhs, const Complex<F>& rhs) noexcept
-        {
-            return equal(lhs.real(), rhs.real()) && equal(lhs.imag(), rhs.imag());
-        }
-
-        template <Decimal F>
-        inline bool equal(const Complex<F>& lhs, F rhs) noexcept
-        {
-            return equal(lhs.real(), rhs) && equal(lhs.imag(), F{ 0.0 });
-        }
-
-        template <Decimal F>
-        inline bool equal(F lhs, const Complex<F>& rhs) noexcept
-        {
-            return equal(lhs, rhs.real()) && equal(F{ 0.0 }, rhs.imag());
+            return lhs == rhs.real() && F{ 0.0 } == rhs.imag();
         }
 
         template <Decimal F>
@@ -230,7 +212,7 @@ namespace computoc {
         template <Decimal F>
         inline Complex<F> operator/(const Complex<F>& lhs, F rhs) noexcept
         {
-            COMPUTOC_THROW_IF_FALSE(!equal(rhs, F{ 0 }), std::overflow_error, "division by zero");
+            COMPUTOC_THROW_IF_FALSE(rhs != F{ 0 }, std::overflow_error, "division by zero");
 
             return { lhs.real() / rhs, lhs.imag() / rhs };
         }
@@ -416,7 +398,6 @@ namespace computoc {
     }
 
     using details::Complex;
-    using details::equal;
     using details::close;
     using details::abs;
     using details::acos;

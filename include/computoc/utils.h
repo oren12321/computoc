@@ -10,13 +10,6 @@ namespace computoc {
         template <typename T>
         using Params = memoc::Typed_block<T>;
 
-        template <typename T1, typename T2>
-        requires ((Integral<T1> || Decimal<T1>) && (Integral<T2> || Decimal<T2>))
-        bool equal(const T1& a, const T2& b)
-        {
-            return a == b;
-        }
-
         template <Integral T1, Integral T2>
         bool close(const T1& a, const T2& b, const decltype(T1{} - T2{})& tol = default_atol<decltype(T1{} - T2{})>(), const decltype(T1{} - T2{})& = default_rtol<decltype(T1{} - T2{})>())
         {
@@ -39,9 +32,7 @@ namespace computoc {
 
     using details::Params;
 
-    using details::equal;
     using details::close;
-
     using details::modulo;
 }
 

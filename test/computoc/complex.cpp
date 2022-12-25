@@ -36,11 +36,6 @@ TEST(Complex_test, can_be_compared_with_other_number)
     EXPECT_EQ((Complex{ 0.0, 1.0 }), (Complex{ 0.0, 1.0 }));
     EXPECT_EQ((Complex{ 0.5 }), 0.5);
 
-    EXPECT_TRUE(equal(0.0, Complex{ 0.0 }));
-    EXPECT_TRUE(equal(Complex{ 1.0, 2.0 }, Complex{ 1.0, 2.0 }));
-    EXPECT_TRUE(equal(Complex{ 0.0, 1.0 }, Complex{ 0.0, 1.0 }));
-    EXPECT_TRUE(equal(Complex{ 0.5 }, 0.5));
-
     EXPECT_TRUE(close(0.0, Complex{ 0.0 }));
     EXPECT_TRUE(close(Complex{ 1.0, 2.0 }, Complex{ 1.0, 2.0 }));
     EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, Complex{ 0.0, 1.0 }));

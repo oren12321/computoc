@@ -220,7 +220,7 @@ namespace computoc {
             for (std::size_t k = 0; k < lhs.hdr_.dims.p; ++k) {
                 for (std::size_t i = 0; i < lhs.hdr_.dims.n; ++i) {
                     for (std::size_t j = 0; j < lhs.hdr_.dims.m; ++j) {
-                        if (!equal(lhs({ i, j, k }), rhs({ i, j, k }))) {
+                        if (lhs({ i, j, k }) != rhs({ i, j, k })) {
                             return false;
                         }
                     }

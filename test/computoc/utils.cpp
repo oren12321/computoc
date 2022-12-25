@@ -6,15 +6,6 @@ TEST(Algorithms_test, two_numbers_can_be_compared_with_specified_percision)
 {
     using namespace computoc;
 
-    EXPECT_TRUE(equal(0, 0));
-    EXPECT_FALSE(equal(0, 1));
-
-    EXPECT_TRUE(equal(0.0, 0.0));
-    EXPECT_FALSE(equal(0.0, 1e-10));
-
-    EXPECT_TRUE(equal(1, 1.0));
-    EXPECT_FALSE(equal(0, 0.1));
-
     EXPECT_TRUE(close(1, 1));
     EXPECT_TRUE(close(1, 2, 2));
     EXPECT_FALSE(close(1, 2));
