@@ -2,7 +2,6 @@
 #define COMPUTOC_MATH_H
 
 #include <cmath>
-#include <limits>
 #include <computoc/concepts.h>
 
 namespace computoc {
@@ -43,6 +42,25 @@ namespace computoc {
             return T{ 1e-5 };
         }
 
+        template <Integral T1, Integral T2>
+        bool close(const T1& a, const T2& b, const decltype(T1{} - T2{})& tol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{}) & = default_rtol<decltype(T1{} - T2{}) > ())
+        {
+            return abs(a - b) <= tol;
+        }
+
+        template <Decimal T1, Decimal T2>
+        bool close(const T1& a, const T2& b, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ())
+        {
+            const decltype(a - b) reps{ rtol * (abs(a) > abs(b) ? abs(a) : abs(b)) };
+            return abs(a - b) <= (atol > reps ? atol : reps);
+        }
+
+        template <Integral T1, Integral T2>
+        auto modulo(const T1& value, const T2& modulus) -> decltype((value% modulus) + modulus)
+        {
+            return ((value % modulus) + modulus) % modulus;
+        }
+
         using std::abs;
         using std::acos;
         using std::acosh;
@@ -65,6 +83,9 @@ namespace computoc {
 
     using details::default_atol;
     using details::default_rtol;
+
+    using details::close;
+    using details::modulo;
 
     using details::abs;
     using details::acos;

@@ -8,7 +8,7 @@
 #include <memoc/buffers.h>
 #include <computoc/errors.h>
 #include <computoc/concepts.h>
-#include <computoc/utils.h>
+#include <computoc/math.h>
 #include <computoc/matrix.h>
 
 namespace computoc {
