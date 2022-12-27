@@ -1,6 +1,6 @@
 add_executable(computoc_test
     matrix.cpp
-    ndarray.cpp
+    array.cpp
     fraction.cpp
     complex.cpp
     linear_algebra.cpp
