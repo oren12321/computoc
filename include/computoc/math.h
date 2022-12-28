@@ -42,13 +42,7 @@ namespace computoc {
             return T{ 1e-5 };
         }
 
-        template <Integral T1, Integral T2>
-        bool close(const T1& a, const T2& b, const decltype(T1{} - T2{})& tol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{}) & = default_rtol<decltype(T1{} - T2{}) > ())
-        {
-            return abs(a - b) <= tol;
-        }
-
-        template <Decimal T1, Decimal T2>
+        template <Number T1, Number T2>
         bool close(const T1& a, const T2& b, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ())
         {
             const decltype(a - b) reps{ rtol * (abs(a) > abs(b) ? abs(a) : abs(b)) };
