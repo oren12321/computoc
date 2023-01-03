@@ -80,6 +80,9 @@ TEST(Complex_test, can_be_added_to_other_number)
 
     c += Complex{1.0, -1.0};
     EXPECT_EQ((Complex{2.0, 1.0}), c);
+    c += Complex{ 0 };
+    c += 0;
+    EXPECT_EQ((Complex{ 2.0, 1.0 }), c);
 }
 
 TEST(Complex_test, can_be_subtracted_from_other_number)
@@ -95,6 +98,9 @@ TEST(Complex_test, can_be_subtracted_from_other_number)
 
     c -= Complex{1.0, -1.0};
     EXPECT_EQ((Complex{0.0, 3.0}), c);
+    c -= Complex{ 0 };
+    c -= 0;
+    EXPECT_EQ((Complex{ 0.0, 3.0 }), c);
 }
 
 TEST(Complex_test, can_be_multiplied_with_other_number)
@@ -110,6 +116,9 @@ TEST(Complex_test, can_be_multiplied_with_other_number)
 
     c *= Complex{4.0, 3.0};
     EXPECT_EQ((Complex{30.0, 10.0}), c);
+    c *= Complex{ 1 };
+    c *= 1;
+    EXPECT_EQ((Complex{ 30.0, 10.0 }), c);
 }
 
 TEST(Complex_test, can_be_divided_by_other_number)
@@ -124,6 +133,9 @@ TEST(Complex_test, can_be_divided_by_other_number)
 
     c /= Complex{1.0, 1.0};
     EXPECT_EQ((Complex{2.5, 0.5}), c);
+    c /= Complex{ 1 };
+    c /= 1;
+    EXPECT_EQ((Complex{ 2.5, 0.5 }), c);
 }
 
 TEST(Complex_test, have_absolute_value)
