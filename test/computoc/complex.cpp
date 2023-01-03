@@ -40,6 +40,11 @@ TEST(Complex_test, can_be_compared_with_other_number)
     EXPECT_TRUE(close(Complex{ 1.0, 2.0 }, Complex{ 1.0, 2.0 }));
     EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, Complex{ 0.0, 1.0 }));
     EXPECT_TRUE(close(Complex{ 0.5 }, 0.5));
+
+    EXPECT_EQ(0, (Complex{ 0.0 }));
+    EXPECT_EQ(1, (Complex{ 1.0 }));
+    EXPECT_EQ((Complex{ 1.0 }), 1);
+    EXPECT_EQ((Complex{ 1 }), ((Complex{ 1.0 })));
 }
 
 TEST(Complex_test, can_negate)
@@ -68,6 +73,7 @@ TEST(Complex_test, can_be_added_to_other_number)
 
     Complex c{1.0, 2.0};
     EXPECT_EQ(c, c + 0.0);
+    EXPECT_EQ(c, c + 0);
     EXPECT_EQ((Complex{3.0, 2.0}), c + 2.0);
     EXPECT_EQ((Complex{1.5, 2.0}), c + 0.5);
     EXPECT_EQ((Complex{2.0, 1.0}), (c + Complex{1.0, -1.0}));
@@ -82,6 +88,7 @@ TEST(Complex_test, can_be_subtracted_from_other_number)
 
     Complex c{1.0, 2.0};
     EXPECT_EQ(c, c - 0.0);
+    EXPECT_EQ(c, c - 0);
     EXPECT_EQ((Complex{-1.0, 2.0}), c - 2.0);
     EXPECT_EQ((Complex{0.5, 2.0}), c - 0.5);
     EXPECT_EQ((Complex{0.0, 3.0}), (c - Complex{1.0, -1.0}));
@@ -97,6 +104,7 @@ TEST(Complex_test, can_be_multiplied_with_other_number)
     Complex c{6.0, -2.0};
     EXPECT_EQ(0.0, c * 0.0);
     EXPECT_EQ(c, c * 1.0);
+    EXPECT_EQ(c, c * 1);
     EXPECT_EQ((Complex{1.5, -0.5}), c * 0.25);
     EXPECT_EQ((Complex{30.0, 10.0}), (c * Complex{4.0, 3.0}));
 
@@ -111,6 +119,7 @@ TEST(Complex_test, can_be_divided_by_other_number)
     Complex c{2.0, 3.0};
     EXPECT_THROW((c / Complex{0.0}), std::overflow_error);
     EXPECT_EQ((Complex{1.0, 1.5}), c / 2.0);
+    EXPECT_EQ((Complex{ 1.0, 1.5 }), c / 2);
     EXPECT_EQ((Complex{2.5, 0.5}), (c / Complex{1.0, 1.0}));
 
     c /= Complex{1.0, 1.0};
@@ -302,4 +311,64 @@ TEST(Complex_test, have_atanh)
 
     EXPECT_EQ((Complex{ 1.0, 0.0 }), tanh(atanh(Complex{ 1.0, 0.0 })));
     EXPECT_TRUE(close(Complex{ 0.0, 1.0 }, tanh(atanh(Complex{ 0.0, 1.0 }))));
+}
+
+TEST(Complex_test, copy)
+{
+    using namespace computoc;
+
+    {
+        Complex<int> c1{ 1, 2 };
+
+        Complex<int> c2{ c1 };
+        EXPECT_EQ(c1, c2);
+
+        Complex<int> c3{};
+        c3 = c2;
+        EXPECT_EQ(c2, c3);
+    }
+
+    {
+        Complex<int> c1{ 1, 2 };
+
+        Complex<double> c2{ c1 };
+        EXPECT_EQ(c1, c2);
+
+        Complex<float> c3{};
+        c3 = c2;
+        EXPECT_EQ(c2, c3);
+    }
+}
+
+TEST(Complex_test, move)
+{
+    using namespace computoc;
+
+    {
+        Complex<int> c1{ 1, 2 };
+        Complex<int> c1c{ c1 };
+
+        Complex<int> c2{ std::move(c1) };
+        EXPECT_EQ(c1c, c2);
+        EXPECT_EQ((Complex<int>{}), c1);
+
+        Complex<int> c3{};
+        c3 = std::move(c2);
+        EXPECT_EQ(c1c, c3);
+        EXPECT_EQ((Complex<int>{}), c2);
+    }
+
+    {
+        Complex<int> c1{ 1, 2 };
+        Complex<int> c1c{ c1 };
+
+        Complex<double> c2{ std::move(c1) };
+        EXPECT_EQ(c1c, c2);
+        EXPECT_EQ((Complex<int>{}), c1);
+
+        Complex<float> c3{};
+        c3 = std::move(c2);
+        EXPECT_EQ(c1c, c3);
+        EXPECT_EQ((Complex<double>{}), c2);
+    }
 }
