@@ -2,6 +2,8 @@
 #define COMPUTOC_MATH_H
 
 #include <cmath>
+#include <numbers>
+#include <limits>
 #include <computoc/concepts.h>
 
 namespace computoc {
@@ -55,6 +57,35 @@ namespace computoc {
             return ((value % modulus) + modulus) % modulus;
         }
 
+        template <typename T>
+        bool isnan(const T& value) {
+            static_assert(std::numeric_limits<T>::has_quiet_NaN);
+            return std::isnan(value);
+        }
+
+        template <typename T>
+        T nan() {
+            static_assert(std::numeric_limits<T>::has_quiet_NaN);
+            return std::numeric_limits<T>::quiet_NaN();
+        }
+
+        template <typename T>
+        bool isinf(const T& value) {
+            static_assert(std::numeric_limits<T>::has_infinity);
+            return std::isinf(value);
+        }
+
+        template <typename T>
+        T inf() {
+            static_assert(std::numeric_limits<T>::has_infinity);
+            return std::numeric_limits<T>::infinity();
+        }
+
+        template <typename T>
+        bool isfinite(const T& value) {
+            return std::isfinite(value);
+        }
+
         using std::abs;
         using std::acos;
         using std::acosh;
@@ -73,6 +104,8 @@ namespace computoc {
         using std::sqrt;
         using std::tan;
         using std::tanh;
+
+        using std::numbers::pi;
     }
 
     using details::default_atol;
@@ -80,6 +113,12 @@ namespace computoc {
 
     using details::close;
     using details::modulo;
+
+    using details::nan;
+    using details::inf;
+    using details::isnan;
+    using details::isinf;
+    using details::isfinite;
 
     using details::abs;
     using details::acos;
@@ -99,6 +138,8 @@ namespace computoc {
     using details::sqrt;
     using details::tan;
     using details::tanh;
+
+    using details::pi;
 }
 
 #endif // COMPUTOC_MATH_H
