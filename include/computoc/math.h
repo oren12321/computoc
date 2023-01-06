@@ -45,44 +45,49 @@ namespace computoc {
         }
 
         template <Number T1, Number T2>
-        bool close(const T1& a, const T2& b, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ())
+        bool close(const T1& a, const T2& b, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ()) noexcept
         {
             const decltype(a - b) reps{ rtol * (abs(a) > abs(b) ? abs(a) : abs(b)) };
             return abs(a - b) <= (atol > reps ? atol : reps);
         }
 
         template <Integer T1, Integer T2>
-        auto modulo(const T1& value, const T2& modulus) -> decltype((value% modulus) + modulus)
+        auto modulo(const T1& value, const T2& modulus) noexcept -> decltype((value% modulus) + modulus)
         {
             return ((value % modulus) + modulus) % modulus;
         }
 
         template <typename T>
-        bool isnan(const T& value) {
+        bool isnan(const T& value) noexcept
+        {
             static_assert(std::numeric_limits<T>::has_quiet_NaN);
             return std::isnan(value);
         }
 
         template <typename T>
-        T nan() {
+        T nan() noexcept
+        {
             static_assert(std::numeric_limits<T>::has_quiet_NaN);
             return std::numeric_limits<T>::quiet_NaN();
         }
 
         template <typename T>
-        bool isinf(const T& value) {
+        bool isinf(const T& value) noexcept
+        {
             static_assert(std::numeric_limits<T>::has_infinity);
             return std::isinf(value);
         }
 
         template <typename T>
-        T inf() {
+        T inf() noexcept
+        {
             static_assert(std::numeric_limits<T>::has_infinity);
             return std::numeric_limits<T>::infinity();
         }
 
         template <typename T>
-        bool isfinite(const T& value) {
+        bool isfinite(const T& value) noexcept
+        {
             return std::isfinite(value);
         }
 
