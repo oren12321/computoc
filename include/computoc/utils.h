@@ -35,19 +35,19 @@ namespace computoc {
         };
 
         template <Number T>
-        inline Interval<T> reverse(const Interval<T>& i) noexcept
+        [[nodiscard]] inline Interval<T> reverse(const Interval<T>& i) noexcept
         {
             return { i.stop, i.start, -i.step };
         }
 
         template <Number T>
-        inline Interval<T> modulo(const Interval<T>& i, const T& modulus) noexcept
+        [[nodiscard]] inline Interval<T> modulo(const Interval<T>& i, const T& modulus) noexcept
         {
             return { modulo(i.start, modulus), modulo(i.stop, modulus), i.step };
         }
 
         template <Number T>
-        inline Interval<T> forward(const Interval<T>& i) noexcept
+        [[nodiscard]] inline Interval<T> forward(const Interval<T>& i) noexcept
         {
             return i.step < T{ 0 } ? reverse(i) : i;
         }

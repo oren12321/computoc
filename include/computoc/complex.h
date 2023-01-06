@@ -52,22 +52,22 @@ namespace computoc {
                 return *this;
             }
 
-            T real() const noexcept
+            [[nodiscard]] T real() const noexcept
             {
                 return r_;
             }
 
-            T imag() const noexcept
+            [[nodiscard]] T imag() const noexcept
             {
                 return i_;
             }
 
-            Complex<T> operator-() const noexcept
+            [[nodiscard]] Complex<T> operator-() const noexcept
             {
                 return { -r_, -i_ };
             }
 
-            Complex<T> operator+() const noexcept
+            [[nodiscard]] Complex<T> operator+() const noexcept
             {
                 return *this;
             }
@@ -188,7 +188,7 @@ namespace computoc {
                 return *this;
             }
 
-            operator std::complex<T>() const noexcept
+            [[nodiscard]] operator std::complex<T>() const noexcept
             {
                 return std::complex<T>{ r_, i_ };
             }
@@ -199,316 +199,316 @@ namespace computoc {
         };
 
         template <Number T>
-        Complex<T> reciprocal(const Complex<T>& c) noexcept
+        [[nodiscard]] Complex<T> reciprocal(const Complex<T>& c) noexcept
         {
             return { c.real() / (c.real() * c.real() + c.imag() * c.imag()), -c.imag() / (c.real() * c.real() + c.imag() * c.imag()) };
         }
 
         template <Number T1, Number T2>
-        inline bool operator==(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline bool operator==(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
         {
             return lhs.real() == rhs.real() && lhs.imag() == rhs.imag();
         }
 
         template <Number T1, Number T2>
-        inline bool operator==(const Complex<T1>& lhs, T2 rhs) noexcept
+        [[nodiscard]] inline bool operator==(const Complex<T1>& lhs, T2 rhs) noexcept
         {
             return lhs.real() == rhs && lhs.imag() == T2{};
         }
 
         template <Number T1, Number T2>
-        inline bool operator==(T1 lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline bool operator==(T1 lhs, const Complex<T2>& rhs) noexcept
         {
             return lhs == rhs.real() && T1{} == rhs.imag();
         }
 
         template <Number T1, Number T2>
-        inline bool close(const Complex<T1>& lhs, const Complex<T2>& rhs, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ()) noexcept
+        [[nodiscard]] inline bool close(const Complex<T1>& lhs, const Complex<T2>& rhs, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ()) noexcept
         {
             return close(lhs.real(), rhs.real(), atol, rtol) && close(lhs.imag(), rhs.imag(), atol, rtol);
         }
 
         template <Number T1, Number T2>
-        inline bool close(const Complex<T1>& lhs, T2 rhs, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ()) noexcept
+        [[nodiscard]] inline bool close(const Complex<T1>& lhs, T2 rhs, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ()) noexcept
         {
             return close(lhs.real(), rhs, atol, rtol) && close(lhs.imag(), T2{}, atol, rtol);
         }
 
         template <Number T1, Number T2>
-        inline bool close(T1 lhs, const Complex<T2>& rhs, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ()) noexcept
+        [[nodiscard]] inline bool close(T1 lhs, const Complex<T2>& rhs, const decltype(T1{} - T2{})& atol = default_atol<decltype(T1{} - T2{}) > (), const decltype(T1{} - T2{})& rtol = default_rtol<decltype(T1{} - T2{}) > ()) noexcept
         {
             return close(lhs, rhs.real(), atol, rtol) && close(T1{}, rhs.imag(), atol, rtol);
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} + T2{}) > operator+(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} + T2{}) > operator+(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
         {
             return { lhs.real() + rhs.real(), lhs.imag() + rhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} + T2{}) > operator+(const Complex<T1>& lhs, T2 rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} + T2{}) > operator+(const Complex<T1>& lhs, T2 rhs) noexcept
         {
             return { lhs.real() + rhs, lhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} + T2{}) > operator+(T1 lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} + T2{}) > operator+(T1 lhs, const Complex<T2>& rhs) noexcept
         {
             return { lhs + rhs.real(), rhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} - T2{}) > operator-(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} - T2{}) > operator-(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
         {
             return { lhs.real() - rhs.real(), lhs.imag() - rhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} - T2{}) > operator-(const Complex<T1>& lhs, T2 rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} - T2{}) > operator-(const Complex<T1>& lhs, T2 rhs) noexcept
         {
             return { lhs.real() - rhs, lhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} - T2{}) > operator-(T1 lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} - T2{}) > operator-(T1 lhs, const Complex<T2>& rhs) noexcept
         {
             return { lhs - rhs.real(), -rhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} * T2{}) > operator*(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} * T2{}) > operator*(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
         {
             return { lhs.real() * rhs.real() - lhs.imag() * rhs.imag(), lhs.real() * rhs.imag() + rhs.real() * lhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} * T2{}) > operator*(const Complex<T1>& lhs, T2 rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} * T2{}) > operator*(const Complex<T1>& lhs, T2 rhs) noexcept
         {
             return { lhs.real() * rhs, lhs.imag() * rhs };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} * T2{}) > operator*(T1 lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} * T2{}) > operator*(T1 lhs, const Complex<T2>& rhs) noexcept
         {
             return { lhs * rhs.real(), lhs * rhs.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
         {
             return operator*(lhs, reciprocal(rhs));
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, T2 rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, T2 rhs) noexcept
         {
             return { lhs.real() / rhs, lhs.imag() / rhs };
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} / T2{}) > operator/(T1 lhs, const Complex<T1>& rhs) noexcept
+        [[nodiscard]] inline Complex<decltype(T1{} / T2{}) > operator/(T1 lhs, const Complex<T1>& rhs) noexcept
         {
             return { lhs / rhs.real(), lhs / rhs.imag() };
         }
 
         template <Number T>
-        inline T abs(const Complex<T>& c) noexcept
+        [[nodiscard]] inline T abs(const Complex<T>& c) noexcept
         {
             return std::abs<T>(c);
         }
 
         template <Number T>
-        inline T arg(const Complex<T>& c) noexcept
+        [[nodiscard]] inline T arg(const Complex<T>& c) noexcept
         {
             return std::atan(c.imag() / c.real());
         }
 
         template <Number T>
-        inline T norm(const Complex<T>& c) noexcept
+        [[nodiscard]] inline T norm(const Complex<T>& c) noexcept
         {
             return c.real() * c.real() + c.imag() * c.imag();
         }
 
         template <Number T>
-        inline Complex<T> conj(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> conj(const Complex<T>& c) noexcept
         {
             return { c.real(), -c.imag() };
         }
 
         template <Number T>
-        inline Complex<T> proj(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> proj(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::proj<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> polar(T r, T theta = T{}) noexcept
+        [[nodiscard]] inline Complex<T> polar(T r, T theta = T{}) noexcept
         {
             std::complex<T> rc = std::polar<T>(r, theta);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> exp(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> exp(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::exp<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> log(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> log(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::log<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> log10(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> log10(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::log10<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<T1> pow(const Complex<T1>& x, T2 y) noexcept
+        [[nodiscard]] inline Complex<T1> pow(const Complex<T1>& x, T2 y) noexcept
         {
             std::complex<T1> c = std::pow(std::complex<T1>{x.real(), x.imag()}, y);
             return { c.real(), c.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<T1> pow(T1 x, const Complex<T2>& y) noexcept
+        [[nodiscard]] inline Complex<T1> pow(T1 x, const Complex<T2>& y) noexcept
         {
             std::complex<T1> c = std::pow(x, std::complex<T2>{y.real(), y.imag()});
             return { c.real(), c.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<T1> pow(const Complex<T1>& x, const Complex<T2>& y) noexcept
+        [[nodiscard]] inline Complex<T1> pow(const Complex<T1>& x, const Complex<T2>& y) noexcept
         {
             std::complex<T1> c = std::pow(std::complex<T1>{x.real(), x.imag()}, std::complex<T2>{y.real(), y.imag()});
             return { c.real(), c.imag() };
         }
 
         template <Number T>
-        inline Complex<T> sqrt(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> sqrt(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::sqrt<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> sin(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> sin(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::sin<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> cos(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> cos(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::cos<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> tan(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> tan(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::tan<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> asin(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> asin(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::asin<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> acos(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> acos(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::acos<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> atan(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> atan(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::atan<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> sinh(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> sinh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::sinh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> cosh(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> cosh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::cosh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> tanh(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> tanh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::tanh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> asinh(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> asinh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::asinh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> acosh(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> acosh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::acosh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> atanh(const Complex<T>& c) noexcept
+        [[nodiscard]] inline Complex<T> atanh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::atanh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T> 
-        bool isnan(const Complex<T>& c) noexcept
+        [[nodiscard]] bool isnan(const Complex<T>& c) noexcept
         {
             return isnan(c.real()) && isnan(c.imag());
         }
 
         template <Number T>
-        Complex<T> nan() noexcept
+        [[nodiscard]] Complex<T> nan() noexcept
         {
             return Complex<T>{nan<T>(), nan<T>()};
         }
 
         template <Number T>
-        bool isinf(const Complex<T>& c) noexcept
+        [[nodiscard]] bool isinf(const Complex<T>& c) noexcept
         {
             return isinf(c.real()) && isinf(c.imag());
         }
 
         template <Number T>
-        Complex<T> inf() noexcept
+        [[nodiscard]] Complex<T> inf() noexcept
         {
             return Complex<T>{nan<T>(), nan<T>()};
         }
 
         template <Number T>
-        bool isfinite(const Complex<T>& c) noexcept
+        [[nodiscard]] bool isfinite(const Complex<T>& c) noexcept
         {
             return isfinite(c.real()) && isfinite(c.imag());
         }
