@@ -14,7 +14,7 @@ namespace computoc {
             return T{};
         }
 
-        template <Integral T>
+        template <Integer T>
         T default_atol() noexcept
         {
             return T{ 0 };
@@ -32,7 +32,7 @@ namespace computoc {
             return T{};
         }
 
-        template <Integral T>
+        template <Integer T>
         T default_rtol() noexcept
         {
             return T{ 0 };
@@ -51,7 +51,7 @@ namespace computoc {
             return abs(a - b) <= (atol > reps ? atol : reps);
         }
 
-        template <Integral T1, Integral T2>
+        template <Integer T1, Integer T2>
         auto modulo(const T1& value, const T2& modulus) -> decltype((value% modulus) + modulus)
         {
             return ((value % modulus) + modulus) % modulus;

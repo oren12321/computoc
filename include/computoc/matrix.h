@@ -323,16 +323,16 @@ namespace computoc {
         }
 
         /*
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>>
+        template <Numeric T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>>
         class Matrix {
         public:
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
+            template <Numeric T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> merge_horizontal(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
-            template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
+            template <Numeric T_o, memoc::Buffer<T_o> Internal_buffer_o>
             friend Matrix<T_o, Internal_buffer_o> merge_vertical(const Matrix<T_o, Internal_buffer_o>& lhs, const Matrix<T_o, Internal_buffer_o>& rhs);
 
-            //template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
+            //template <Numeric T_o, memoc::Buffer<T_o> Internal_buffer_o>
             //friend Matrix<T_o, Internal_buffer_o> row_echelon_form(const Matrix<T_o, Internal_buffer_o>& mat);
 
         private:
@@ -340,7 +340,7 @@ namespace computoc {
             Internal_buffer buff_{};
         };
 
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
+        template <Numeric T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_horizontal(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             COMPUTOC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n, std::invalid_argument, "dimensions mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d)", lhs.dims_.n, rhs.dims_.n);
@@ -353,7 +353,7 @@ namespace computoc {
             return merged;
         }
 
-        template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
+        template <Numeric T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_vertical(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             COMPUTOC_THROW_IF_FALSE(lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "dimensions mismatch (lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.m, rhs.dims_.m);
@@ -366,7 +366,7 @@ namespace computoc {
             return merged;
         }
 
-        //template <Arithmetic T, memoc::Buffer<T> Internal_buffer>
+        //template <Numeric T, memoc::Buffer<T> Internal_buffer>
         //inline Matrix<T, Internal_buffer> row_echelon_form(const Matrix<T, Internal_buffer>& mat)
         //{
         //    Matrix<T, Internal_buffer> rref_mat{ mat };
@@ -394,7 +394,7 @@ namespace computoc {
         //    return rref_mat;
         //}
 
-        //template <Arithmetic T_o, memoc::Buffer<T_o> Internal_buffer_o>
+        //template <Numeric T_o, memoc::Buffer<T_o> Internal_buffer_o>
         //std::ostream& operator<<(std::ostream& os, const Matrix<T_o, Internal_buffer_o>& mat)
         //{
         //    for (std::size_t i = 0; i < mat.dimensions().n; ++i) {
