@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include <computoc/complex.h>
+#include <computoc/math.h>
 
 TEST(Complex_test, can_be_initialized_with_components_or_a_number)
 {
@@ -126,7 +127,7 @@ TEST(Complex_test, can_be_divided_by_other_number)
     using namespace computoc;
 
     Complex c{2.0, 3.0};
-    EXPECT_THROW((c / Complex{0.0}), std::overflow_error);
+    EXPECT_TRUE(isnan(c / Complex{0.0}));
     EXPECT_EQ((Complex{1.0, 1.5}), c / 2.0);
     EXPECT_EQ((Complex{ 1.0, 1.5 }), c / 2);
     EXPECT_EQ((Complex{2.5, 0.5}), (c / Complex{1.0, 1.0}));
@@ -136,6 +137,13 @@ TEST(Complex_test, can_be_divided_by_other_number)
     c /= Complex{ 1 };
     c /= 1;
     EXPECT_EQ((Complex{ 2.5, 0.5 }), c);
+}
+
+TEST(Complex_test, have_reciprocal)
+{
+    using namespace computoc;
+
+    EXPECT_EQ((Complex{ -0.2, -0.4 }), reciprocal(Complex{ -1.0, 2.0 }));
 }
 
 TEST(Complex_test, have_absolute_value)
@@ -150,7 +158,7 @@ TEST(Complex_test, have_phase_angle)
 {
     using namespace computoc;
 
-    EXPECT_THROW(arg(Complex{ 0.0 }), std::overflow_error);
+    EXPECT_TRUE(computoc::isnan(arg(Complex{ 0.0 })));
 
     EXPECT_EQ(0.0, arg(Complex{ 1.0, 0.0 }));
     EXPECT_EQ(std::numbers::pi / 4.0, arg(Complex{ 1.0, 1.0 }));
@@ -358,29 +366,25 @@ TEST(Complex_test, move)
 
     {
         Complex<int> c1{ 1, 2 };
-        Complex<int> c1c{ c1 };
+        Complex c1c{ c1 };
 
         Complex<int> c2{ std::move(c1) };
         EXPECT_EQ(c1c, c2);
-        EXPECT_EQ((Complex<int>{}), c1);
 
         Complex<int> c3{};
         c3 = std::move(c2);
         EXPECT_EQ(c1c, c3);
-        EXPECT_EQ((Complex<int>{}), c2);
     }
 
     {
         Complex<int> c1{ 1, 2 };
-        Complex<int> c1c{ c1 };
+        Complex c1c{ c1 };
 
         Complex<double> c2{ std::move(c1) };
         EXPECT_EQ(c1c, c2);
-        EXPECT_EQ((Complex<int>{}), c1);
 
         Complex<float> c3{};
         c3 = std::move(c2);
         EXPECT_EQ(c1c, c3);
-        EXPECT_EQ((Complex<double>{}), c2);
     }
 }

@@ -11,22 +11,20 @@
 
 namespace computoc {
     namespace details {
-        template <Number T>
+        template <Number T = double>
         class Complex {
         public:
-            Complex(T r = T{}, T i = T{})
+            Complex(T r = T{}, T i = T{}) noexcept
                 : r_(r), i_(i) {}
 
             Complex(const Complex<T>& other) = default;
             Complex<T>& operator=(const Complex<T>& other) = default;
 
-            Complex(Complex<T>&& other)
+            Complex(Complex<T>&& other) noexcept
                 : r_(other.r_), i_(other.i_)
             {
-                other.r_ = T{};
-                other.i_ = T{};
             }
-            Complex<T>& operator=(Complex<T>&& other)
+            Complex<T>& operator=(Complex<T>&& other) noexcept
             {
                 if (&other == this) {
                     return *this;
@@ -35,21 +33,18 @@ namespace computoc {
                 r_ = other.r_;
                 i_ = other.i_;
 
-                other.r_ = T{};
-                other.i_ = T{};
-
                 return *this;
             }
 
             virtual ~Complex() = default;
 
             template <Number T_o>
-            Complex(const Complex<T_o>& other)
+            Complex(const Complex<T_o>& other) noexcept
                 : r_(other.real()), i_(other.imag())
             {
             }
             template <Number T_o>
-            Complex<T>& operator=(const Complex<T_o>& other)
+            Complex<T>& operator=(const Complex<T_o>& other) noexcept
             {
                 r_ = other.real();
                 i_ = other.imag();
@@ -57,23 +52,15 @@ namespace computoc {
             }
 
             template <Number T_o>
-            friend class Complex;
-
-            template <Number T_o>
-            Complex(Complex<T_o>&& other)
+            Complex(Complex<T_o>&& other) noexcept
                 : r_(other.real()), i_(other.imag())
             {
-                other.r_ = T{};
-                other.i_ = T{};
             }
             template <Number T_o>
-            Complex<T>& operator=(Complex<T_o>&& other)
+            Complex<T>& operator=(Complex<T_o>&& other) noexcept
             {
                 r_ = other.real();
                 i_ = other.imag();
-
-                other.r_ = T{};
-                other.i_ = T{};
 
                 return *this;
             }
@@ -101,8 +88,8 @@ namespace computoc {
             template <Number T_o>
             Complex<T>& operator+=(const Complex<T_o>& other) noexcept
             {
-                r_ += other.r_;
-                i_ += other.i_;
+                r_ += other.real();
+                i_ += other.imag();
                 return *this;
             }
 
@@ -129,8 +116,8 @@ namespace computoc {
             template <Number T_o>
             Complex<T>& operator-=(const Complex<T_o>& other) noexcept
             {
-                r_ -= other.r_;
-                i_ -= other.i_;
+                r_ -= other.real();
+                i_ -= other.imag();
                 return *this;
             }
 
@@ -166,8 +153,8 @@ namespace computoc {
             template <Number T_o>
             Complex<T>& operator*=(const Complex<T_o>& other) noexcept
             {
-                T nr{ r_ * other.r_ - i_ * other.i_ };
-                T ni{ r_ * other.i_ + other.r_ * i_ };
+                T nr{ r_ * other.real() - i_ * other.imag() };
+                T ni{ r_ * other.imag() + other.real() * i_ };
                 r_ = nr;
                 i_ = ni;
                 return *this;
@@ -189,37 +176,30 @@ namespace computoc {
             }
 
             template <Number T_o>
-            Complex<T>& operator/=(const Complex<T_o>& other)
+            Complex<T>& operator/=(const Complex<T_o>& other) noexcept
             {
-                return operator*=(other.multiplicative_inverse());
+                return operator*=(reciprocal(other));
             }
 
             template <Number T_o>
-            Complex<T>& operator/=(T_o other)
+            Complex<T>& operator/=(T_o other) noexcept
             {
-                COMPUTOC_THROW_IF_FALSE(other != T_o{}, std::overflow_error, "division by zero");
-
                 r_ /= other;
                 i_ /= other;
                 return *this;
             }
 
-            Complex<T>& operator/=(const Complex<T>& other)
+            Complex<T>& operator/=(const Complex<T>& other) noexcept
             {
-                return operator*=(other.multiplicative_inverse());
+                return operator*=(reciprocal(other));
             }
 
-            Complex<T>& operator/=(T other)
+            Complex<T>& operator/=(T other) noexcept
             {
-                COMPUTOC_THROW_IF_FALSE(other != T{}, std::overflow_error, "division by zero");
-
                 r_ /= other;
                 i_ /= other;
                 return *this;
             }
-
-            template <Number T1, Number T2>
-            friend Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, const Complex<T2>& rhs);
 
             operator std::complex<T>() const noexcept
             {
@@ -227,16 +207,15 @@ namespace computoc {
             }
 
         private:
-            Complex<T> multiplicative_inverse() const
-            {
-                COMPUTOC_THROW_IF_FALSE(r_ != T{} || i_ != T{}, std::overflow_error, "division by zero");
-
-                return { r_ / (r_ * r_ + i_ * i_), -i_ / (r_ * r_ + i_ * i_) };
-            }
-
             T r_{};
             T i_{};
         };
+
+        template <Number T>
+        Complex<T> reciprocal(const Complex<T>& c) noexcept
+        {
+            return { c.real() / (c.real() * c.real() + c.imag() * c.imag()), -c.imag() / (c.real() * c.real() + c.imag() * c.imag()) };
+        }
 
         template <Number T1, Number T2>
         inline bool operator==(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
@@ -329,16 +308,14 @@ namespace computoc {
         }
 
         template <Number T1, Number T2>
-        inline Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, const Complex<T2>& rhs)
+        inline Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, const Complex<T2>& rhs) noexcept
         {
-            return operator*(lhs, rhs.multiplicative_inverse());
+            return operator*(lhs, reciprocal(rhs));
         }
 
         template <Number T1, Number T2>
         inline Complex<decltype(T1{} / T2{}) > operator/(const Complex<T1>& lhs, T2 rhs) noexcept
         {
-            COMPUTOC_THROW_IF_FALSE(rhs != T2{}, std::overflow_error, "division by zero");
-
             return { lhs.real() / rhs, lhs.imag() / rhs };
         }
 
@@ -349,176 +326,204 @@ namespace computoc {
         }
 
         template <Number T>
-        inline T abs(const Complex<T>& c)
+        inline T abs(const Complex<T>& c) noexcept
         {
             return std::abs<T>(c);
         }
 
         template <Number T>
-        inline T arg(const Complex<T>& c)
+        inline T arg(const Complex<T>& c) noexcept
         {
-            COMPUTOC_THROW_IF_FALSE(c.real() != T{}, std::overflow_error, "division by zero");
-
             return std::atan(c.imag() / c.real());
         }
 
         template <Number T>
-        inline T norm(const Complex<T>& c)
+        inline T norm(const Complex<T>& c) noexcept
         {
             return c.real() * c.real() + c.imag() * c.imag();
         }
 
         template <Number T>
-        inline Complex<T> conj(const Complex<T>& c)
+        inline Complex<T> conj(const Complex<T>& c) noexcept
         {
             return { c.real(), -c.imag() };
         }
 
         template <Number T>
-        inline Complex<T> proj(const Complex<T>& c)
+        inline Complex<T> proj(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::proj<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> polar(T r, T theta = T{})
+        inline Complex<T> polar(T r, T theta = T{}) noexcept
         {
             std::complex<T> rc = std::polar<T>(r, theta);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> exp(const Complex<T>& c)
+        inline Complex<T> exp(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::exp<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> log(const Complex<T>& c)
+        inline Complex<T> log(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::log<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> log10(const Complex<T>& c)
+        inline Complex<T> log10(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::log10<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<T1> pow(const Complex<T1>& x, T2 y)
+        inline Complex<T1> pow(const Complex<T1>& x, T2 y) noexcept
         {
             std::complex<T1> c = std::pow(std::complex<T1>{x.real(), x.imag()}, y);
             return { c.real(), c.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<T1> pow(T1 x, const Complex<T2>& y)
+        inline Complex<T1> pow(T1 x, const Complex<T2>& y) noexcept
         {
             std::complex<T1> c = std::pow(x, std::complex<T2>{y.real(), y.imag()});
             return { c.real(), c.imag() };
         }
 
         template <Number T1, Number T2>
-        inline Complex<T1> pow(const Complex<T1>& x, const Complex<T2>& y)
+        inline Complex<T1> pow(const Complex<T1>& x, const Complex<T2>& y) noexcept
         {
             std::complex<T1> c = std::pow(std::complex<T1>{x.real(), x.imag()}, std::complex<T2>{y.real(), y.imag()});
             return { c.real(), c.imag() };
         }
 
         template <Number T>
-        inline Complex<T> sqrt(const Complex<T>& c)
+        inline Complex<T> sqrt(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::sqrt<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> sin(const Complex<T>& c)
+        inline Complex<T> sin(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::sin<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> cos(const Complex<T>& c)
+        inline Complex<T> cos(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::cos<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> tan(const Complex<T>& c)
+        inline Complex<T> tan(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::tan<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> asin(const Complex<T>& c)
+        inline Complex<T> asin(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::asin<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> acos(const Complex<T>& c)
+        inline Complex<T> acos(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::acos<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> atan(const Complex<T>& c)
+        inline Complex<T> atan(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::atan<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> sinh(const Complex<T>& c)
+        inline Complex<T> sinh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::sinh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> cosh(const Complex<T>& c)
+        inline Complex<T> cosh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::cosh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> tanh(const Complex<T>& c)
+        inline Complex<T> tanh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::tanh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> asinh(const Complex<T>& c)
+        inline Complex<T> asinh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::asinh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> acosh(const Complex<T>& c)
+        inline Complex<T> acosh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::acosh<T>(c);
             return { rc.real(), rc.imag() };
         }
 
         template <Number T>
-        inline Complex<T> atanh(const Complex<T>& c)
+        inline Complex<T> atanh(const Complex<T>& c) noexcept
         {
             std::complex<T> rc = std::atanh<T>(c);
             return { rc.real(), rc.imag() };
+        }
+
+        template <Number T> 
+        bool isnan(const Complex<T>& c) noexcept
+        {
+            return isnan(c.real()) && isnan(c.imag());
+        }
+
+        template <Number T>
+        Complex<T> nan() noexcept
+        {
+            return Complex<T>{nan<T>(), nan<T>()};
+        }
+
+        template <Number T>
+        bool isinf(const Complex<T>& c) noexcept
+        {
+            return isinf(c.real()) && isinf(c.imag());
+        }
+
+        template <Number T>
+        Complex<T> inf() noexcept
+        {
+            return Complex<T>{nan<T>(), nan<T>()};
+        }
+
+        template <Number T>
+        bool isfinite(const Complex<T>& c) noexcept
+        {
+            return isfinite(c.real()) && isfinite(c.imag());
         }
     }
 
@@ -542,11 +547,18 @@ namespace computoc {
     using details::polar;
     using details::pow;
     using details::proj;
+    using details::reciprocal;
     using details::sin;
     using details::sinh;
     using details::sqrt;
     using details::tan;
     using details::tanh;
+
+    using details::nan;
+    using details::inf;
+    using details::isnan;
+    using details::isinf;
+    using details::isfinite;
 }
 
 #endif // COMPUTOC_TYPES_COMPLEX_H
