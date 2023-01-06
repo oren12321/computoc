@@ -20,21 +20,8 @@ namespace computoc {
             Complex(const Complex<T>& other) = default;
             Complex<T>& operator=(const Complex<T>& other) = default;
 
-            Complex(Complex<T>&& other) noexcept
-                : r_(other.r_), i_(other.i_)
-            {
-            }
-            Complex<T>& operator=(Complex<T>&& other) noexcept
-            {
-                if (&other == this) {
-                    return *this;
-                }
-
-                r_ = other.r_;
-                i_ = other.i_;
-
-                return *this;
-            }
+            Complex(Complex<T>&& other) = default;
+            Complex<T>& operator=(Complex<T>&& other) = default;
 
             virtual ~Complex() = default;
 
