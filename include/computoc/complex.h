@@ -5,7 +5,6 @@
 #include <cmath>
 #include <complex>
 
-#include <computoc/errors.h>
 #include <computoc/math.h>
 #include <computoc/concepts.h>
 

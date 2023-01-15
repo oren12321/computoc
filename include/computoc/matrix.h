@@ -11,7 +11,7 @@
 
 #include <memoc/allocators.h>
 #include <memoc/buffers.h>
-#include <computoc/errors.h>
+#include <erroc/errors.h>
 #include <computoc/math.h>
 
 #include <memoc/pointers.h>
@@ -102,7 +102,7 @@ namespace computoc {
             }
             Matrix<T, Internal_buffer, Internal_allocator>& operator=(Matrix<T, Internal_buffer, Internal_allocator>&& other)
             {
-                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "move assignment to submatrix is undefined");
+                ERROC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "move assignment to submatrix is undefined");
 
                 if (this == &other) {
                     return *this;
@@ -120,7 +120,7 @@ namespace computoc {
             Matrix(const Matrix<T, Internal_buffer, Internal_allocator>& other) = default;
             Matrix<T, Internal_buffer, Internal_allocator>& operator=(const Matrix<T, Internal_buffer, Internal_allocator>& other)
             {
-                COMPUTOC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "copy assignemnt to submatrix is undefined");
+                ERROC_THROW_IF_FALSE(!hdr_.is_submatrix, std::runtime_error, "copy assignemnt to submatrix is undefined");
 
                 if (this == &other) {
                     return *this;
@@ -137,15 +137,15 @@ namespace computoc {
             Matrix(const Dims& dims, const T* data = nullptr)
                 : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims), data))
             {
-                COMPUTOC_THROW_IF_FALSE(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
-                COMPUTOC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
+                ERROC_THROW_IF_FALSE(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
+                ERROC_THROW_IF_FALSE(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
             }
 
             Matrix(const Dims& dims, const T& value)
                 : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims)))
             {
-                COMPUTOC_THROW_IF_FALSE(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
-                COMPUTOC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
+                ERROC_THROW_IF_FALSE(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
+                ERROC_THROW_IF_FALSE(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
 
                 for (std::size_t i = 0; i < buffsp_->data().s(); ++i) {
                     buffsp_->data().p()[i] = value;
@@ -164,13 +164,13 @@ namespace computoc {
 
             const T& operator()(const Inds& inds) const
             {
-                COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
+                ERROC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
                 return buffsp_->data().p()[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
             T& operator()(const Inds& inds)
             {
-                COMPUTOC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
+                ERROC_THROW_IF_FALSE(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
                 return buffsp_->data().p()[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
@@ -179,10 +179,10 @@ namespace computoc {
 
             Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims) const
             {
-                COMPUTOC_THROW_IF_FALSE(!empty(dims), std::invalid_argument, "zero matrix dimensions");
+                ERROC_THROW_IF_FALSE(!empty(dims), std::invalid_argument, "zero matrix dimensions");
 
                 Inds max_inds{ inds.i + dims.n - 1, inds.j + dims.m - 1, inds.k + dims.p - 1 };
-                COMPUTOC_THROW_IF_FALSE(is_inside(max_inds, hdr_.dims), std::out_of_range, "out of range submatrix");
+                ERROC_THROW_IF_FALSE(is_inside(max_inds, hdr_.dims), std::out_of_range, "out of range submatrix");
 
                 Matrix<T, Internal_buffer, Internal_allocator> slice{};
                 slice.hdr_ = { dims, hdr_.step, to_buff_index(inds, hdr_.step, hdr_.offset), true };
@@ -234,7 +234,7 @@ namespace computoc {
         inline Matrix<T, Internal_buffer, Internal_allocator> copy(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>& dst)
         {
             if (src.hdr_.dims != dst.hdr_.dims) {
-                COMPUTOC_THROW_IF_FALSE(!dst.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
+                ERROC_THROW_IF_FALSE(!dst.hdr_.is_submatrix, std::runtime_error, "unable to reallocate submatrix");
                 dst.hdr_ = { src.hdr_.dims, src.hdr_.step, 0, false };
                 dst.buffsp_ = memoc::make_shared<Internal_buffer, Internal_allocator>(product(src.hdr_.dims));
             }
@@ -276,9 +276,9 @@ namespace computoc {
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> reshaped(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Dims& new_dims)
         {
-            COMPUTOC_THROW_IF_FALSE(!mat.hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
-            COMPUTOC_THROW_IF_FALSE(mat.buffsp_, std::runtime_error, "matrix should not be empty");
-            COMPUTOC_THROW_IF_FALSE(product(new_dims) == product(mat.hdr_.dims), std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
+            ERROC_THROW_IF_FALSE(!mat.hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
+            ERROC_THROW_IF_FALSE(mat.buffsp_, std::runtime_error, "matrix should not be empty");
+            ERROC_THROW_IF_FALSE(product(new_dims) == product(mat.hdr_.dims), std::invalid_argument, "reshaped matrix should have the same amount of cells as the original");
 
             Matrix<T, Internal_buffer, Internal_allocator> rmat{ mat };
 
@@ -291,7 +291,7 @@ namespace computoc {
         template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> resized(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Dims& new_dims)
         {
-            COMPUTOC_THROW_IF_FALSE(!mat.hdr_.is_submatrix, std::runtime_error, "resize for sub matrix is undefined");
+            ERROC_THROW_IF_FALSE(!mat.hdr_.is_submatrix, std::runtime_error, "resize for sub matrix is undefined");
 
             if (mat.hdr_.dims == new_dims) {
                 return mat;
@@ -343,7 +343,7 @@ namespace computoc {
         template <Numeric T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_horizontal(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
-            COMPUTOC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n, std::invalid_argument, "dimensions mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d)", lhs.dims_.n, rhs.dims_.n);
+            ERROC_THROW_IF_FALSE(lhs.dims_.n == rhs.dims_.n, std::invalid_argument, "dimensions mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d)", lhs.dims_.n, rhs.dims_.n);
 
             Matrix<T, Internal_buffer> merged{ {lhs.dims_.n, lhs.dims_.m + rhs.dims_.m}, T{} };
 
@@ -356,7 +356,7 @@ namespace computoc {
         template <Numeric T, memoc::Buffer<T> Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_vertical(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
-            COMPUTOC_THROW_IF_FALSE(lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "dimensions mismatch (lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.m, rhs.dims_.m);
+            ERROC_THROW_IF_FALSE(lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "dimensions mismatch (lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.m, rhs.dims_.m);
 
             Matrix<T, Internal_buffer> merged{ {lhs.dims_.n + rhs.dims_.n, lhs.dims_.m}, T{} };
 

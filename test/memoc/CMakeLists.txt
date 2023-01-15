@@ -2,7 +2,6 @@ add_executable(memoc_test
     blocks.cpp
     allocators.cpp
     buffers.cpp
-    errors.cpp
     pointers.cpp
     memoc.cpp
     main.cpp)

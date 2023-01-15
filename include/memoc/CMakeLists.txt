@@ -1,5 +1,6 @@
 add_library(memoc INTERFACE)
 target_include_directories(memoc INTERFACE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(memoc INTERFACE erroc)
 
 set_property(TARGET memoc PROPERTY CXX_STANDARD 20)
 
