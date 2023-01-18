@@ -125,6 +125,6 @@
 
 #define EXPORT_ENUM(name,ns) \
     using ns::name; \
-    using ns::enum_to_string;
+    using ns::to_string;
 
 #endif // ERROC_ENUMGEN_H
