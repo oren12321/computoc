@@ -120,9 +120,7 @@
 */
 #define GENERATE_ENUM(name, ...) \
     enum class name { __VA_ARGS__, size }; \
-    const char* name##_as_strings[static_cast<int>(name::size)] { FOREACH(STRINGIFY_WITH_DELIMETER, (__VA_ARGS__)) };
-
-#define ENUM_TO_CSTRING(name, generated_enum_code) name##_as_strings[static_cast<int>(name::generated_enum_code)]
+    const char* name##_as_strings[static_cast<int>(name::size)] { FOREACH(STRINGIFY_WITH_DELIMETER, (__VA_ARGS__)) }; \
+    const char* enum_to_string(name code) { return name##_as_strings[static_cast<int>(code)]; }
 
 #endif // ERROC_ENUMGEN_H
-
