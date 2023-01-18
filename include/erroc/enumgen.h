@@ -123,4 +123,8 @@
     const char* name##_as_strings[static_cast<int>(name::size)] { FOREACH(STRINGIFY_WITH_DELIMETER, (__VA_ARGS__)) }; \
     const char* enum_to_string(name code) { return name##_as_strings[static_cast<int>(code)]; }
 
+#define EXPORT_ENUM(name,ns) \
+    using ns::name; \
+    using ns::enum_to_string;
+
 #endif // ERROC_ENUMGEN_H
