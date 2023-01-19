@@ -3,7 +3,7 @@
 
 #include <erroc/errors.h>
 
-#define EXPAND(X) X
+#define EXPAND(X) X,
 #define FIRSTARG(X, ...) (X)
 #define RESTARGS(X, ...) (__VA_ARGS__)
 #define FOREACH_1(MACRO, LIST) MACRO LIST
@@ -112,15 +112,16 @@
 
 #define FOREACH(MACRO, LIST) FOREACH_(_VA_NARGS LIST, MACRO, LIST)
 
-#define STRINGIFY_WITH_DELIMETER(X) #X,
+#define STRINGIFY_WITH_DELIMETER(X) #X
 
 /**
 * @note Maximum enum fields allowed is according to the macro FOREACH_<max_size>.
-* @note Generates 'enum class <name>' and 'const char* <name>_as_strings[]'.
+* @note Generates 'enum class <name>', 'const char* <name>_as_strings[]' and 'const char* to_string(name)'.
 */
 #define GENERATE_ENUM(name, ...) \
     enum class name { __VA_ARGS__, size }; \
-    const char* name##_as_strings[static_cast<int>(name::size)] { FOREACH(STRINGIFY_WITH_DELIMETER, (__VA_ARGS__)) }; \
+    const char* name##_as_strings[static_cast<int>(name::size)] { \
+        FOREACH(STRINGIFY_WITH_DELIMETER, (FOREACH(name::, (__VA_ARGS__)))) }; \
     [[nodiscard]] const char* to_string(name code) noexcept { return name##_as_strings[static_cast<int>(code)]; }
 
 #define EXPORT_ENUM(name,ns) \
