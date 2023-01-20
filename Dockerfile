@@ -48,6 +48,7 @@ COPY . /tmp/
 RUN cmake . -DIN_DOCKER=TRUE -DCMAKE_BUILD_TYPE=Release \
  && make -j$(nproc) \
  && ./test/erroc/erroc_test \
+ && ./test/enumoc/enumoc_test \
  && ./test/memoc/memoc_test \
  && ./test/computoc/computoc_test \
  && ./benchmark/memoc/memoc_benchmark \

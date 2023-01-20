@@ -1,7 +1,5 @@
-#ifndef ERROC_ENUMGEN_H
-#define ERROC_ENUMGEN_H
-
-#include <erroc/errors.h>
+#ifndef ENUMOC_ENUMOC_H
+#define ENUMOC_ENUMOC_H
 
 // __VA_ARGS__ size calculation
 
@@ -190,6 +188,9 @@
 
 // Enum generation API
 
+/**
+* Generates an enum class with the name <name> in a given namespace <ns> (nested namespace should in the format <ns1>::<ns2>::...).
+*/
 #define ENUMOC_GENERATE(ns, name, ...) \
     _ENUMOC_START_NS(ns) \
         _ENUMOC_START_NS(details) \
@@ -200,4 +201,4 @@
         _ENUMOC_GENERATE_EXPORT(details, name) \
     _ENUMOC_END_NS()
 
-#endif // ERROC_ENUMGEN_H
+#endif // ENUMOC_ENUMOC_H
