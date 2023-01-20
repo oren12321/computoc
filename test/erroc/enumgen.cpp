@@ -2,22 +2,18 @@
 
 #include <erroc/enumgen.h>
 
-GENERATE_ENUM(Errors,
-    division_by_zero,
-    invalid_argument,
-    file_not_found,
-    runtime_error);
+ENUMOC_GENERATE(some_namespace, An_enum,
+    first_field,
+    another_field);
 
-TEST(Enumgen_test, generate_enum_with_matching_strings)
+TEST(Enumoc_generate, generates_enum_and_to_string_method_for_it)
 {
-    EXPECT_EQ(4, static_cast<int>(Errors::size));
+    EXPECT_EQ(2, static_cast<int>(some_namespace::An_enum::size));
 
-    EXPECT_STREQ("Errors:: (division_by_zero)", to_string(Errors::division_by_zero));
-    EXPECT_STREQ("Errors:: (invalid_argument)", to_string(Errors::invalid_argument));
-    EXPECT_STREQ("Errors:: (file_not_found)", to_string(Errors::file_not_found));
-    EXPECT_STREQ("Errors:: (runtime_error)", to_string(Errors::runtime_error));
+    EXPECT_STREQ("some_namespace::An_enum:: (first_field)", to_string(some_namespace::An_enum::first_field));
+    EXPECT_STREQ("some_namespace::An_enum:: (another_field)", to_string(some_namespace::An_enum::another_field));
 
-    Errors error{ Errors::division_by_zero };
+    some_namespace::An_enum field{ some_namespace::An_enum::first_field };
 
-    EXPECT_STREQ("Errors:: (division_by_zero)", to_string(error));
+    EXPECT_STREQ("some_namespace::An_enum:: (first_field)", to_string(field));
 }
