@@ -13,7 +13,7 @@
 
 namespace computoc {
     namespace details {
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> excluded(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Inds& pivot)
         {
             ERROC_EXPECT(!empty(mat), std::invalid_argument, "minor for empty matrix is invalid");
@@ -73,13 +73,13 @@ namespace computoc {
             return mmat;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator+(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             return clone(mat);
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator-(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             Matrix<T, Internal_buffer, Internal_allocator> nmat{ mat.header().dims };
@@ -95,7 +95,7 @@ namespace computoc {
             return nmat;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator>& operator+=(Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             ERROC_EXPECT(lhs.header().dims == rhs.header().dims, std::invalid_argument, "matrix should have same dimensions");
@@ -110,7 +110,7 @@ namespace computoc {
 
             return lhs;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator+(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             ERROC_EXPECT(lhs.header().dims == rhs.header().dims, std::invalid_argument, "matrix should have same dimensions");
@@ -121,7 +121,7 @@ namespace computoc {
             return addition;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator>& operator-=(Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             ERROC_EXPECT(lhs.header().dims == rhs.header().dims, std::invalid_argument, "matrix should have same dimensions");
@@ -136,7 +136,7 @@ namespace computoc {
 
             return lhs;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator-(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             ERROC_EXPECT(lhs.header().dims == rhs.header().dims, std::invalid_argument, "matrix should have same dimensions");
@@ -147,7 +147,7 @@ namespace computoc {
             return subtraction;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator>& operator*=(Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             ERROC_EXPECT(lhs.header().dims.m == rhs.header().dims.n && lhs.header().dims.p == rhs.header().dims.p, std::invalid_argument, "matrices dimensions are invalid for multiplication");
@@ -169,7 +169,7 @@ namespace computoc {
             lhs = std::move(multiplication);
             return lhs;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             Matrix<T, Internal_buffer, Internal_allocator> multiplication{ clone(lhs) };
@@ -178,7 +178,7 @@ namespace computoc {
             return multiplication;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator>& operator*=(Matrix<T, Internal_buffer, Internal_allocator>& lhs, const T& rhs)
         {
             for (std::size_t k = 0; k < lhs.header().dims.p; ++k) {
@@ -191,7 +191,7 @@ namespace computoc {
 
             return lhs;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const T& rhs)
         {
             Matrix<T, Internal_buffer, Internal_allocator> multiplication{ clone(lhs) };
@@ -199,13 +199,13 @@ namespace computoc {
 
             return multiplication;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> operator*(const T& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             return rhs * lhs;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> transposed(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             Matrix<T, Internal_buffer, Internal_allocator> tmat{ {mat.header().dims.m, mat.header().dims.n, mat.header().dims.p} };
@@ -221,7 +221,7 @@ namespace computoc {
             return tmat;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline T determinant2d_recursive(const Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t k)
         {
             std::size_t n = mat.header().dims.n;
@@ -245,7 +245,7 @@ namespace computoc {
             }
             return d;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> determinant(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             ERROC_EXPECT(!empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
@@ -260,7 +260,7 @@ namespace computoc {
             return det;
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> inversed(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             ERROC_EXPECT(!empty(mat), std::invalid_argument, "no determinant for emtpy matrix");
@@ -291,7 +291,7 @@ namespace computoc {
             return transposed(inv);
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> swap_rows(Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t ri1, std::size_t ri2)
         {
             ERROC_EXPECT(ri1 < mat.header().dims.n && ri2 < mat.header().dims.n, std::out_of_range, "out of range indices");
@@ -306,13 +306,13 @@ namespace computoc {
 
             return mat;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> swap_rows(Matrix<T, Internal_buffer, Internal_allocator>&& mat, std::size_t ri1, std::size_t ri2)
         {
             return swap_rows<T, Internal_buffer, Internal_allocator>(std::ref(mat), ri1, ri2);
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> add_to_row(Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t sri, std::size_t dri, const T& factor = T{1})
         {
             ERROC_EXPECT(sri < mat.header().dims.n&& dri < mat.header().dims.n, std::out_of_range, "out of range indices");
@@ -325,13 +325,13 @@ namespace computoc {
 
             return mat;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> add_to_row(Matrix<T, Internal_buffer, Internal_allocator>&& mat, std::size_t sri, std::size_t dri, const T& factor = T{ 1 })
         {
             return add_to_row<T, Internal_buffer, Internal_allocator>(std::ref(mat), sri, dri, factor);
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> multiply_row(Matrix<T, Internal_buffer, Internal_allocator>& mat, std::size_t ri, const T& factor)
         {
             ERROC_EXPECT(ri < mat.header().dims.n, std::out_of_range, "out of range indices");
@@ -344,13 +344,13 @@ namespace computoc {
 
             return mat;
         }
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> multiply_row(Matrix<T, Internal_buffer, Internal_allocator>&& mat, std::size_t ri, const T& factor)
         {
             return multiply_row<T, Internal_buffer, Internal_allocator>(std::ref(mat), ri, factor);
         }
 
-        template <Number T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <Number T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> reduced_row_echelon_form(Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             Matrix<T, Internal_buffer, Internal_allocator> rref_mat{ mat };

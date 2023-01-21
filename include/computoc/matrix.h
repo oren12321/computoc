@@ -82,7 +82,8 @@ namespace computoc {
             memoc::Stack_buffer<9 * sizeof(T)>,
             memoc::Allocated_buffer<Matrix_allocator, true>>>;
 
-        template <typename T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
+        template <typename T, memoc::Buffer Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
+            requires std::is_same_v<T, typename decltype(Internal_buffer().data())::Type>
         class Matrix {
         public:
             struct Header {
@@ -174,7 +175,7 @@ namespace computoc {
                 return buffsp_->data().p()[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
-            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::Buffer Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend bool operator==(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& lhs, const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& rhs);
 
             Matrix<T, Internal_buffer, Internal_allocator> operator()(const Inds& inds, const Dims& dims) const
@@ -191,18 +192,18 @@ namespace computoc {
                 return slice;
             }
 
-            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::Buffer Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& dst);
-            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::Buffer Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> copy(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& src, Matrix<T_o, Internal_buffer_o, Internal_allocator_o>&& dst);
 
-            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::Buffer Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> clone(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat);
 
-            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::Buffer Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> reshaped(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat, const Dims& new_dims);
 
-            template <typename T_o, memoc::Buffer<T_o> Internal_buffer_o, memoc::Allocator Internal_allocator_o>
+            template <typename T_o, memoc::Buffer Internal_buffer_o, memoc::Allocator Internal_allocator_o>
             friend Matrix<T_o, Internal_buffer_o, Internal_allocator_o> resized(const Matrix<T_o, Internal_buffer_o, Internal_allocator_o>& mat, const Dims& new_dims);
 
         private:
@@ -210,7 +211,7 @@ namespace computoc {
             memoc::Shared_ptr<Internal_buffer, Internal_allocator> buffsp_{ nullptr };
         };
 
-        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline bool operator==(const Matrix<T, Internal_buffer, Internal_allocator>& lhs, const Matrix<T, Internal_buffer, Internal_allocator>& rhs)
         {
             if (lhs.hdr_.dims != rhs.hdr_.dims) {
@@ -230,7 +231,7 @@ namespace computoc {
             return true;
         }
 
-        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> copy(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>& dst)
         {
             if (src.hdr_.dims != dst.hdr_.dims) {
@@ -249,13 +250,13 @@ namespace computoc {
 
             return dst;
         }
-        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> copy(const Matrix<T, Internal_buffer, Internal_allocator>& src, Matrix<T, Internal_buffer, Internal_allocator>&& dst)
         {
             return copy(src, dst);
         }
 
-        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> clone(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             Matrix<T, Internal_buffer, Internal_allocator> clone{};
@@ -273,7 +274,7 @@ namespace computoc {
             return clone;
         }
 
-        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> reshaped(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Dims& new_dims)
         {
             ERROC_EXPECT(!mat.hdr_.is_submatrix, std::runtime_error, "reshaping submatrix is undefined");
@@ -288,7 +289,7 @@ namespace computoc {
             return rmat;
         }
 
-        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline Matrix<T, Internal_buffer, Internal_allocator> resized(const Matrix<T, Internal_buffer, Internal_allocator>& mat, const Dims& new_dims)
         {
             ERROC_EXPECT(!mat.hdr_.is_submatrix, std::runtime_error, "resize for sub matrix is undefined");
@@ -316,14 +317,14 @@ namespace computoc {
             return rmat;
         }
 
-        template <typename T, memoc::Buffer<T> Internal_buffer, memoc::Allocator Internal_allocator>
+        template <typename T, memoc::Buffer Internal_buffer, memoc::Allocator Internal_allocator>
         inline bool empty(const Matrix<T, Internal_buffer, Internal_allocator>& mat)
         {
             return (!mat.data() || empty(mat.header().dims));
         }
 
         /*
-        template <Numeric T, memoc::Buffer<T> Internal_buffer = Matrix_buffer<T>>
+        template <Numeric T, memoc::Buffer Internal_buffer = Matrix_buffer<T>>
         class Matrix {
         public:
             template <Numeric T_o, memoc::Buffer<T_o> Internal_buffer_o>
@@ -340,7 +341,7 @@ namespace computoc {
             Internal_buffer buff_{};
         };
 
-        template <Numeric T, memoc::Buffer<T> Internal_buffer>
+        template <Numeric T, memoc::Buffer Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_horizontal(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             ERROC_EXPECT(lhs.dims_.n == rhs.dims_.n, std::invalid_argument, "dimensions mismatch (lhs.dims_.n = %d, rhs.dims_.n = %d)", lhs.dims_.n, rhs.dims_.n);
@@ -353,7 +354,7 @@ namespace computoc {
             return merged;
         }
 
-        template <Numeric T, memoc::Buffer<T> Internal_buffer>
+        template <Numeric T, memoc::Buffer Internal_buffer>
         inline Matrix<T, Internal_buffer> merge_vertical(const Matrix<T, Internal_buffer>& lhs, const Matrix<T, Internal_buffer>& rhs)
         {
             ERROC_EXPECT(lhs.dims_.m == rhs.dims_.m, std::invalid_argument, "dimensions mismatch (lhs.dims_.m = %d, rhs.dims_.m = %d)", lhs.dims_.m, rhs.dims_.m);
@@ -366,7 +367,7 @@ namespace computoc {
             return merged;
         }
 
-        //template <Numeric T, memoc::Buffer<T> Internal_buffer>
+        //template <Numeric T, memoc::Buffer Internal_buffer>
         //inline Matrix<T, Internal_buffer> row_echelon_form(const Matrix<T, Internal_buffer>& mat)
         //{
         //    Matrix<T, Internal_buffer> rref_mat{ mat };
