@@ -178,7 +178,8 @@
 #define _ENUMOC_GENERATE_ENUM_STRINGS(ns, name, ...) const char* name##_strings[static_cast<int>(name::size)] { \
     _ENUMOC_APPLY(_ENUMOC_STRINGIFY, (_ENUMOC_APPLY(ns::name::, (__VA_ARGS__)))) };
 
-#define _ENUMOC_GENERATE_ENUM_TO_STRING(name) [[nodiscard]] const char* to_string(name field) noexcept { \
+#define _ENUMOC_GENERATE_ENUM_TO_STRING(ns, name, ...) [[nodiscard]] inline const char* to_string(name field) noexcept { \
+    _ENUMOC_GENERATE_ENUM_STRINGS(ns, name, __VA_ARGS__) \
     return name##_strings[static_cast<int>(field)]; }
 
 #define _ENUMOC_GENERATE_EXPORT(ns, name) \
@@ -195,8 +196,7 @@
     _ENUMOC_START_NS(ns) \
         _ENUMOC_START_NS(details) \
             _ENUMOC_GENERATE_ENUM_CLASS(name, __VA_ARGS__) \
-            _ENUMOC_GENERATE_ENUM_STRINGS(ns, name, __VA_ARGS__) \
-            _ENUMOC_GENERATE_ENUM_TO_STRING(name) \
+            _ENUMOC_GENERATE_ENUM_TO_STRING(ns, name, __VA_ARGS__) \
         _ENUMOC_END_NS() \
         _ENUMOC_GENERATE_EXPORT(details, name) \
     _ENUMOC_END_NS()
