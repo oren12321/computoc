@@ -80,7 +80,7 @@ namespace computoc {
         template <typename T>
         using Matrix_buffer = memoc::Typed_buffer<T, memoc::Fallback_buffer<
             memoc::Stack_buffer<9 * sizeof(T)>,
-            memoc::Allocated_buffer<Matrix_allocator, true>>>;
+            memoc::Allocated_buffer<Matrix_allocator>>>;
 
         template <typename T, memoc::Buffer Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
             requires std::is_same_v<T, typename decltype(Internal_buffer().data())::Type>
