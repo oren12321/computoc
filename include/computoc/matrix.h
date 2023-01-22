@@ -139,14 +139,14 @@ namespace computoc {
                 : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims), data))
             {
                 ERROC_EXPECT(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
-                ERROC_EXPECT(buffsp_ && buffsp_->usable(), std::runtime_error, "internal buffer failed");
+                ERROC_EXPECT(buffsp_ && !memoc::empty(*buffsp_), std::runtime_error, "internal buffer failed");
             }
 
             Matrix(const Dims& dims, const T& value)
                 : hdr_{ dims, to_step(dims) }, buffsp_(memoc::make_shared<Internal_buffer, Internal_allocator>(product(dims)))
             {
                 ERROC_EXPECT(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
-                ERROC_EXPECT(buffsp_&& buffsp_->usable(), std::runtime_error, "internal buffer failed");
+                ERROC_EXPECT(buffsp_&& !memoc::empty(*buffsp_), std::runtime_error, "internal buffer failed");
 
                 for (std::size_t i = 0; i < buffsp_->data().s(); ++i) {
                     buffsp_->data().p()[i] = value;
