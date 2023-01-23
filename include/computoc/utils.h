@@ -12,6 +12,8 @@ namespace computoc {
         template <typename T>
         using Params = memoc::Block<T>;
         using memoc::empty;
+        using memoc::size;
+        using memoc::data;
 
         template <Number T = std::int64_t>
         struct Interval {
@@ -55,6 +57,8 @@ namespace computoc {
     }
 
     using details::Params;
+    using details::size;
+    using details::data;
 
     using details::Interval;
 
