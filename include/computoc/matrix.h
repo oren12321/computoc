@@ -83,7 +83,7 @@ namespace computoc {
             memoc::Allocated_buffer<Matrix_allocator>>>;
 
         template <typename T, memoc::Buffer Internal_buffer = Matrix_buffer<T>, memoc::Allocator Internal_allocator = Matrix_allocator>
-            requires std::is_same_v<T, typename decltype(Internal_buffer().data())::Type>
+            requires std::is_same_v<T, typename decltype(memoc::block(Internal_buffer()))::Type>
         class Matrix {
         public:
             struct Header {
@@ -148,8 +148,8 @@ namespace computoc {
                 ERROC_EXPECT(!empty(hdr_.dims), std::invalid_argument, "zero matrix dimensions");
                 ERROC_EXPECT(buffsp_&& !memoc::empty(*buffsp_), std::runtime_error, "internal buffer failed");
 
-                for (std::size_t i = 0; i < buffsp_->data().s(); ++i) {
-                    buffsp_->data().p()[i] = value;
+                for (std::size_t i = 0; i < memoc::size(*buffsp_); ++i) {
+                    memoc::data(*buffsp_)[i] = value;
                 }
             }
 
@@ -160,19 +160,19 @@ namespace computoc {
 
             T* data() const
             {
-                return (buffsp_ ? buffsp_->data().p() : nullptr);
+                return (buffsp_ ? memoc::data(*buffsp_) : nullptr);
             }
 
             const T& operator()(const Inds& inds) const
             {
                 ERROC_EXPECT(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
-                return buffsp_->data().p()[to_buff_index(inds, hdr_.step, hdr_.offset)];
+                return memoc::data(*buffsp_)[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
             T& operator()(const Inds& inds)
             {
                 ERROC_EXPECT(is_inside(inds, hdr_.dims), std::out_of_range, "out of range indices");
-                return buffsp_->data().p()[to_buff_index(inds, hdr_.step, hdr_.offset)];
+                return memoc::data(*buffsp_)[to_buff_index(inds, hdr_.step, hdr_.offset)];
             }
 
             template <typename T_o, memoc::Buffer Internal_buffer_o, memoc::Allocator Internal_allocator_o>
@@ -307,12 +307,12 @@ namespace computoc {
             }
 
             if (product(new_dims) < product(mat.hdr_.dims)) {
-                return Matrix<T, Internal_buffer, Internal_allocator>{ new_dims, mat.buffsp_->data().p() };
+                return Matrix<T, Internal_buffer, Internal_allocator>{ new_dims, memoc::data(*mat.buffsp_) };
             }
 
             Matrix<T, Internal_buffer, Internal_allocator> rmat{ new_dims };
-            for (std::size_t i = 0; i < mat.buffsp_->data().s(); ++i) {
-                rmat.buffsp_->data().p()[i] = mat.buffsp_->data().p()[i];
+            for (std::size_t i = 0; i < memoc::size(*mat.buffsp_); ++i) {
+                memoc::data(*rmat.buffsp_)[i] = memoc::data(*mat.buffsp_)[i];
             }
             return rmat;
         }
