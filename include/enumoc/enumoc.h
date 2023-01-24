@@ -15,7 +15,7 @@
     _19, _18, _17, _16, _15, _14, _13, _12, _11, _10, \
     _9, _8, _7, _6, _5, _4, _3, _2, _1, n, ...) n
 // ## deletes preceding comma if _VA_ARGS__ is empty (GCC, Clang)
-#define _ENUMOC_ENUMOC_VA_NARGS(...) _ENUMOC_NTH_ARG(_, ##__VA_ARGS__, \
+#define _ENUMOC_VA_NARGS(...) _ENUMOC_NTH_ARG(_, ##__VA_ARGS__, \
     100, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, \
     89, 88, 87, 86, 85, 84, 83, 82, 81, 80, \
     79, 78, 77, 76, 75, 74, 73, 72, 71, 70, \
