@@ -175,10 +175,10 @@
 
 #define _ENUMOC_GENERATE_ENUM_CLASS(name, ...) enum class name { __VA_ARGS__, size };
 
-#define _ENUMOC_GENERATE_ENUM_STRINGS(ns, name, ...) const char* name##_strings[static_cast<int>(name::size)] { \
+#define _ENUMOC_GENERATE_ENUM_STRINGS(ns, name, ...) constexpr const char* name##_strings[static_cast<int>(name::size)] { \
     _ENUMOC_APPLY(_ENUMOC_STRINGIFY, (_ENUMOC_APPLY(ns::name::, (__VA_ARGS__)))) };
 
-#define _ENUMOC_GENERATE_ENUM_TO_STRING(ns, name, ...) [[nodiscard]] inline const char* to_string(name field) noexcept { \
+#define _ENUMOC_GENERATE_ENUM_TO_STRING(ns, name, ...) [[nodiscard]] inline constexpr const char* to_string(name field) noexcept { \
     _ENUMOC_GENERATE_ENUM_STRINGS(ns, name, __VA_ARGS__) \
     return name##_strings[static_cast<int>(field)]; }
 
