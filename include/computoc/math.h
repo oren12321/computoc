@@ -54,7 +54,14 @@ namespace computoc {
         template <Integer T1, Integer T2>
         [[nodiscard]] inline constexpr auto modulo(const T1& value, const T2& modulus) noexcept -> decltype((value% modulus) + modulus)
         {
-            return ((value % modulus) + modulus) % modulus;
+            decltype((value % modulus) + modulus) res{ value };
+            while (res < 0) {
+                res += modulus;
+            }
+            while (res >= modulus) {
+                res -= modulus;
+            }
+            return res;
         }
 
         template <typename T>
