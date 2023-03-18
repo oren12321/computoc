@@ -1,4 +1,4 @@
-FROM amd64/ubuntu:18.04 AS builder
+FROM amd64/ubuntu:22.10 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         wget \
@@ -8,12 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 RUN apt update && apt install -y --no-install-recommends \
-        software-properties-common \
- && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
- && apt update && apt install -y --no-install-recommends \
-        gcc-11 g++-11 \
- && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 60 \
-        --slave /usr/bin/g++ g++ /usr/bin/g++-11 \
+        build-essential \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp/
