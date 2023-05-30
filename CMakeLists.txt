@@ -32,6 +32,6 @@ if (NOT DEFINED IN_DOCKER)
 endif()
 
 add_subdirectory(include)
-add_subdirectory(test)
+add_subdirectory(tests)
 add_subdirectory(benchmark)
 

@@ -42,10 +42,10 @@ WORKDIR /tmp/
 COPY . /tmp/
 RUN cmake . -DIN_DOCKER=TRUE -DCMAKE_BUILD_TYPE=Release \
  && make -j$(nproc) \
- && ./test/erroc/erroc_test \
- && ./test/enumoc/enumoc_test \
- && ./test/memoc/memoc_test \
- && ./test/computoc/computoc_test \
+ && ./tests/erroc/erroc_test \
+ && ./tests/enumoc/enumoc_test \
+ && ./tests/memoc/memoc_test \
+ && ./tests/computoc/computoc_test \
  && ./benchmark/memoc/memoc_benchmark \
  && rm -rf /tmp/*
 
